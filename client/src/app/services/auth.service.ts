@@ -43,15 +43,17 @@ export class AuthService {
 
   login(email: string, password: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/login`, { email, password })
-      .pipe(map(response => {
-        // Store user details and jwt token in local storage
-        localStorage.setItem('currentUser', JSON.stringify(response.user));
-        localStorage.setItem('token', response.token);
-        this.currentUserSubject.next(response.user);
-        return response;
-      }));
+      .pipe(
+        map(response => {
+          // Store user details and jwt token in local storage
+          localStorage.setItem('currentUser', JSON.stringify(response.user));
+          localStorage.setItem('token', response.token);
+          this.currentUserSubject.next(response.user);
+          return response;
         }),
         catchError(this.errorHandler.handleError.bind(this.errorHandler))
+      );
+  }
 
   register(name: string, email: string, password: string, role: string = 'Employee'): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/register`, { 
