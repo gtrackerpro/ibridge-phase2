@@ -20,6 +20,8 @@ import { DemandService } from './services/demand.service';
 import { MatchService } from './services/match.service';
 import { TrainingService } from './services/training.service';
 import { UploadService } from './services/upload.service';
+import { NotificationService } from './services/notification.service';
+import { ErrorHandlerService } from './services/error-handler.service';
 
 // Components
 import { LoginComponent } from './components/auth/login/login.component';
@@ -31,6 +33,7 @@ import { DemandListComponent } from './components/demands/demand-list/demand-lis
 import { DemandFormComponent } from './components/demands/demand-form/demand-form.component';
 import { MatchListComponent } from './components/matches/match-list/match-list.component';
 import { TrainingListComponent } from './components/training/training-list/training-list.component';
+import { NotificationComponent } from './components/shared/notification/notification.component';
 
 @NgModule({
   declarations: [
@@ -43,7 +46,8 @@ import { TrainingListComponent } from './components/training/training-list/train
     DemandListComponent,
     DemandFormComponent,
     MatchListComponent,
-    TrainingListComponent
+    TrainingListComponent,
+    NotificationComponent
   ],
   imports: [
     BrowserModule,
@@ -61,6 +65,8 @@ import { TrainingListComponent } from './components/training/training-list/train
     MatchService,
     TrainingService,
     UploadService,
+    NotificationService,
+    ErrorHandlerService,
     {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,

@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
+import { ErrorHandlerService } from './error-handler.service';
 
 export interface User {
   id: string;
@@ -25,7 +26,10 @@ export class AuthService {
   private currentUserSubject: BehaviorSubject<User | null>;
   public currentUser: Observable<User | null>;
 
-  constructor(private http: HttpClient) {
+  constructor(
+    private http: HttpClient,
+    private errorHandler: ErrorHandlerService
+  ) {
     const storedUser = localStorage.getItem('currentUser');
     this.currentUserSubject = new BehaviorSubject<User | null>(
       storedUser ? JSON.parse(storedUser) : null
@@ -46,7 +50,8 @@ export class AuthService {
         this.currentUserSubject.next(response.user);
         return response;
       }));
-  }
+        }),
+        catchError(this.errorHandler.handleError.bind(this.errorHandler))
 
   register(name: string, email: string, password: string, role: string = 'Employee'): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/register`, { 
@@ -60,7 +65,9 @@ export class AuthService {
       localStorage.setItem('token', response.token);
       this.currentUserSubject.next(response.user);
       return response;
-    }));
+    }),
+    catchError(this.errorHandler.handleError.bind(this.errorHandler))
+    );
   }
 
   logout(): void {
@@ -101,7 +108,8 @@ export class AuthService {
   }
 
   getProfile(): Observable<{ user: User }> {
-    return this.http.get<{ user: User }>(`${environment.apiUrl}/auth/profile`);
+    return this.http.get<{ user: User }>(`${environment.apiUrl}/auth/profile`)
+      .pipe(catchError(this.errorHandler.handleError.bind(this.errorHandler)));
   }
 
   updateProfile(name: string): Observable<{ message: string; user: User }> {
@@ -111,6 +119,8 @@ export class AuthService {
         localStorage.setItem('currentUser', JSON.stringify(response.user));
         this.currentUserSubject.next(response.user);
         return response;
-      }));
+      }),
+      catchError(this.errorHandler.handleError.bind(this.errorHandler))
+    );
   }
 }

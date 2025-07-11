@@ -12,6 +12,7 @@ const demandRoutes = require('./routes/demands');
 const matchRoutes = require('./routes/matches');
 const trainingRoutes = require('./routes/training');
 const uploadRoutes = require('./routes/upload');
+const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 
 const app = express();
 
@@ -66,18 +67,10 @@ app.get('/api/health', (req, res) => {
 });
 
 // Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ 
-    message: 'Something went wrong!',
-    error: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error'
-  });
-});
+app.use(errorHandler);
 
 // 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({ message: 'Route not found' });
-});
+app.use('*', notFoundHandler);
 
 const PORT = process.env.PORT || 5000;
 

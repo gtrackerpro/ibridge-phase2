@@ -1,6 +1,7 @@
 const express = require('express');
 const EmployeeProfile = require('../models/EmployeeProfile');
 const { auth, authorize } = require('../middleware/auth');
+const { validateEmployeeProfileMiddleware, sanitizeInputMiddleware } = require('../middleware/validation');
 
 const router = express.Router();
 
@@ -61,7 +62,7 @@ router.get('/:id', auth, async (req, res) => {
 });
 
 // Create new employee profile
-router.post('/', auth, authorize('Admin', 'RM'), async (req, res) => {
+router.post('/', auth, authorize('Admin', 'RM'), sanitizeInputMiddleware, validateEmployeeProfileMiddleware, async (req, res) => {
   try {
     const employeeData = {
       ...req.body,
@@ -93,8 +94,13 @@ router.post('/', auth, authorize('Admin', 'RM'), async (req, res) => {
 });
 
 // Update employee profile
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', auth, sanitizeInputMiddleware, async (req, res) => {
   try {
+    // Validate ObjectId format
+    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: 'Invalid employee ID format' });
+    }
+
     const employee = await EmployeeProfile.findById(req.params.id);
     
     if (!employee) {
@@ -104,6 +110,19 @@ router.put('/:id', auth, async (req, res) => {
     // Check permissions
     if (req.user.role === 'Employee' && employee.email !== req.user.email) {
       return res.status(403).json({ message: 'Access denied' });
+    }
+
+    // Validate update data if provided
+    if (Object.keys(req.body).length > 0) {
+      const { validateEmployeeProfile } = require('../utils/validation');
+      const validation = validateEmployeeProfile({ ...employee.toObject(), ...req.body });
+      
+      if (!validation.isValid) {
+        return res.status(400).json({
+          message: 'Validation failed',
+          errors: validation.errors
+        });
+      }
     }
 
     const updatedEmployee = await EmployeeProfile.findByIdAndUpdate(
@@ -148,9 +167,22 @@ router.delete('/:id', auth, authorize('Admin'), async (req, res) => {
 });
 
 // Search employees by skills
-router.get('/search/skills', auth, authorize('Admin', 'RM'), async (req, res) => {
+router.get('/search/skills', auth, authorize('Admin', 'RM'), sanitizeInputMiddleware, async (req, res) => {
   try {
     const { skill, minExperience, status } = req.query;
+    
+    // Validate query parameters
+    if (minExperience && (isNaN(minExperience) || parseInt(minExperience) < 0)) {
+      return res.status(400).json({
+        message: 'Minimum experience must be a non-negative number'
+      });
+    }
+    
+    if (status && !['Available', 'Allocated', 'On Leave', 'Training'].includes(status)) {
+      return res.status(400).json({
+        message: 'Invalid status. Must be one of: Available, Allocated, On Leave, Training'
+      });
+    }
     
     let query = {};
     

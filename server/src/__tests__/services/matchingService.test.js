@@ -1,0 +1,173 @@
+const { 
+  calculateMatchScore, 
+  areSkillsSimilar, 
+  generateMatches 
+} = require('../../services/matchingService');
+const EmployeeProfile = require('../../models/EmployeeProfile');
+const Demand = require('../../models/Demand');
+const User = require('../../models/User');
+
+describe('Matching Service', () => {
+  let testUser;
+
+  beforeEach(async () => {
+    testUser = new User({
+      name: 'Test User',
+      email: 'test@example.com',
+      passwordHash: 'hashedpassword'
+    });
+    await testUser.save();
+  });
+
+  describe('areSkillsSimilar', () => {
+    it('should match exact skills', () => {
+      expect(areSkillsSimilar('JavaScript', 'JavaScript')).toBe(true);
+      expect(areSkillsSimilar('Python', 'Python')).toBe(true);
+    });
+
+    it('should match case-insensitive skills', () => {
+      expect(areSkillsSimilar('javascript', 'JavaScript')).toBe(true);
+      expect(areSkillsSimilar('PYTHON', 'python')).toBe(true);
+    });
+
+    it('should match similar skills', () => {
+      expect(areSkillsSimilar('JavaScript', 'JS')).toBe(true);
+      expect(areSkillsSimilar('React', 'ReactJS')).toBe(true);
+      expect(areSkillsSimilar('Node.js', 'NodeJS')).toBe(true);
+    });
+
+    it('should not match different skills', () => {
+      expect(areSkillsSimilar('JavaScript', 'Python')).toBe(false);
+      expect(areSkillsSimilar('React', 'Angular')).toBe(false);
+    });
+
+    it('should handle synonyms', () => {
+      expect(areSkillsSimilar('Database', 'SQL')).toBe(true);
+      expect(areSkillsSimilar('Frontend', 'UI')).toBe(true);
+      expect(areSkillsSimilar('Backend', 'Server-side')).toBe(true);
+    });
+  });
+
+  describe('calculateMatchScore', () => {
+    it('should give perfect score for exact match', () => {
+      const employee = {
+        primarySkill: 'JavaScript',
+        primarySkillExperience: 5,
+        secondarySkills: [
+          { skill: 'React', experience: 3 },
+          { skill: 'Node.js', experience: 2 }
+        ],
+        status: 'Available'
+      };
+
+      const demand = {
+        primarySkill: 'JavaScript',
+        experienceRange: { min: 3, max: 7 },
+        secondarySkills: ['React', 'Node.js']
+      };
+
+      const score = calculateMatchScore(employee, demand);
+      expect(score).toBeGreaterThan(90);
+    });
+
+    it('should penalize under-qualified candidates', () => {
+      const employee = {
+        primarySkill: 'JavaScript',
+        primarySkillExperience: 2,
+        secondarySkills: [],
+        status: 'Available'
+      };
+
+      const demand = {
+        primarySkill: 'JavaScript',
+        experienceRange: { min: 5, max: 8 },
+        secondarySkills: []
+      };
+
+      const score = calculateMatchScore(employee, demand);
+      expect(score).toBeLessThan(60);
+    });
+
+    it('should handle over-qualified candidates', () => {
+      const employee = {
+        primarySkill: 'JavaScript',
+        primarySkillExperience: 10,
+        secondarySkills: [],
+        status: 'Available'
+      };
+
+      const demand = {
+        primarySkill: 'JavaScript',
+        experienceRange: { min: 3, max: 5 },
+        secondarySkills: []
+      };
+
+      const score = calculateMatchScore(employee, demand);
+      expect(score).toBeGreaterThan(80);
+    });
+
+    it('should consider availability status', () => {
+      const availableEmployee = {
+        primarySkill: 'JavaScript',
+        primarySkillExperience: 5,
+        secondarySkills: [],
+        status: 'Available'
+      };
+
+      const allocatedEmployee = {
+        primarySkill: 'JavaScript',
+        primarySkillExperience: 5,
+        secondarySkills: [],
+        status: 'Allocated'
+      };
+
+      const demand = {
+        primarySkill: 'JavaScript',
+        experienceRange: { min: 3, max: 7 },
+        secondarySkills: []
+      };
+
+      const availableScore = calculateMatchScore(availableEmployee, demand);
+      const allocatedScore = calculateMatchScore(allocatedEmployee, demand);
+
+      expect(availableScore).toBeGreaterThan(allocatedScore);
+    });
+  });
+
+  describe('generateMatches', () => {
+    it('should generate matches for a demand', async () => {
+      // Create test employee
+      const employee = new EmployeeProfile({
+        employeeId: 'EMP001',
+        name: 'John Doe',
+        email: 'john@example.com',
+        primarySkill: 'JavaScript',
+        primarySkillExperience: 5,
+        BU: 'Technology',
+        status: 'Available',
+        createdBy: testUser._id
+      });
+      await employee.save();
+
+      // Create test demand
+      const demand = new Demand({
+        demandId: 'DEM001',
+        accountName: 'Test Account',
+        projectName: 'Test Project',
+        positionTitle: 'Developer',
+        primarySkill: 'JavaScript',
+        experienceRange: { min: 3, max: 7 },
+        startDate: new Date(),
+        createdBy: testUser._id
+      });
+      await demand.save();
+
+      const matches = await generateMatches(demand._id);
+
+      expect(matches).toHaveLength(1);
+      expect(matches[0].employeeId.toString()).toBe(employee._id.toString());
+      expect(matches[0].matchScore).toBeGreaterThan(0);
+      expect(['Exact', 'Near', 'Not Eligible']).toContain(matches[0].matchType);
+    });
+  });
+});

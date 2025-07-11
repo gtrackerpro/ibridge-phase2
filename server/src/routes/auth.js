@@ -2,11 +2,12 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { auth } = require('../middleware/auth');
+const { validateUserRegistrationMiddleware, sanitizeInputMiddleware } = require('../middleware/validation');
 
 const router = express.Router();
 
 // Register
-router.post('/register', async (req, res) => {
+router.post('/register', sanitizeInputMiddleware, validateUserRegistrationMiddleware, async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
 
@@ -53,9 +54,16 @@ router.post('/register', async (req, res) => {
 });
 
 // Login
-router.post('/login', async (req, res) => {
+router.post('/login', sanitizeInputMiddleware, async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    // Basic validation for login
+    if (!email || !password) {
+      return res.status(400).json({ 
+        message: 'Email and password are required' 
+      });
+    }
 
     // Find user by email
     const user = await User.findOne({ email });
@@ -121,13 +129,26 @@ router.get('/profile', auth, async (req, res) => {
 });
 
 // Update user profile
-router.put('/profile', auth, async (req, res) => {
+router.put('/profile', auth, sanitizeInputMiddleware, async (req, res) => {
   try {
     const { name } = req.body;
     
+    // Basic validation
+    if (!name || !name.trim()) {
+      return res.status(400).json({
+        message: 'Name is required'
+      });
+    }
+    
+    if (name.trim().length < 2 || name.trim().length > 100) {
+      return res.status(400).json({
+        message: 'Name must be between 2 and 100 characters'
+      });
+    }
+    
     const user = await User.findByIdAndUpdate(
       req.user._id,
-      { name },
+      { name: name.trim() },
       { new: true, runValidators: true }
     ).select('-passwordHash');
 

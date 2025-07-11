@@ -3,6 +3,7 @@ const TrainingPlan = require('../models/TrainingPlan');
 const EmployeeProfile = require('../models/EmployeeProfile');
 const Match = require('../models/Match');
 const { auth, authorize } = require('../middleware/auth');
+const { validateTrainingPlanMiddleware, sanitizeInputMiddleware } = require('../middleware/validation');
 
 const router = express.Router();
 
@@ -73,8 +74,14 @@ router.get('/:id', auth, async (req, res) => {
 });
 
 // Create new training plan
-router.post('/', auth, authorize('Admin', 'RM'), async (req, res) => {
+router.post('/', auth, authorize('Admin', 'RM'), sanitizeInputMiddleware, validateTrainingPlanMiddleware, async (req, res) => {
   try {
+    // Validate that employee exists
+    const employee = await EmployeeProfile.findById(req.body.employeeId);
+    if (!employee) {
+      return res.status(404).json({ message: 'Employee not found' });
+    }
+
     const trainingPlanData = {
       ...req.body,
       assignedBy: req.user._id
@@ -102,8 +109,13 @@ router.post('/', auth, authorize('Admin', 'RM'), async (req, res) => {
 });
 
 // Update training plan
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', auth, sanitizeInputMiddleware, async (req, res) => {
   try {
+    // Validate ObjectId format
+    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: 'Invalid training plan ID format' });
+    }
+
     const trainingPlan = await TrainingPlan.findById(req.params.id);
     
     if (!trainingPlan) {
@@ -119,8 +131,31 @@ router.put('/:id', auth, async (req, res) => {
       // Employees can only update progress and status
       const allowedFields = ['progress', 'status'];
       const updateData = {};
+      
       allowedFields.forEach(field => {
         if (req.body[field] !== undefined) {
+          // Validate progress
+          if (field === 'progress') {
+            const progress = Number(req.body[field]);
+            if (isNaN(progress) || progress < 0 || progress > 100) {
+              return res.status(400).json({
+                message: 'Progress must be a number between 0 and 100'
+              });
+            }
+            updateData[field] = progress;
+          }
+          // Validate status
+          else if (field === 'status') {
+            if (!['Assigned', 'In Progress', 'Completed', 'On Hold'].includes(req.body[field])) {
+              return res.status(400).json({
+                message: 'Invalid status. Must be one of: Assigned, In Progress, Completed, On Hold'
+              });
+            }
+            updateData[field] = req.body[field];
+          }
+          else {
+            updateData[field] = req.body[field];
+          }
           updateData[field] = req.body[field];
         }
       });
@@ -172,9 +207,18 @@ router.delete('/:id', auth, authorize('Admin', 'RM'), async (req, res) => {
 });
 
 // Generate training plan from match
-router.post('/generate-from-match', auth, authorize('Admin', 'RM'), async (req, res) => {
+router.post('/generate-from-match', auth, authorize('Admin', 'RM'), sanitizeInputMiddleware, async (req, res) => {
   try {
     const { matchId } = req.body;
+
+    // Validate matchId
+    if (!matchId) {
+      return res.status(400).json({ message: 'Match ID is required' });
+    }
+
+    if (!matchId.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: 'Invalid match ID format' });
+    }
 
     const match = await Match.findById(matchId)
       .populate('demandId')

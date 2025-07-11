@@ -1,6 +1,7 @@
 const express = require('express');
 const Demand = require('../models/Demand');
 const { auth, authorize } = require('../middleware/auth');
+const { validateDemandMiddleware, sanitizeInputMiddleware } = require('../middleware/validation');
 
 const router = express.Router();
 
@@ -61,7 +62,7 @@ router.get('/:id', auth, async (req, res) => {
 });
 
 // Create new demand
-router.post('/', auth, authorize('Admin', 'RM'), async (req, res) => {
+router.post('/', auth, authorize('Admin', 'RM'), sanitizeInputMiddleware, validateDemandMiddleware, async (req, res) => {
   try {
     const demandData = {
       ...req.body,
@@ -93,8 +94,13 @@ router.post('/', auth, authorize('Admin', 'RM'), async (req, res) => {
 });
 
 // Update demand
-router.put('/:id', auth, authorize('Admin', 'RM'), async (req, res) => {
+router.put('/:id', auth, authorize('Admin', 'RM'), sanitizeInputMiddleware, async (req, res) => {
   try {
+    // Validate ObjectId format
+    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: 'Invalid demand ID format' });
+    }
+
     const demand = await Demand.findById(req.params.id);
     
     if (!demand) {
@@ -104,6 +110,19 @@ router.put('/:id', auth, authorize('Admin', 'RM'), async (req, res) => {
     // Check if RM can update this demand
     if (req.user.role === 'RM' && demand.createdBy.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'Access denied' });
+    }
+
+    // Validate update data if provided
+    if (Object.keys(req.body).length > 0) {
+      const { validateDemand } = require('../utils/validation');
+      const validation = validateDemand({ ...demand.toObject(), ...req.body });
+      
+      if (!validation.isValid) {
+        return res.status(400).json({
+          message: 'Validation failed',
+          errors: validation.errors
+        });
+      }
     }
 
     const updatedDemand = await Demand.findByIdAndUpdate(

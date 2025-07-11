@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
+import { NotificationService } from '../../../services/notification.service';
+import { ErrorHandlerService } from '../../../services/error-handler.service';
 
 @Component({
   selector: 'app-login',
@@ -18,7 +20,9 @@ export class LoginComponent implements OnInit {
     private formBuilder: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private notificationService: NotificationService,
+    private errorHandler: ErrorHandlerService
   ) {
     // Redirect to dashboard if already logged in
     if (this.authService.isAuthenticated()) {
@@ -48,10 +52,12 @@ export class LoginComponent implements OnInit {
 
     this.authService.login(email, password).subscribe({
       next: (response) => {
+        this.notificationService.success('Login Successful', `Welcome back, ${response.user.name}!`);
         this.router.navigate([this.returnUrl]);
       },
       error: (error) => {
-        this.error = error.error?.message || 'Login failed. Please try again.';
+        this.error = this.errorHandler.getErrorMessage(error);
+        this.notificationService.error('Login Failed', this.error);
         this.loading = false;
       }
     });

@@ -3,6 +3,8 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 import { EmployeeService, Employee } from '../../../services/employee.service';
 import { UploadService } from '../../../services/upload.service';
+import { NotificationService } from '../../../services/notification.service';
+import { ErrorHandlerService } from '../../../services/error-handler.service';
 
 @Component({
   selector: 'app-employee-list',
@@ -31,7 +33,9 @@ export class EmployeeListComponent implements OnInit {
     public authService: AuthService,
     private employeeService: EmployeeService,
     private uploadService: UploadService,
-    private router: Router
+    private router: Router,
+    private notificationService: NotificationService,
+    private errorHandler: ErrorHandlerService
   ) { }
 
   ngOnInit(): void {
@@ -47,6 +51,8 @@ export class EmployeeListComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading employees:', error);
+        this.notificationService.error('Error', 'Failed to load employees');
+        this.notificationService.error('Search Error', 'Failed to search employees');
         this.loading = false;
       }
     });
@@ -144,12 +150,14 @@ export class EmployeeListComponent implements OnInit {
       next: (response) => {
         this.uploading = false;
         this.closeUploadModal();
+        this.notificationService.success('Upload Successful', 'CSV uploaded and processed successfully');
+        this.notificationService.success('Success', `${employee.name} deleted successfully`);
         this.loadEmployees();
-        alert('CSV uploaded successfully!');
       },
       error: (error) => {
         this.uploading = false;
-        this.uploadError = error.error?.message || 'Upload failed';
+        this.uploadError = this.errorHandler.getErrorMessage(error);
+        this.notificationService.error('Upload Failed', this.uploadError);
       }
     });
   }
