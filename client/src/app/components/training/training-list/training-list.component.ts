@@ -28,6 +28,8 @@ export class TrainingListComponent implements OnInit {
   // Progress update
   progressUpdate = 0;
   statusUpdate = '';
+  progressNotes = '';
+  updatingProgress = false;
 
   constructor(
     public authService: AuthService,
@@ -122,6 +124,7 @@ export class TrainingListComponent implements OnInit {
     this.selectedPlan = plan;
     this.progressUpdate = plan.progress;
     this.statusUpdate = plan.status;
+    this.progressNotes = '';
   }
 
   closePlanModal(): void {
@@ -153,13 +156,16 @@ export class TrainingListComponent implements OnInit {
   updateProgress(): void {
     if (!this.selectedPlan) return;
 
-    const updateData = {
-      progress: this.progressUpdate,
-      status: this.statusUpdate
-    };
+    this.updatingProgress = true;
 
-    this.trainingService.updateTrainingPlan(this.selectedPlan._id, updateData).subscribe({
+    this.trainingService.updateTrainingProgress(
+      this.selectedPlan._id, 
+      this.progressUpdate, 
+      this.statusUpdate,
+      this.progressNotes || undefined
+    ).subscribe({
       next: (response) => {
+        this.updatingProgress = false;
         // Update the plan in local arrays
         const index = this.trainingPlans.findIndex(p => p._id === this.selectedPlan!._id);
         if (index !== -1) {
@@ -172,11 +178,12 @@ export class TrainingListComponent implements OnInit {
         }
 
         this.selectedPlan = response.trainingPlan;
-        alert('Progress updated successfully!');
+        this.notificationService.success('Success', 'Progress updated successfully!');
       },
       error: (error) => {
+        this.updatingProgress = false;
         console.error('Error updating progress:', error);
-        alert('Failed to update progress');
+        this.notificationService.error('Error', 'Failed to update progress');
       }
     });
   }

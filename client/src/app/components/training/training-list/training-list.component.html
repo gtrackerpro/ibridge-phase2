@@ -428,7 +428,7 @@
             <h4 class="text-md font-medium text-gray-900">Update Progress</h4>
           </div>
           <div class="card-body">
-            <div class="flex items-center space-x-4">
+            <div class="space-y-4">
               <div class="flex-1">
                 <label for="progressUpdate" class="block text-sm font-medium text-gray-700">Progress (%)</label>
                 <input 
@@ -451,10 +451,67 @@
                   <option value="On Hold">On Hold</option>
                 </select>
               </div>
-              <div class="flex items-end">
+              <div>
+                <label for="progressNotes" class="block text-sm font-medium text-gray-700">Notes (Optional)</label>
+                <textarea 
+                  id="progressNotes"
+                  [(ngModel)]="progressNotes"
+                  rows="3"
+                  class="form-input mt-1"
+                  placeholder="Add any notes about your progress..."></textarea>
+              </div>
+              <div class="flex justify-end">
                 <button (click)="updateProgress()" class="btn-primary">
+                  <span *ngIf="updatingProgress" class="spinner mr-2"></span>
                   Update
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Resource Links with Enhanced Display -->
+        <div class="card mt-6" *ngIf="selectedPlan.resourceLinks.length > 0">
+          <div class="card-header">
+            <h4 class="text-md font-medium text-gray-900">Learning Resources</h4>
+          </div>
+          <div class="card-body">
+            <div class="space-y-4">
+              <div *ngFor="let resource of selectedPlan.resourceLinks" 
+                   class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                <div class="flex items-start justify-between">
+                  <div class="flex-1">
+                    <h5 class="text-sm font-medium text-gray-900 mb-1">
+                      <a [href]="resource.url" target="_blank" 
+                         class="text-primary-600 hover:text-primary-800 hover:underline">
+                        {{ resource.title }}
+                      </a>
+                    </h5>
+                    <div class="flex items-center space-x-4 text-xs text-gray-500 mb-2">
+                      <span class="badge badge-info">{{ resource.type }}</span>
+                      <span *ngIf="resource.difficulty">{{ resource.difficulty }}</span>
+                      <span *ngIf="resource.estimatedHours">{{ resource.estimatedHours }}h</span>
+                      <span *ngIf="resource.provider">{{ resource.provider }}</span>
+                      <span *ngIf="resource.cost" class="badge" 
+                            [ngClass]="{
+                              'badge-success': resource.cost === 'Free',
+                              'badge-warning': resource.cost === 'Paid',
+                              'badge-info': resource.cost === 'Subscription'
+                            }">
+                        {{ resource.cost }}
+                      </span>
+                    </div>
+                    <p *ngIf="resource.associatedSkill" class="text-xs text-gray-600">
+                      For: {{ resource.associatedSkill }}
+                    </p>
+                  </div>
+                  <div *ngIf="resource.rating" class="flex items-center ml-4">
+                    <span class="text-sm text-gray-600">{{ resource.rating }}/5</span>
+                    <svg class="w-4 h-4 text-yellow-400 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                    </svg>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
