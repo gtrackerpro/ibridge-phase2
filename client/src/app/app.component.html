@@ -44,11 +44,32 @@
           </div>
         </div>
         <div class="flex items-center space-x-4">
-          <span class="text-sm text-gray-700">{{ authService.getCurrentUser()?.name }}</span>
-          <span class="badge badge-info">{{ authService.getCurrentUser()?.role }}</span>
-          <button (click)="logout()" class="btn-secondary">
-            Logout
-          </button>
+          <!-- User Menu Dropdown -->
+          <div class="relative">
+            <button (click)="showUserMenu = !showUserMenu" 
+                    class="flex items-center space-x-2 text-sm text-gray-700 hover:text-gray-900 focus:outline-none">
+              <span>{{ authService.getCurrentUser()?.name }}</span>
+              <span class="badge badge-info">{{ authService.getCurrentUser()?.role }}</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+            
+            <!-- Dropdown Menu -->
+            <div *ngIf="showUserMenu" 
+                 class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+              <a routerLink="/profile" 
+                 (click)="showUserMenu = false"
+                 class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                My Profile
+              </a>
+              <hr class="my-1">
+              <button (click)="logout()" 
+                      class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                Logout
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

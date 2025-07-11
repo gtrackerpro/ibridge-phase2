@@ -165,4 +165,71 @@ router.put('/profile', auth, sanitizeInputMiddleware, async (req, res) => {
   }
 });
 
+// Change password
+router.put('/change-password', auth, sanitizeInputMiddleware, async (req, res) => {
+  try {
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+    
+    // Basic validation
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return res.status(400).json({
+        message: 'Current password, new password, and confirmation are required'
+      });
+    }
+    
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        message: 'New password and confirmation do not match'
+      });
+    }
+    
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        message: 'New password must be at least 6 characters long'
+      });
+    }
+    
+    if (newPassword.length > 128) {
+      return res.status(400).json({
+        message: 'New password cannot exceed 128 characters'
+      });
+    }
+    
+    // Get user with password hash
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Verify current password
+    const isCurrentPasswordValid = await user.comparePassword(currentPassword);
+    if (!isCurrentPasswordValid) {
+      return res.status(400).json({
+        message: 'Current password is incorrect'
+      });
+    }
+    
+    // Check if new password is different from current
+    const isSamePassword = await user.comparePassword(newPassword);
+    if (isSamePassword) {
+      return res.status(400).json({
+        message: 'New password must be different from current password'
+      });
+    }
+    
+    // Update password
+    user.passwordHash = newPassword;
+    await user.save();
+    
+    res.json({
+      message: 'Password changed successfully'
+    });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({ 
+      message: 'Failed to change password', 
+      error: error.message 
+    });
+  }
+});
 module.exports = router;

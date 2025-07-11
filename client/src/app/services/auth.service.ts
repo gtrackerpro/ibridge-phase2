@@ -125,4 +125,12 @@ export class AuthService {
       catchError(this.errorHandler.handleError.bind(this.errorHandler))
     );
   }
+
+  changePassword(currentPassword: string, newPassword: string, confirmPassword: string): Observable<{ message: string }> {
+    return this.http.put<{ message: string }>(`${environment.apiUrl}/auth/change-password`, { 
+      currentPassword, 
+      newPassword, 
+      confirmPassword 
+    }).pipe(catchError(this.errorHandler.handleError.bind(this.errorHandler)));
+  }
 }

@@ -11,6 +11,7 @@ import { DemandFormComponent } from './components/demands/demand-form/demand-for
 import { MatchListComponent } from './components/matches/match-list/match-list.component';
 import { TrainingListComponent } from './components/training/training-list/training-list.component';
 import { UserListComponent } from './components/users/user-list/user-list.component';
+import { ProfileComponent } from './components/profile/profile.component';
 import { AdminGuard } from './guards/admin.guard';
 
 const routes: Routes = [
@@ -20,6 +21,11 @@ const routes: Routes = [
   { 
     path: 'dashboard', 
     component: DashboardComponent, 
+    canActivate: [AuthGuard] 
+  },
+  { 
+    path: 'profile', 
+    component: ProfileComponent, 
     canActivate: [AuthGuard] 
   },
   { 

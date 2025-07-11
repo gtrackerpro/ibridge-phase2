@@ -1,0 +1,209 @@
+<div class="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
+  <!-- Page header -->
+  <div class="md:flex md:items-center md:justify-between mb-8">
+    <div class="flex-1 min-w-0">
+      <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+        My Profile
+      </h2>
+      <p class="mt-1 text-sm text-gray-500">
+        Manage your personal information and account settings
+      </p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <!-- Profile Information -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">Profile Information</h3>
+        <p class="mt-1 text-sm text-gray-500">
+          Update your personal information and account details.
+        </p>
+      </div>
+      <div class="card-body">
+        <form [formGroup]="profileForm" (ngSubmit)="updateProfile()" class="space-y-6">
+          <div>
+            <label for="name" class="block text-sm font-medium text-gray-700">Full Name</label>
+            <input 
+              type="text" 
+              id="name"
+              formControlName="name"
+              class="form-input mt-1"
+              placeholder="Enter your full name">
+            <div *ngIf="profileForm.get('name')?.invalid && profileForm.get('name')?.touched" 
+                 class="mt-1 text-sm text-red-600">
+              <span *ngIf="profileForm.get('name')?.errors?.['required']">Name is required</span>
+              <span *ngIf="profileForm.get('name')?.errors?.['minlength']">Name must be at least 2 characters</span>
+              <span *ngIf="profileForm.get('name')?.errors?.['maxlength']">Name cannot exceed 100 characters</span>
+            </div>
+          </div>
+
+          <div>
+            <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
+            <input 
+              type="email" 
+              id="email"
+              [value]="currentUser?.email"
+              disabled
+              class="form-input mt-1 bg-gray-50 text-gray-500 cursor-not-allowed">
+            <p class="mt-1 text-sm text-gray-500">Email cannot be changed. Contact an administrator if needed.</p>
+          </div>
+
+          <div>
+            <label for="role" class="block text-sm font-medium text-gray-700">Role</label>
+            <input 
+              type="text" 
+              id="role"
+              [value]="currentUser?.role"
+              disabled
+              class="form-input mt-1 bg-gray-50 text-gray-500 cursor-not-allowed">
+          </div>
+
+          <div *ngIf="profileError" class="rounded-md bg-red-50 p-4">
+            <div class="flex">
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-red-800">
+                  {{ profileError }}
+                </h3>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end">
+            <button 
+              type="submit" 
+              [disabled]="updatingProfile || profileForm.invalid || !profileForm.dirty"
+              class="btn-primary">
+              <span *ngIf="updatingProfile" class="spinner mr-2"></span>
+              Update Profile
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Change Password -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">Change Password</h3>
+        <p class="mt-1 text-sm text-gray-500">
+          Update your password to keep your account secure.
+        </p>
+      </div>
+      <div class="card-body">
+        <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" class="space-y-6">
+          <div>
+            <label for="currentPassword" class="block text-sm font-medium text-gray-700">Current Password</label>
+            <input 
+              type="password" 
+              id="currentPassword"
+              formControlName="currentPassword"
+              class="form-input mt-1"
+              placeholder="Enter your current password">
+            <div *ngIf="passwordForm.get('currentPassword')?.invalid && passwordForm.get('currentPassword')?.touched" 
+                 class="mt-1 text-sm text-red-600">
+              Current password is required
+            </div>
+          </div>
+
+          <div>
+            <label for="newPassword" class="block text-sm font-medium text-gray-700">New Password</label>
+            <input 
+              type="password" 
+              id="newPassword"
+              formControlName="newPassword"
+              class="form-input mt-1"
+              placeholder="Enter your new password">
+            <div *ngIf="passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched" 
+                 class="mt-1 text-sm text-red-600">
+              <span *ngIf="passwordForm.get('newPassword')?.errors?.['required']">New password is required</span>
+              <span *ngIf="passwordForm.get('newPassword')?.errors?.['minlength']">Password must be at least 6 characters</span>
+              <span *ngIf="passwordForm.get('newPassword')?.errors?.['maxlength']">Password cannot exceed 128 characters</span>
+            </div>
+          </div>
+
+          <div>
+            <label for="confirmPassword" class="block text-sm font-medium text-gray-700">Confirm New Password</label>
+            <input 
+              type="password" 
+              id="confirmPassword"
+              formControlName="confirmPassword"
+              class="form-input mt-1"
+              placeholder="Confirm your new password">
+            <div *ngIf="passwordForm.get('confirmPassword')?.invalid && passwordForm.get('confirmPassword')?.touched" 
+                 class="mt-1 text-sm text-red-600">
+              Please confirm your new password
+            </div>
+            <div *ngIf="passwordForm.errors?.['passwordMismatch'] && passwordForm.get('confirmPassword')?.touched" 
+                 class="mt-1 text-sm text-red-600">
+              Passwords do not match
+            </div>
+          </div>
+
+          <!-- Password Strength Indicator -->
+          <div *ngIf="passwordForm.get('newPassword')?.value" class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700">Password Strength</label>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+              <div class="h-2 rounded-full transition-all duration-300" 
+                   [style.width.%]="passwordStrength.percentage"
+                   [ngClass]="{
+                     'bg-red-500': passwordStrength.level === 'weak',
+                     'bg-yellow-500': passwordStrength.level === 'medium',
+                     'bg-green-500': passwordStrength.level === 'strong'
+                   }"></div>
+            </div>
+            <p class="text-sm" 
+               [ngClass]="{
+                 'text-red-600': passwordStrength.level === 'weak',
+                 'text-yellow-600': passwordStrength.level === 'medium',
+                 'text-green-600': passwordStrength.level === 'strong'
+               }">
+              {{ passwordStrength.message }}
+            </p>
+          </div>
+
+          <div *ngIf="passwordError" class="rounded-md bg-red-50 p-4">
+            <div class="flex">
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-red-800">
+                  {{ passwordError }}
+                </h3>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end">
+            <button 
+              type="submit" 
+              [disabled]="changingPassword || passwordForm.invalid"
+              class="btn-primary">
+              <span *ngIf="changingPassword" class="spinner mr-2"></span>
+              Change Password
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Account Information -->
+  <div class="card mt-6">
+    <div class="card-header">
+      <h3 class="text-lg leading-6 font-medium text-gray-900">Account Information</h3>
+    </div>
+    <div class="card-body">
+      <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Account Created</label>
+          <p class="mt-1 text-sm text-gray-900">{{ currentUser?.createdAt | date:'medium' }}</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Last Login</label>
+          <p class="mt-1 text-sm text-gray-900">
+            {{ currentUser?.lastLogin ? (currentUser.lastLogin | date:'medium') : 'Never' }}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

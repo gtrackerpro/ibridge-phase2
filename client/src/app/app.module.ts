@@ -36,6 +36,7 @@ import { MatchListComponent } from './components/matches/match-list/match-list.c
 import { TrainingListComponent } from './components/training/training-list/training-list.component';
 import { NotificationComponent } from './components/shared/notification/notification.component';
 import { UserListComponent } from './components/users/user-list/user-list.component';
+import { ProfileComponent } from './components/profile/profile.component';
 
 @NgModule({
   declarations: [
@@ -50,7 +51,8 @@ import { UserListComponent } from './components/users/user-list/user-list.compon
     MatchListComponent,
     TrainingListComponent,
     NotificationComponent,
-    UserListComponent
+    UserListComponent,
+    ProfileComponent
   ],
   imports: [
     BrowserModule,

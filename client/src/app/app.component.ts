@@ -10,6 +10,7 @@ import { AuthService } from './services/auth.service';
 export class AppComponent {
   title = 'iBridge AI';
   loading = false;
+  showUserMenu = false;
 
   constructor(
     public authService: AuthService,
@@ -17,6 +18,7 @@ export class AppComponent {
   ) {}
 
   logout() {
+    this.showUserMenu = false;
     this.authService.logout();
     this.router.navigate(['/login']);
   }
