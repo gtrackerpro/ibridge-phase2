@@ -6,11 +6,105 @@ const Match = require('../models/Match');
 // Initialize stemmer for better text matching
 const stemmer = natural.PorterStemmer;
 
-// Skill similarity threshold
-const SIMILARITY_THRESHOLD = 0.7;
+// Enhanced skill similarity threshold (lowered for better matching)
+const SIMILARITY_THRESHOLD = 0.65;
+
+// Comprehensive skill synonyms and related terms
+const SKILL_SYNONYMS = {
+  // Programming Languages
+  'javascript': ['js', 'ecmascript', 'es6', 'es2015', 'node.js', 'nodejs', 'typescript', 'ts'],
+  'python': ['py', 'python3', 'django', 'flask', 'fastapi'],
+  'java': ['jvm', 'spring', 'spring boot', 'hibernate'],
+  'c#': ['csharp', 'dotnet', '.net', 'asp.net'],
+  'php': ['laravel', 'symfony', 'codeigniter'],
+  'ruby': ['rails', 'ruby on rails', 'ror'],
+  'go': ['golang'],
+  'kotlin': ['android kotlin'],
+  'swift': ['ios swift'],
+  
+  // Frontend Technologies
+  'react': ['reactjs', 'react.js', 'react native', 'jsx'],
+  'angular': ['angularjs', 'angular2', 'angular4', 'angular8', 'angular12', 'typescript'],
+  'vue': ['vuejs', 'vue.js', 'nuxt', 'nuxt.js'],
+  'html': ['html5', 'markup', 'web markup'],
+  'css': ['css3', 'scss', 'sass', 'less', 'stylus'],
+  'bootstrap': ['bootstrap4', 'bootstrap5', 'responsive design'],
+  'tailwind': ['tailwindcss', 'utility-first css'],
+  
+  // Backend Technologies
+  'node.js': ['nodejs', 'express', 'express.js', 'javascript backend'],
+  'spring': ['spring boot', 'spring framework', 'java backend'],
+  'django': ['python web', 'python backend'],
+  'flask': ['python microframework'],
+  'laravel': ['php framework'],
+  'rails': ['ruby on rails', 'ror'],
+  
+  // Databases
+  'database': ['db', 'sql', 'nosql', 'rdbms'],
+  'mysql': ['sql', 'relational database', 'rdbms'],
+  'postgresql': ['postgres', 'sql', 'relational database'],
+  'mongodb': ['mongo', 'nosql', 'document database'],
+  'redis': ['cache', 'in-memory database'],
+  'elasticsearch': ['elastic', 'search engine'],
+  'oracle': ['oracle db', 'sql'],
+  'sql server': ['mssql', 'microsoft sql'],
+  
+  // Cloud & DevOps
+  'aws': ['amazon web services', 'ec2', 's3', 'lambda', 'cloudformation'],
+  'azure': ['microsoft azure', 'azure cloud'],
+  'gcp': ['google cloud', 'google cloud platform'],
+  'docker': ['containerization', 'containers'],
+  'kubernetes': ['k8s', 'container orchestration'],
+  'jenkins': ['ci/cd', 'continuous integration'],
+  'terraform': ['infrastructure as code', 'iac'],
+  'ansible': ['configuration management', 'automation'],
+  
+  // Development Practices
+  'devops': ['deployment', 'ci/cd', 'docker', 'kubernetes', 'automation'],
+  'agile': ['scrum', 'kanban', 'sprint planning'],
+  'testing': ['qa', 'quality assurance', 'automation testing', 'unit testing'],
+  'tdd': ['test driven development', 'unit testing'],
+  'microservices': ['service oriented architecture', 'soa', 'distributed systems'],
+  
+  // UI/UX
+  'frontend': ['front-end', 'ui', 'user interface', 'client-side'],
+  'backend': ['back-end', 'server-side', 'api development'],
+  'fullstack': ['full-stack', 'full stack developer'],
+  'ui/ux': ['user interface', 'user experience', 'design'],
+  'responsive design': ['mobile first', 'adaptive design'],
+  
+  // Data & Analytics
+  'data science': ['machine learning', 'ml', 'data analysis', 'statistics'],
+  'machine learning': ['ml', 'ai', 'artificial intelligence', 'deep learning'],
+  'data analysis': ['analytics', 'business intelligence', 'bi'],
+  'big data': ['hadoop', 'spark', 'data processing'],
+  
+  // Mobile Development
+  'mobile': ['ios', 'android', 'react native', 'flutter'],
+  'ios': ['swift', 'objective-c', 'xcode'],
+  'android': ['kotlin', 'java android', 'android studio'],
+  'react native': ['cross-platform mobile', 'mobile development'],
+  'flutter': ['dart', 'cross-platform mobile'],
+  
+  // Project Management
+  'project management': ['pm', 'pmp', 'agile', 'scrum master'],
+  'business analysis': ['ba', 'requirements gathering', 'stakeholder management'],
+  'product management': ['product owner', 'roadmap planning', 'feature prioritization']
+};
+
+// Skill categories for better matching
+const SKILL_CATEGORIES = {
+  'programming': ['javascript', 'python', 'java', 'c#', 'php', 'ruby', 'go', 'kotlin', 'swift'],
+  'frontend': ['react', 'angular', 'vue', 'html', 'css', 'bootstrap', 'tailwind'],
+  'backend': ['node.js', 'spring', 'django', 'flask', 'laravel', 'rails'],
+  'database': ['mysql', 'postgresql', 'mongodb', 'redis', 'elasticsearch', 'oracle'],
+  'cloud': ['aws', 'azure', 'gcp', 'docker', 'kubernetes'],
+  'mobile': ['ios', 'android', 'react native', 'flutter'],
+  'data': ['data science', 'machine learning', 'data analysis', 'big data']
+};
 
 /**
- * Calculate similarity between two skills using Jaro-Winkler distance
+ * Enhanced skill similarity calculation using multiple algorithms
  */
 function calculateSkillSimilarity(skill1, skill2) {
   const normalizedSkill1 = skill1.toLowerCase().trim();
@@ -20,11 +114,22 @@ function calculateSkillSimilarity(skill1, skill2) {
     return 1.0;
   }
   
-  return natural.JaroWinklerDistance(normalizedSkill1, normalizedSkill2);
+  // Jaro-Winkler distance
+  const jaroWinkler = natural.JaroWinklerDistance(normalizedSkill1, normalizedSkill2);
+  
+  // Levenshtein distance normalized
+  const levenshtein = 1 - (natural.LevenshteinDistance(normalizedSkill1, normalizedSkill2) / 
+    Math.max(normalizedSkill1.length, normalizedSkill2.length));
+  
+  // Dice coefficient for better substring matching
+  const dice = natural.DiceCoefficient(normalizedSkill1, normalizedSkill2);
+  
+  // Combined score with weights
+  return (jaroWinkler * 0.4) + (levenshtein * 0.3) + (dice * 0.3);
 }
 
 /**
- * Check if skills are similar based on stemming and synonyms
+ * Enhanced skill similarity check with comprehensive synonym matching
  */
 function areSkillsSimilar(skill1, skill2) {
   const similarity = calculateSkillSimilarity(skill1, skill2);
@@ -33,27 +138,32 @@ function areSkillsSimilar(skill1, skill2) {
     return true;
   }
   
-  // Check for common skill synonyms
-  const synonyms = {
-    'javascript': ['js', 'ecmascript', 'node.js', 'nodejs'],
-    'python': ['py'],
-    'react': ['reactjs', 'react.js'],
-    'angular': ['angularjs'],
-    'vue': ['vuejs', 'vue.js'],
-    'database': ['db', 'sql', 'mysql', 'postgresql', 'mongodb'],
-    'frontend': ['front-end', 'ui', 'user interface'],
-    'backend': ['back-end', 'server-side'],
-    'devops': ['deployment', 'ci/cd', 'docker', 'kubernetes'],
-    'testing': ['qa', 'quality assurance', 'automation testing']
-  };
+  const skill1Lower = skill1.toLowerCase().trim();
+  const skill2Lower = skill2.toLowerCase().trim();
   
-  const skill1Lower = skill1.toLowerCase();
-  const skill2Lower = skill2.toLowerCase();
-  
-  for (const [key, values] of Object.entries(synonyms)) {
-    if ((skill1Lower.includes(key) || values.some(v => skill1Lower.includes(v))) &&
-        (skill2Lower.includes(key) || values.some(v => skill2Lower.includes(v)))) {
+  // Check direct synonyms
+  for (const [key, synonyms] of Object.entries(SKILL_SYNONYMS)) {
+    const allVariants = [key, ...synonyms];
+    const skill1Match = allVariants.some(variant => 
+      skill1Lower.includes(variant) || variant.includes(skill1Lower)
+    );
+    const skill2Match = allVariants.some(variant => 
+      skill2Lower.includes(variant) || variant.includes(skill2Lower)
+    );
+    
+    if (skill1Match && skill2Match) {
       return true;
+    }
+  }
+  
+  // Check category matching (skills in same category are somewhat related)
+  for (const [category, skills] of Object.entries(SKILL_CATEGORIES)) {
+    const skill1InCategory = skills.some(skill => areSkillsDirectlyRelated(skill1Lower, skill));
+    const skill2InCategory = skills.some(skill => areSkillsDirectlyRelated(skill2Lower, skill));
+    
+    if (skill1InCategory && skill2InCategory) {
+      // Lower threshold for same category skills
+      return similarity >= 0.4;
     }
   }
   
@@ -61,77 +171,143 @@ function areSkillsSimilar(skill1, skill2) {
 }
 
 /**
- * Calculate match score for an employee against a demand
+ * Check if skills are directly related
+ */
+function areSkillsDirectlyRelated(skill, categorySkill) {
+  const synonyms = SKILL_SYNONYMS[categorySkill] || [];
+  return skill.includes(categorySkill) || 
+         categorySkill.includes(skill) ||
+         synonyms.some(syn => skill.includes(syn) || syn.includes(skill));
+}
+
+/**
+ * Enhanced match score calculation with refined weights and logic
  */
 function calculateMatchScore(employee, demand) {
   let score = 0;
-  let maxScore = 100;
+  const weights = {
+    primarySkill: 50,      // Reduced from 60 to allow other factors more influence
+    secondarySkills: 25,   // Reduced from 30
+    experience: 15,        // New factor for experience quality
+    availability: 10       // Same as before
+  };
   
-  // Primary skill match (60% weight)
-  const primarySkillWeight = 60;
+  // Primary skill match with enhanced experience evaluation
   let primarySkillScore = 0;
+  const primarySkillMatch = areSkillsSimilar(employee.primarySkill, demand.primarySkill);
   
-  if (areSkillsSimilar(employee.primarySkill, demand.primarySkill)) {
-    // Check experience requirement
+  if (primarySkillMatch) {
     const minExp = demand.experienceRange.min;
     const maxExp = demand.experienceRange.max;
     const empExp = employee.primarySkillExperience;
     
     if (empExp >= minExp && empExp <= maxExp) {
-      primarySkillScore = primarySkillWeight; // Perfect match
-    } else if (empExp >= minExp) {
-      primarySkillScore = primarySkillWeight * 0.9; // Over-qualified
-    } else {
-      // Under-qualified but similar skill
+      // Perfect experience range match
+      primarySkillScore = weights.primarySkill;
+    } else if (empExp > maxExp) {
+      // Over-qualified - still good but slight penalty
+      const overQualificationPenalty = Math.min(0.1, (empExp - maxExp) / maxExp * 0.1);
+      primarySkillScore = weights.primarySkill * (0.95 - overQualificationPenalty);
+    } else if (empExp >= minExp * 0.8) {
+      // Slightly under-qualified but close
       const experienceRatio = empExp / minExp;
-      primarySkillScore = primarySkillWeight * Math.max(0.3, experienceRatio);
+      primarySkillScore = weights.primarySkill * (0.7 + (experienceRatio * 0.25));
+    } else {
+      // Significantly under-qualified
+      const experienceRatio = empExp / minExp;
+      primarySkillScore = weights.primarySkill * Math.max(0.3, experienceRatio * 0.6);
+    }
+  } else {
+    // Check for related skills in same category
+    const skillSimilarity = calculateSkillSimilarity(employee.primarySkill, demand.primarySkill);
+    if (skillSimilarity >= 0.4) {
+      primarySkillScore = weights.primarySkill * skillSimilarity * 0.6;
     }
   }
   
   score += primarySkillScore;
   
-  // Secondary skills match (30% weight)
-  const secondarySkillWeight = 30;
+  // Secondary skills match with improved logic
   let secondarySkillScore = 0;
-  
   if (demand.secondarySkills && demand.secondarySkills.length > 0) {
     let matchedSecondarySkills = 0;
+    let totalSecondarySkillScore = 0;
     
     demand.secondarySkills.forEach(demandSecSkill => {
-      const hasSkill = employee.secondarySkills.some(empSecSkill => 
-        areSkillsSimilar(empSecSkill.skill, demandSecSkill)
-      );
-      if (hasSkill) {
+      let bestMatch = 0;
+      employee.secondarySkills.forEach(empSecSkill => {
+        if (areSkillsSimilar(empSecSkill.skill, demandSecSkill)) {
+          // Consider experience level for secondary skills too
+          const skillScore = Math.min(1, empSecSkill.experience / 2); // Normalize to max 1
+          bestMatch = Math.max(bestMatch, skillScore);
+        }
+      });
+      
+      if (bestMatch > 0) {
         matchedSecondarySkills++;
+        totalSecondarySkillScore += bestMatch;
       }
     });
     
-    secondarySkillScore = (matchedSecondarySkills / demand.secondarySkills.length) * secondarySkillWeight;
+    if (matchedSecondarySkills > 0) {
+      const matchRatio = matchedSecondarySkills / demand.secondarySkills.length;
+      const avgSkillScore = totalSecondarySkillScore / matchedSecondarySkills;
+      secondarySkillScore = weights.secondarySkills * matchRatio * avgSkillScore;
+    }
   } else {
     // If no secondary skills required, give full points
-    secondarySkillScore = secondarySkillWeight;
+    secondarySkillScore = weights.secondarySkills;
   }
   
   score += secondarySkillScore;
   
-  // Availability bonus (10% weight)
-  const availabilityWeight = 10;
-  if (employee.status === 'Available') {
-    score += availabilityWeight;
-  } else if (employee.status === 'Training') {
-    score += availabilityWeight * 0.5;
+  // Experience quality bonus
+  let experienceScore = 0;
+  const minExp = demand.experienceRange.min;
+  const maxExp = demand.experienceRange.max;
+  const empExp = employee.primarySkillExperience;
+  
+  if (empExp >= minExp && empExp <= maxExp) {
+    // Perfect range
+    experienceScore = weights.experience;
+  } else if (empExp > maxExp) {
+    // Over-qualified
+    experienceScore = weights.experience * 0.9;
+  } else {
+    // Under-qualified
+    const ratio = empExp / minExp;
+    experienceScore = weights.experience * Math.max(0.2, ratio);
   }
+  
+  score += experienceScore;
+  
+  // Availability bonus
+  let availabilityScore = 0;
+  if (employee.status === 'Available') {
+    availabilityScore = weights.availability;
+  } else if (employee.status === 'Training') {
+    availabilityScore = weights.availability * 0.7;
+  } else if (employee.status === 'Allocated') {
+    availabilityScore = weights.availability * 0.3;
+  }
+  
+  score += availabilityScore;
   
   return Math.min(Math.round(score), 100);
 }
 
 /**
- * Determine match type based on score and missing skills
+ * Enhanced match type determination with more nuanced categories
  */
-function determineMatchType(score, missingSkills) {
-  if (score >= 80 && missingSkills.length === 0) {
+function determineMatchType(score, missingSkills, employee, demand) {
+  const primarySkillMatch = areSkillsSimilar(employee.primarySkill, demand.primarySkill);
+  const experienceGap = demand.experienceRange.min - employee.primarySkillExperience;
+  
+  if (score >= 85 && missingSkills.length === 0 && primarySkillMatch) {
     return 'Exact';
-  } else if (score >= 60) {
+  } else if (score >= 70 && primarySkillMatch) {
+    return 'Near';
+  } else if (score >= 50 && (primarySkillMatch || missingSkills.length <= 2)) {
     return 'Near';
   } else {
     return 'Not Eligible';
@@ -139,19 +315,29 @@ function determineMatchType(score, missingSkills) {
 }
 
 /**
- * Find missing skills for an employee against a demand
+ * Enhanced missing skills identification with prioritization
  */
 function findMissingSkills(employee, demand) {
   const missingSkills = [];
   
-  // Check primary skill experience gap
-  if (areSkillsSimilar(employee.primarySkill, demand.primarySkill)) {
-    if (employee.primarySkillExperience < demand.experienceRange.min) {
-      const experienceGap = demand.experienceRange.min - employee.primarySkillExperience;
-      missingSkills.push(`${demand.primarySkill} (${experienceGap} more years needed)`);
-    }
-  } else {
-    missingSkills.push(demand.primarySkill);
+  // Check primary skill and experience gap
+  const primarySkillMatch = areSkillsSimilar(employee.primarySkill, demand.primarySkill);
+  
+  if (!primarySkillMatch) {
+    missingSkills.push({
+      skill: demand.primarySkill,
+      type: 'primary',
+      priority: 'high',
+      reason: 'Primary skill not matched'
+    });
+  } else if (employee.primarySkillExperience < demand.experienceRange.min) {
+    const experienceGap = demand.experienceRange.min - employee.primarySkillExperience;
+    missingSkills.push({
+      skill: `${demand.primarySkill} (${experienceGap} more years needed)`,
+      type: 'experience',
+      priority: experienceGap > 2 ? 'high' : 'medium',
+      reason: 'Insufficient experience in primary skill'
+    });
   }
   
   // Check secondary skills
@@ -161,42 +347,55 @@ function findMissingSkills(employee, demand) {
         areSkillsSimilar(empSecSkill.skill, demandSecSkill)
       );
       if (!hasSkill) {
-        missingSkills.push(demandSecSkill);
+        missingSkills.push({
+          skill: demandSecSkill,
+          type: 'secondary',
+          priority: 'medium',
+          reason: 'Secondary skill not found'
+        });
       }
     });
   }
   
-  return missingSkills;
+  // Return simplified array for backward compatibility
+  return missingSkills.map(item => item.skill);
 }
 
 /**
- * Generate skills matched details
+ * Enhanced skills matched details with better analysis
  */
 function generateSkillsMatched(employee, demand) {
   const skillsMatched = [];
   
-  // Primary skill
-  if (areSkillsSimilar(employee.primarySkill, demand.primarySkill)) {
+  // Primary skill analysis
+  const primarySkillMatch = areSkillsSimilar(employee.primarySkill, demand.primarySkill);
+  if (primarySkillMatch) {
+    const similarity = calculateSkillSimilarity(employee.primarySkill, demand.primarySkill);
     skillsMatched.push({
       skill: employee.primarySkill,
       required: true,
       employeeExperience: employee.primarySkillExperience,
-      requiredExperience: demand.experienceRange.min
+      requiredExperience: demand.experienceRange.min,
+      similarity: Math.round(similarity * 100),
+      matchQuality: employee.primarySkillExperience >= demand.experienceRange.min ? 'good' : 'needs_improvement'
     });
   }
   
-  // Secondary skills
+  // Secondary skills analysis
   if (demand.secondarySkills && demand.secondarySkills.length > 0) {
     demand.secondarySkills.forEach(demandSecSkill => {
       const matchedSecSkill = employee.secondarySkills.find(empSecSkill => 
         areSkillsSimilar(empSecSkill.skill, demandSecSkill)
       );
       if (matchedSecSkill) {
+        const similarity = calculateSkillSimilarity(matchedSecSkill.skill, demandSecSkill);
         skillsMatched.push({
           skill: matchedSecSkill.skill,
           required: false,
           employeeExperience: matchedSecSkill.experience,
-          requiredExperience: 0 // Secondary skills don't have specific experience requirements
+          requiredExperience: 0,
+          similarity: Math.round(similarity * 100),
+          matchQuality: 'good'
         });
       }
     });
@@ -206,7 +405,7 @@ function generateSkillsMatched(employee, demand) {
 }
 
 /**
- * Main function to generate matches for a demand
+ * Main function to generate matches for a demand with enhanced logic
  */
 async function generateMatches(demandId) {
   try {
@@ -216,9 +415,9 @@ async function generateMatches(demandId) {
       throw new Error('Demand not found');
     }
     
-    // Get all available employees
+    // Get all available employees (expanded to include training status)
     const employees = await EmployeeProfile.find({
-      status: { $in: ['Available', 'Training'] }
+      status: { $in: ['Available', 'Training', 'Allocated'] }
     });
     
     // Clear existing matches for this demand
@@ -227,39 +426,44 @@ async function generateMatches(demandId) {
     const matches = [];
     
     for (const employee of employees) {
-      // Calculate match score
+      // Calculate enhanced match score
       const matchScore = calculateMatchScore(employee, demand);
       
-      // Find missing skills
+      // Find missing skills with enhanced analysis
       const missingSkills = findMissingSkills(employee, demand);
       
-      // Determine match type
-      const matchType = determineMatchType(matchScore, missingSkills);
+      // Determine match type with refined logic
+      const matchType = determineMatchType(matchScore, missingSkills, employee, demand);
       
-      // Generate skills matched
+      // Generate enhanced skills matched analysis
       const skillsMatched = generateSkillsMatched(employee, demand);
       
-      // Create match record
-      const match = new Match({
-        demandId: demand._id,
-        employeeId: employee._id,
-        matchType,
-        matchScore,
-        missingSkills,
-        skillsMatched,
-        status: 'Pending'
-      });
-      
-      await match.save();
-      matches.push(match);
+      // Only create matches above a minimum threshold
+      if (matchScore >= 30) {
+        const match = new Match({
+          demandId: demand._id,
+          employeeId: employee._id,
+          matchType,
+          matchScore,
+          missingSkills,
+          skillsMatched,
+          status: 'Pending'
+        });
+        
+        await match.save();
+        matches.push(match);
+      }
     }
     
     // Sort matches by score (highest first)
     matches.sort((a, b) => b.matchScore - a.matchScore);
     
     // Populate the matches before returning
-    const populatedMatches = await Match.find({ demandId })
-      .populate('employeeId', 'employeeId name email primarySkill primarySkillExperience secondarySkills')
+    const populatedMatches = await Match.find({ 
+      demandId,
+      matchScore: { $gte: 30 } // Only return matches above threshold
+    })
+      .populate('employeeId', 'employeeId name email primarySkill primarySkillExperience secondarySkills status')
       .sort({ matchScore: -1 });
     
     return populatedMatches;
@@ -270,7 +474,7 @@ async function generateMatches(demandId) {
 }
 
 /**
- * Get match recommendations for an employee
+ * Get match recommendations for an employee with enhanced scoring
  */
 async function getEmployeeRecommendations(employeeId) {
   try {
@@ -287,14 +491,15 @@ async function getEmployeeRecommendations(employeeId) {
     for (const demand of demands) {
       const matchScore = calculateMatchScore(employee, demand);
       const missingSkills = findMissingSkills(employee, demand);
-      const matchType = determineMatchType(matchScore, missingSkills);
+      const matchType = determineMatchType(matchScore, missingSkills, employee, demand);
       
-      if (matchScore >= 40) { // Only recommend if there's reasonable potential
+      if (matchScore >= 40) { // Slightly higher threshold for recommendations
         recommendations.push({
           demand,
           matchScore,
           matchType,
-          missingSkills
+          missingSkills,
+          skillsMatched: generateSkillsMatched(employee, demand)
         });
       }
     }
@@ -309,9 +514,71 @@ async function getEmployeeRecommendations(employeeId) {
   }
 }
 
+/**
+ * Analyze skill gaps across the organization
+ */
+async function analyzeSkillGaps() {
+  try {
+    const demands = await Demand.find({ status: { $in: ['Open', 'In Progress'] } });
+    const employees = await EmployeeProfile.find({ status: { $in: ['Available', 'Training'] } });
+    
+    const skillGaps = {};
+    
+    for (const demand of demands) {
+      const matches = [];
+      
+      for (const employee of employees) {
+        const matchScore = calculateMatchScore(employee, demand);
+        const missingSkills = findMissingSkills(employee, demand);
+        
+        matches.push({
+          employee,
+          matchScore,
+          missingSkills
+        });
+      }
+      
+      // Find the best match for this demand
+      const bestMatch = matches.reduce((best, current) => 
+        current.matchScore > best.matchScore ? current : best
+      );
+      
+      // If even the best match has missing skills, record them as gaps
+      if (bestMatch.missingSkills.length > 0) {
+        bestMatch.missingSkills.forEach(skill => {
+          if (!skillGaps[skill]) {
+            skillGaps[skill] = {
+              skill,
+              demandCount: 0,
+              urgency: 'medium',
+              affectedDemands: []
+            };
+          }
+          skillGaps[skill].demandCount++;
+          skillGaps[skill].affectedDemands.push(demand.demandId);
+          
+          // Increase urgency based on demand priority
+          if (demand.priority === 'Critical' || demand.priority === 'High') {
+            skillGaps[skill].urgency = 'high';
+          }
+        });
+      }
+    }
+    
+    return Object.values(skillGaps).sort((a, b) => b.demandCount - a.demandCount);
+  } catch (error) {
+    console.error('Analyze skill gaps error:', error);
+    throw error;
+  }
+}
+
 module.exports = {
   generateMatches,
   getEmployeeRecommendations,
   calculateMatchScore,
-  areSkillsSimilar
+  areSkillsSimilar,
+  calculateSkillSimilarity,
+  analyzeSkillGaps,
+  SKILL_SYNONYMS,
+  SKILL_CATEGORIES
 };

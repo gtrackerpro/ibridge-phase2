@@ -54,6 +54,33 @@ export interface MatchStatsResponse {
   stats: MatchStats;
 }
 
+export interface SkillGap {
+  skill: string;
+  demandCount: number;
+  urgency: 'low' | 'medium' | 'high';
+  affectedDemands: string[];
+}
+
+export interface SkillGapResponse {
+  message: string;
+  skillGaps: SkillGap[];
+  count: number;
+}
+
+export interface EmployeeRecommendation {
+  demand: Demand;
+  matchScore: number;
+  matchType: 'Exact' | 'Near' | 'Not Eligible';
+  missingSkills: string[];
+  skillsMatched: SkillMatch[];
+}
+
+export interface RecommendationResponse {
+  message: string;
+  recommendations: EmployeeRecommendation[];
+  count: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -85,5 +112,13 @@ export class MatchService {
 
   getMatchStats(): Observable<MatchStatsResponse> {
     return this.http.get<MatchStatsResponse>(`${environment.apiUrl}/match/stats`);
+  }
+
+  getSkillGaps(): Observable<SkillGapResponse> {
+    return this.http.get<SkillGapResponse>(`${environment.apiUrl}/match/skill-gaps`);
+  }
+
+  getEmployeeRecommendations(employeeId: string): Observable<RecommendationResponse> {
+    return this.http.get<RecommendationResponse>(`${environment.apiUrl}/match/recommendations/${employeeId}`);
   }
 }

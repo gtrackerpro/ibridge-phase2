@@ -171,6 +171,39 @@
     </div>
   </div>
 
+  <!-- Skill Gap Analysis -->
+  <div class="card mb-8" *ngIf="authService.hasRole(['Admin', 'RM']) && skillGaps.length > 0">
+    <div class="card-header">
+      <h3 class="text-lg leading-6 font-medium text-gray-900">Critical Skill Gaps</h3>
+    </div>
+    <div class="card-body">
+      <div class="space-y-3">
+        <div *ngFor="let gap of skillGaps.slice(0, 5)" 
+             class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+          <div class="flex-1">
+            <p class="text-sm font-medium text-gray-900">{{ gap.skill }}</p>
+            <p class="text-xs text-gray-500">{{ gap.demandCount }} open demand(s)</p>
+          </div>
+          <div class="flex items-center space-x-2">
+            <span class="badge" 
+                  [ngClass]="{
+                    'badge-danger': gap.urgency === 'high',
+                    'badge-warning': gap.urgency === 'medium',
+                    'badge-secondary': gap.urgency === 'low'
+                  }">
+              {{ gap.urgency | titlecase }} Priority
+            </span>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="skillGaps.length > 5" class="mt-4">
+        <button (click)="viewAllSkillGaps()" class="text-sm text-primary-600 hover:text-primary-500">
+          View all {{ skillGaps.length }} skill gaps →
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Match Statistics Chart -->
   <div class="card" *ngIf="matchStats.totalMatches > 0">
     <div class="card-header">

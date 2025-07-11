@@ -2,8 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
 import { EmployeeService } from '../../services/employee.service';
 import { DemandService } from '../../services/demand.service';
-import { MatchService, Match, MatchStats } from '../../services/match.service';
+import { MatchService, Match, MatchStats, SkillGap } from '../../services/match.service';
 import { TrainingService, TrainingStats } from '../../services/training.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-dashboard',
@@ -37,6 +38,7 @@ export class DashboardComponent implements OnInit {
   };
 
   recentMatches: Match[] = [];
+  skillGaps: SkillGap[] = [];
   loading = false;
 
   constructor(
@@ -44,7 +46,8 @@ export class DashboardComponent implements OnInit {
     private employeeService: EmployeeService,
     private demandService: DemandService,
     private matchService: MatchService,
-    private trainingService: TrainingService
+    private trainingService: TrainingService,
+    private router: Router
   ) { }
 
   ngOnInit(): void {
@@ -107,5 +110,23 @@ export class DashboardComponent implements OnInit {
         this.loading = false;
       }
     });
+
+    // Load skill gaps (Admin and RM only)
+    if (this.authService.hasRole(['Admin', 'RM'])) {
+      this.matchService.getSkillGaps().subscribe({
+        next: (response) => {
+          this.skillGaps = response.skillGaps;
+        },
+        error: (error) => {
+          console.error('Error loading skill gaps:', error);
+        }
+      });
+    }
+  }
+
+  viewAllSkillGaps(): void {
+    // Navigate to a dedicated skill gaps page or show modal
+    // For now, we'll just log the action
+    console.log('View all skill gaps clicked');
   }
 }

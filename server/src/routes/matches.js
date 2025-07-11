@@ -3,7 +3,7 @@ const Match = require('../models/Match');
 const EmployeeProfile = require('../models/EmployeeProfile');
 const Demand = require('../models/Demand');
 const { auth, authorize } = require('../middleware/auth');
-const { generateMatches } = require('../services/matchingService');
+const { generateMatches, analyzeSkillGaps, getEmployeeRecommendations } = require('../services/matchingService');
 
 const router = express.Router();
 
@@ -140,6 +140,57 @@ router.get('/employee/:employeeId', auth, async (req, res) => {
     console.error('Get matches for employee error:', error);
     res.status(500).json({ 
       message: 'Failed to retrieve matches for employee', 
+      error: error.message 
+    });
+  }
+});
+
+// Get skill gap analysis
+router.get('/skill-gaps', auth, authorize('Admin', 'RM'), async (req, res) => {
+  try {
+    const skillGaps = await analyzeSkillGaps();
+
+    res.json({
+      message: 'Skill gap analysis completed successfully',
+      skillGaps,
+      count: skillGaps.length
+    });
+  } catch (error) {
+    console.error('Skill gap analysis error:', error);
+    res.status(500).json({ 
+      message: 'Failed to analyze skill gaps', 
+      error: error.message 
+    });
+  }
+});
+
+// Get employee recommendations
+router.get('/recommendations/:employeeId', auth, async (req, res) => {
+  try {
+    const { employeeId } = req.params;
+
+    // Check if employee exists
+    const employee = await EmployeeProfile.findById(employeeId);
+    if (!employee) {
+      return res.status(404).json({ message: 'Employee not found' });
+    }
+
+    // Check if user can access this employee's recommendations
+    if (req.user.role === 'Employee' && employee.email !== req.user.email) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    const recommendations = await getEmployeeRecommendations(employeeId);
+
+    res.json({
+      message: 'Employee recommendations retrieved successfully',
+      recommendations,
+      count: recommendations.length
+    });
+  } catch (error) {
+    console.error('Get employee recommendations error:', error);
+    res.status(500).json({ 
+      message: 'Failed to retrieve employee recommendations', 
       error: error.message 
     });
   }
