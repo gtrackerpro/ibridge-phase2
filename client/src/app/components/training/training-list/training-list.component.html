@@ -1,0 +1,471 @@
+<div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+  <!-- Page header -->
+  <div class="md:flex md:items-center md:justify-between mb-8">
+    <div class="flex-1 min-w-0">
+      <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+        Training Plans
+      </h2>
+      <p class="mt-1 text-sm text-gray-500">
+        Manage employee training and skill development
+      </p>
+    </div>
+    <div class="mt-4 flex md:mt-0 md:ml-4">
+      <button (click)="showCreateModal = true" 
+              *ngIf="authService.hasRole(['Admin', 'RM'])"
+              class="btn-primary">
+        Create Training Plan
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters and Stats -->
+  <div class="grid grid-cols-1 gap-5 lg:grid-cols-3 mb-6">
+    <!-- Filters -->
+    <div class="lg:col-span-2">
+      <div class="card">
+        <div class="card-body">
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label for="statusFilter" class="block text-sm font-medium text-gray-700">Status</label>
+              <select 
+                id="statusFilter"
+                [(ngModel)]="statusFilter"
+                (change)="onFilterChange()"
+                class="form-select mt-1">
+                <option value="">All Statuses</option>
+                <option value="Draft">Draft</option>
+                <option value="Assigned">Assigned</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+                <option value="On Hold">On Hold</option>
+              </select>
+            </div>
+            <div class="flex items-end">
+              <button (click)="clearFilters()" class="btn-secondary w-full">
+                Clear Filters
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">Quick Stats</h3>
+      </div>
+      <div class="card-body">
+        <div class="space-y-2">
+          <div class="flex justify-between">
+            <span class="text-sm text-gray-600">Total Plans:</span>
+            <span class="text-sm font-medium">{{ trainingPlans.length }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-sm text-gray-600">In Progress:</span>
+            <span class="text-sm font-medium text-blue-600">{{ getStatusCount('In Progress') }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-sm text-gray-600">Completed:</span>
+            <span class="text-sm font-medium text-green-600">{{ getStatusCount('Completed') }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-sm text-gray-600">Avg Progress:</span>
+            <span class="text-sm font-medium">{{ getAverageProgress() }}%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Training Plans Table -->
+  <div class="card">
+    <div class="card-body p-0">
+      <div *ngIf="loading" class="flex justify-center py-8">
+        <div class="spinner"></div>
+      </div>
+
+      <div *ngIf="!loading && trainingPlans.length === 0" class="text-center py-8">
+        <p class="text-gray-500">No training plans found</p>
+      </div>
+
+      <div *ngIf="!loading && trainingPlans.length > 0" class="overflow-x-auto">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Employee</th>
+              <th>Skills to Train</th>
+              <th>Status</th>
+              <th>Progress</th>
+              <th>Target Date</th>
+              <th>Assigned By</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr *ngFor="let plan of trainingPlans">
+              <td>
+                <div>
+                  <div class="font-medium text-gray-900">{{ plan.employeeId.name }}</div>
+                  <div class="text-sm text-gray-500">{{ plan.employeeId.employeeId }}</div>
+                </div>
+              </td>
+              <td>
+                <div class="flex flex-wrap gap-1">
+                  <span *ngFor="let skill of plan.skillsToTrain.slice(0, 3)" 
+                        class="badge badge-info text-xs">
+                    {{ skill.skill }}
+                  </span>
+                  <span *ngIf="plan.skillsToTrain.length > 3" 
+                        class="text-xs text-gray-500">
+                    +{{ plan.skillsToTrain.length - 3 }} more
+                  </span>
+                </div>
+              </td>
+              <td>
+                <span class="badge" 
+                      [ngClass]="{
+                        'badge-secondary': plan.status === 'Draft',
+                        'badge-info': plan.status === 'Assigned',
+                        'badge-warning': plan.status === 'In Progress',
+                        'badge-success': plan.status === 'Completed',
+                        'badge-danger': plan.status === 'On Hold'
+                      }">
+                  {{ plan.status }}
+                </span>
+              </td>
+              <td>
+                <div class="flex items-center">
+                  <span class="text-sm font-medium mr-2">{{ plan.progress }}%</span>
+                  <div class="w-16 bg-gray-200 rounded-full h-2">
+                    <div class="h-2 rounded-full bg-blue-500" 
+                         [style.width.%]="plan.progress"></div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span *ngIf="plan.targetCompletionDate" class="text-sm">
+                  {{ plan.targetCompletionDate | date:'shortDate' }}
+                </span>
+                <span *ngIf="!plan.targetCompletionDate" class="text-sm text-gray-400">
+                  Not set
+                </span>
+              </td>
+              <td>
+                <div class="text-sm">
+                  <div>{{ plan.assignedBy.name }}</div>
+                </div>
+              </td>
+              <td>
+                <div class="flex space-x-2">
+                  <button (click)="viewTrainingPlan(plan)" 
+                          class="text-primary-600 hover:text-primary-900 text-sm">
+                    View
+                  </button>
+                  <button (click)="editTrainingPlan(plan)" 
+                          *ngIf="canEditPlan(plan)"
+                          class="text-indigo-600 hover:text-indigo-900 text-sm">
+                    Edit
+                  </button>
+                  <button (click)="deleteTrainingPlan(plan)" 
+                          *ngIf="authService.hasRole(['Admin', 'RM'])"
+                          class="text-red-600 hover:text-red-900 text-sm">
+                    Delete
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Training Plan Modal -->
+  <div *ngIf="showCreateModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-10 mx-auto p-5 border max-w-2xl shadow-lg rounded-md bg-white">
+      <div class="mt-3">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-medium text-gray-900">Create Training Plan</h3>
+          <button (click)="closeCreateModal()" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        
+        <form [formGroup]="createForm" (ngSubmit)="createTrainingPlan()" class="space-y-4">
+          <div>
+            <label for="employeeId" class="block text-sm font-medium text-gray-700">Employee *</label>
+            <select 
+              id="employeeId"
+              formControlName="employeeId"
+              class="form-select mt-1">
+              <option value="">Select Employee</option>
+              <option *ngFor="let employee of employees" [value]="employee._id">
+                {{ employee.name }} ({{ employee.employeeId }})
+              </option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Skills to Train</label>
+            <div formArrayName="skillsToTrain" class="space-y-2">
+              <div *ngFor="let skill of skillsToTrainArray.controls; let i = index" 
+                   [formGroupName]="i" 
+                   class="grid grid-cols-3 gap-2">
+                <input 
+                  type="text" 
+                  formControlName="skill"
+                  class="form-input"
+                  placeholder="Skill name">
+                <input 
+                  type="number" 
+                  formControlName="targetLevel"
+                  min="0"
+                  class="form-input"
+                  placeholder="Target level">
+                <button type="button" (click)="removeSkillToTrain(i)" class="btn-danger">
+                  Remove
+                </button>
+              </div>
+            </div>
+            <button type="button" (click)="addSkillToTrain()" class="btn-secondary mt-2">
+              Add Skill
+            </button>
+          </div>
+
+          <div>
+            <label for="targetCompletionDate" class="block text-sm font-medium text-gray-700">Target Completion Date</label>
+            <input 
+              type="date" 
+              id="targetCompletionDate"
+              formControlName="targetCompletionDate"
+              class="form-input mt-1">
+          </div>
+
+          <div>
+            <label for="notes" class="block text-sm font-medium text-gray-700">Notes</label>
+            <textarea 
+              id="notes"
+              formControlName="notes"
+              rows="3"
+              class="form-input mt-1"
+              placeholder="Additional notes or instructions..."></textarea>
+          </div>
+
+          <div *ngIf="createError" class="rounded-md bg-red-50 p-4">
+            <div class="flex">
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-red-800">
+                  {{ createError }}
+                </h3>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end space-x-3">
+            <button type="button" (click)="closeCreateModal()" class="btn-secondary">
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              [disabled]="creating || createForm.invalid"
+              class="btn-primary">
+              <span *ngIf="creating" class="spinner mr-2"></span>
+              Create Plan
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Training Plan Details Modal -->
+  <div *ngIf="selectedPlan" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-10 mx-auto p-5 border max-w-4xl shadow-lg rounded-md bg-white">
+      <div class="mt-3">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-medium text-gray-900">Training Plan Details</h3>
+          <button (click)="closePlanModal()" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Employee & Plan Info -->
+          <div class="space-y-4">
+            <div class="card">
+              <div class="card-header">
+                <h4 class="text-md font-medium text-gray-900">Employee Information</h4>
+              </div>
+              <div class="card-body">
+                <div class="space-y-2">
+                  <div>
+                    <span class="text-sm font-medium text-gray-700">Name:</span>
+                    <span class="ml-2 text-sm text-gray-900">{{ selectedPlan.employeeId.name }}</span>
+                  </div>
+                  <div>
+                    <span class="text-sm font-medium text-gray-700">Employee ID:</span>
+                    <span class="ml-2 text-sm text-gray-900">{{ selectedPlan.employeeId.employeeId }}</span>
+                  </div>
+                  <div>
+                    <span class="text-sm font-medium text-gray-700">Primary Skill:</span>
+                    <span class="ml-2 text-sm text-gray-900">{{ selectedPlan.employeeId.primarySkill }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h4 class="text-md font-medium text-gray-900">Plan Status</h4>
+              </div>
+              <div class="card-body">
+                <div class="space-y-3">
+                  <div>
+                    <span class="text-sm font-medium text-gray-700">Status:</span>
+                    <span class="badge ml-2" 
+                          [ngClass]="{
+                            'badge-secondary': selectedPlan.status === 'Draft',
+                            'badge-info': selectedPlan.status === 'Assigned',
+                            'badge-warning': selectedPlan.status === 'In Progress',
+                            'badge-success': selectedPlan.status === 'Completed',
+                            'badge-danger': selectedPlan.status === 'On Hold'
+                          }">
+                      {{ selectedPlan.status }}
+                    </span>
+                  </div>
+                  <div>
+                    <span class="text-sm font-medium text-gray-700">Progress:</span>
+                    <div class="mt-1 flex items-center">
+                      <span class="text-sm font-medium mr-2">{{ selectedPlan.progress }}%</span>
+                      <div class="flex-1 bg-gray-200 rounded-full h-2">
+                        <div class="h-2 rounded-full bg-blue-500" 
+                             [style.width.%]="selectedPlan.progress"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div *ngIf="selectedPlan.targetCompletionDate">
+                    <span class="text-sm font-medium text-gray-700">Target Date:</span>
+                    <span class="ml-2 text-sm text-gray-900">{{ selectedPlan.targetCompletionDate | date:'mediumDate' }}</span>
+                  </div>
+                  <div>
+                    <span class="text-sm font-medium text-gray-700">Assigned By:</span>
+                    <span class="ml-2 text-sm text-gray-900">{{ selectedPlan.assignedBy.name }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Skills & Resources -->
+          <div class="space-y-4">
+            <div class="card">
+              <div class="card-header">
+                <h4 class="text-md font-medium text-gray-900">Skills to Train</h4>
+              </div>
+              <div class="card-body">
+                <div class="space-y-2">
+                  <div *ngFor="let skill of selectedPlan.skillsToTrain" 
+                       class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                    <span class="text-sm font-medium">{{ skill.skill }}</span>
+                    <div class="text-xs text-gray-500">
+                      Current: {{ skill.currentLevel }} | Target: {{ skill.targetLevel }}
+                      <span class="badge badge-sm ml-1" 
+                            [ngClass]="{
+                              'badge-danger': skill.priority === 'High',
+                              'badge-warning': skill.priority === 'Medium',
+                              'badge-secondary': skill.priority === 'Low'
+                            }">
+                        {{ skill.priority }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card" *ngIf="selectedPlan.resourceLinks.length > 0">
+              <div class="card-header">
+                <h4 class="text-md font-medium text-gray-900">Learning Resources</h4>
+              </div>
+              <div class="card-body">
+                <div class="space-y-2">
+                  <div *ngFor="let resource of selectedPlan.resourceLinks" 
+                       class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                    <div>
+                      <a [href]="resource.url" target="_blank" 
+                         class="text-sm font-medium text-primary-600 hover:text-primary-800">
+                        {{ resource.title }}
+                      </a>
+                      <div class="text-xs text-gray-500">
+                        {{ resource.type }}
+                        <span *ngIf="resource.estimatedHours"> - {{ resource.estimatedHours }}h</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="selectedPlan.notes" class="card mt-6">
+          <div class="card-header">
+            <h4 class="text-md font-medium text-gray-900">Notes</h4>
+          </div>
+          <div class="card-body">
+            <p class="text-sm text-gray-900">{{ selectedPlan.notes }}</p>
+          </div>
+        </div>
+
+        <!-- Progress Update (for employees) -->
+        <div *ngIf="canUpdateProgress(selectedPlan)" class="card mt-6">
+          <div class="card-header">
+            <h4 class="text-md font-medium text-gray-900">Update Progress</h4>
+          </div>
+          <div class="card-body">
+            <div class="flex items-center space-x-4">
+              <div class="flex-1">
+                <label for="progressUpdate" class="block text-sm font-medium text-gray-700">Progress (%)</label>
+                <input 
+                  type="number" 
+                  id="progressUpdate"
+                  [(ngModel)]="progressUpdate"
+                  min="0" 
+                  max="100"
+                  class="form-input mt-1">
+              </div>
+              <div class="flex-1">
+                <label for="statusUpdate" class="block text-sm font-medium text-gray-700">Status</label>
+                <select 
+                  id="statusUpdate"
+                  [(ngModel)]="statusUpdate"
+                  class="form-select mt-1">
+                  <option value="Assigned">Assigned</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Completed">Completed</option>
+                  <option value="On Hold">On Hold</option>
+                </select>
+              </div>
+              <div class="flex items-end">
+                <button (click)="updateProgress()" class="btn-primary">
+                  Update
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6 flex justify-end space-x-3">
+          <button (click)="closePlanModal()" class="btn-secondary">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,366 @@
+<div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+  <!-- Page header -->
+  <div class="md:flex md:items-center md:justify-between mb-8">
+    <div class="flex-1 min-w-0">
+      <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+        Match Results
+      </h2>
+      <p class="mt-1 text-sm text-gray-500">
+        AI-generated employee-demand matches and recommendations
+      </p>
+    </div>
+  </div>
+
+  <!-- Filters and Stats -->
+  <div class="grid grid-cols-1 gap-5 lg:grid-cols-3 mb-6">
+    <!-- Filters -->
+    <div class="lg:col-span-2">
+      <div class="card">
+        <div class="card-body">
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div>
+              <label for="matchTypeFilter" class="block text-sm font-medium text-gray-700">Match Type</label>
+              <select 
+                id="matchTypeFilter"
+                [(ngModel)]="filters.matchType"
+                (change)="onFilterChange()"
+                class="form-select mt-1">
+                <option value="">All Types</option>
+                <option value="Exact">Exact Match</option>
+                <option value="Near">Near Match</option>
+                <option value="Not Eligible">Not Eligible</option>
+              </select>
+            </div>
+            <div>
+              <label for="statusFilter" class="block text-sm font-medium text-gray-700">Status</label>
+              <select 
+                id="statusFilter"
+                [(ngModel)]="filters.status"
+                (change)="onFilterChange()"
+                class="form-select mt-1">
+                <option value="">All Statuses</option>
+                <option value="Pending">Pending</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+                <option value="Training Required">Training Required</option>
+              </select>
+            </div>
+            <div class="flex items-end">
+              <button (click)="clearFilters()" class="btn-secondary w-full">
+                Clear Filters
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">Quick Stats</h3>
+      </div>
+      <div class="card-body">
+        <div class="space-y-2">
+          <div class="flex justify-between">
+            <span class="text-sm text-gray-600">Total Matches:</span>
+            <span class="text-sm font-medium">{{ matches.length }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-sm text-gray-600">Exact:</span>
+            <span class="text-sm font-medium text-green-600">{{ getMatchCountByType('Exact') }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-sm text-gray-600">Near:</span>
+            <span class="text-sm font-medium text-yellow-600">{{ getMatchCountByType('Near') }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-sm text-gray-600">Not Eligible:</span>
+            <span class="text-sm font-medium text-red-600">{{ getMatchCountByType('Not Eligible') }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Matches Table -->
+  <div class="card">
+    <div class="card-body p-0">
+      <div *ngIf="loading" class="flex justify-center py-8">
+        <div class="spinner"></div>
+      </div>
+
+      <div *ngIf="!loading && matches.length === 0" class="text-center py-8">
+        <p class="text-gray-500">No matches found</p>
+        <p class="text-sm text-gray-400 mt-2">Try adjusting your filters or generate new matches from the demands page</p>
+      </div>
+
+      <div *ngIf="!loading && matches.length > 0" class="overflow-x-auto">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Employee</th>
+              <th>Demand</th>
+              <th>Position</th>
+              <th>Primary Skill</th>
+              <th>Match Type</th>
+              <th>Score</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr *ngFor="let match of matches">
+              <td>
+                <div>
+                  <div class="font-medium text-gray-900">{{ match.employeeId.name }}</div>
+                  <div class="text-sm text-gray-500">{{ match.employeeId.employeeId }}</div>
+                </div>
+              </td>
+              <td>
+                <div>
+                  <div class="font-medium text-gray-900">{{ match.demandId.demandId }}</div>
+                  <div class="text-sm text-gray-500">{{ match.demandId.accountName }}</div>
+                </div>
+              </td>
+              <td>{{ match.demandId.positionTitle }}</td>
+              <td>
+                <div>
+                  <span class="badge badge-info">{{ match.demandId.primarySkill }}</span>
+                  <div class="text-xs text-gray-500 mt-1">
+                    Employee: {{ match.employeeId.primarySkillExperience }}y
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="badge" 
+                      [ngClass]="{
+                        'badge-success': match.matchType === 'Exact',
+                        'badge-warning': match.matchType === 'Near',
+                        'badge-danger': match.matchType === 'Not Eligible'
+                      }">
+                  {{ match.matchType }}
+                </span>
+              </td>
+              <td>
+                <div class="flex items-center">
+                  <span class="text-sm font-medium">{{ match.matchScore }}%</span>
+                  <div class="ml-2 w-16 bg-gray-200 rounded-full h-2">
+                    <div class="h-2 rounded-full" 
+                         [style.width.%]="match.matchScore"
+                         [ngClass]="{
+                           'bg-green-500': match.matchScore >= 80,
+                           'bg-yellow-500': match.matchScore >= 60 && match.matchScore < 80,
+                           'bg-red-500': match.matchScore < 60
+                         }"></div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="badge" 
+                      [ngClass]="{
+                        'badge-success': match.status === 'Approved',
+                        'badge-warning': match.status === 'Training Required',
+                        'badge-danger': match.status === 'Rejected',
+                        'badge-secondary': match.status === 'Pending'
+                      }">
+                  {{ match.status }}
+                </span>
+              </td>
+              <td>
+                <div class="flex space-x-2">
+                  <button (click)="viewMatchDetails(match)" 
+                          class="text-primary-600 hover:text-primary-900 text-sm">
+                    View
+                  </button>
+                  <button (click)="updateMatchStatus(match, 'Approved')" 
+                          *ngIf="authService.hasRole(['Admin', 'RM']) && match.status === 'Pending'"
+                          class="text-green-600 hover:text-green-900 text-sm">
+                    Approve
+                  </button>
+                  <button (click)="updateMatchStatus(match, 'Rejected')" 
+                          *ngIf="authService.hasRole(['Admin', 'RM']) && match.status === 'Pending'"
+                          class="text-red-600 hover:text-red-900 text-sm">
+                    Reject
+                  </button>
+                  <button (click)="createTrainingPlan(match)" 
+                          *ngIf="authService.hasRole(['Admin', 'RM']) && match.matchType === 'Near'"
+                          class="text-blue-600 hover:text-blue-900 text-sm">
+                    Train
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Match Details Modal -->
+  <div *ngIf="selectedMatch" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-10 mx-auto p-5 border max-w-4xl shadow-lg rounded-md bg-white">
+      <div class="mt-3">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-medium text-gray-900">Match Details</h3>
+          <button (click)="closeMatchModal()" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Employee Details -->
+          <div class="card">
+            <div class="card-header">
+              <h4 class="text-md font-medium text-gray-900">Employee</h4>
+            </div>
+            <div class="card-body">
+              <div class="space-y-3">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Name</label>
+                  <p class="mt-1 text-sm text-gray-900">{{ selectedMatch.employeeId.name }}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Employee ID</label>
+                  <p class="mt-1 text-sm text-gray-900">{{ selectedMatch.employeeId.employeeId }}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Primary Skill</label>
+                  <p class="mt-1 text-sm text-gray-900">{{ selectedMatch.employeeId.primarySkill }} ({{ selectedMatch.employeeId.primarySkillExperience }} years)</p>
+                </div>
+                <div *ngIf="selectedMatch.employeeId.secondarySkills.length > 0">
+                  <label class="block text-sm font-medium text-gray-700">Secondary Skills</label>
+                  <div class="mt-1 flex flex-wrap gap-1">
+                    <span *ngFor="let skill of selectedMatch.employeeId.secondarySkills" 
+                          class="badge badge-secondary text-xs">
+                      {{ skill.skill }} ({{ skill.experience }}y)
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Demand Details -->
+          <div class="card">
+            <div class="card-header">
+              <h4 class="text-md font-medium text-gray-900">Demand</h4>
+            </div>
+            <div class="card-body">
+              <div class="space-y-3">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Demand ID</label>
+                  <p class="mt-1 text-sm text-gray-900">{{ selectedMatch.demandId.demandId }}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Position</label>
+                  <p class="mt-1 text-sm text-gray-900">{{ selectedMatch.demandId.positionTitle }}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Account</label>
+                  <p class="mt-1 text-sm text-gray-900">{{ selectedMatch.demandId.accountName }}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Required Skill</label>
+                  <p class="mt-1 text-sm text-gray-900">{{ selectedMatch.demandId.primarySkill }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Match Analysis -->
+        <div class="card mt-6">
+          <div class="card-header">
+            <h4 class="text-md font-medium text-gray-900">Match Analysis</h4>
+          </div>
+          <div class="card-body">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Match Type</label>
+                <span class="badge mt-1" 
+                      [ngClass]="{
+                        'badge-success': selectedMatch.matchType === 'Exact',
+                        'badge-warning': selectedMatch.matchType === 'Near',
+                        'badge-danger': selectedMatch.matchType === 'Not Eligible'
+                      }">
+                  {{ selectedMatch.matchType }}
+                </span>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Match Score</label>
+                <div class="mt-1 flex items-center">
+                  <span class="text-lg font-medium">{{ selectedMatch.matchScore }}%</span>
+                  <div class="ml-3 flex-1 bg-gray-200 rounded-full h-3">
+                    <div class="h-3 rounded-full" 
+                         [style.width.%]="selectedMatch.matchScore"
+                         [ngClass]="{
+                           'bg-green-500': selectedMatch.matchScore >= 80,
+                           'bg-yellow-500': selectedMatch.matchScore >= 60 && selectedMatch.matchScore < 80,
+                           'bg-red-500': selectedMatch.matchScore < 60
+                         }"></div>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Status</label>
+                <span class="badge mt-1" 
+                      [ngClass]="{
+                        'badge-success': selectedMatch.status === 'Approved',
+                        'badge-warning': selectedMatch.status === 'Training Required',
+                        'badge-danger': selectedMatch.status === 'Rejected',
+                        'badge-secondary': selectedMatch.status === 'Pending'
+                      }">
+                  {{ selectedMatch.status }}
+                </span>
+              </div>
+            </div>
+
+            <div *ngIf="selectedMatch.missingSkills.length > 0" class="mt-4">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Missing Skills</label>
+              <div class="flex flex-wrap gap-2">
+                <span *ngFor="let skill of selectedMatch.missingSkills" 
+                      class="badge badge-danger">
+                  {{ skill }}
+                </span>
+              </div>
+            </div>
+
+            <div *ngIf="selectedMatch.skillsMatched.length > 0" class="mt-4">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Skills Matched</label>
+              <div class="space-y-2">
+                <div *ngFor="let skill of selectedMatch.skillsMatched" 
+                     class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                  <span class="text-sm font-medium">{{ skill.skill }}</span>
+                  <div class="text-xs text-gray-500">
+                    Employee: {{ skill.employeeExperience }}y | Required: {{ skill.requiredExperience }}y
+                    <span *ngIf="skill.required" class="ml-1 text-red-500">*</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="selectedMatch.notes" class="mt-4">
+              <label class="block text-sm font-medium text-gray-700">Notes</label>
+              <p class="mt-1 text-sm text-gray-900">{{ selectedMatch.notes }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="mt-6 flex justify-end space-x-3">
+          <button (click)="createTrainingPlan(selectedMatch)" 
+                  *ngIf="authService.hasRole(['Admin', 'RM']) && selectedMatch.matchType === 'Near'"
+                  class="btn-primary">
+            Create Training Plan
+          </button>
+          <button (click)="closeMatchModal()" class="btn-secondary">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

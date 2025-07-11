@@ -1,0 +1,242 @@
+<div class="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
+  <!-- Page header -->
+  <div class="md:flex md:items-center md:justify-between mb-8">
+    <div class="flex-1 min-w-0">
+      <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+        {{ isEditMode ? 'Edit Employee' : 'Add New Employee' }}
+      </h2>
+    </div>
+    <div class="mt-4 flex md:mt-0 md:ml-4">
+      <button (click)="goBack()" class="btn-secondary">
+        Cancel
+      </button>
+    </div>
+  </div>
+
+  <!-- Employee Form -->
+  <form [formGroup]="employeeForm" (ngSubmit)="onSubmit()" class="space-y-6">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">Basic Information</h3>
+      </div>
+      <div class="card-body">
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <div>
+            <label for="employeeId" class="block text-sm font-medium text-gray-700">Employee ID *</label>
+            <input 
+              type="text" 
+              id="employeeId"
+              formControlName="employeeId"
+              class="form-input mt-1"
+              placeholder="e.g., EMP001">
+            <div *ngIf="employeeForm.get('employeeId')?.invalid && employeeForm.get('employeeId')?.touched" 
+                 class="mt-1 text-sm text-red-600">
+              Employee ID is required
+            </div>
+          </div>
+
+          <div>
+            <label for="name" class="block text-sm font-medium text-gray-700">Full Name *</label>
+            <input 
+              type="text" 
+              id="name"
+              formControlName="name"
+              class="form-input mt-1"
+              placeholder="Enter full name">
+            <div *ngIf="employeeForm.get('name')?.invalid && employeeForm.get('name')?.touched" 
+                 class="mt-1 text-sm text-red-600">
+              Name is required
+            </div>
+          </div>
+
+          <div>
+            <label for="email" class="block text-sm font-medium text-gray-700">Email Address *</label>
+            <input 
+              type="email" 
+              id="email"
+              formControlName="email"
+              class="form-input mt-1"
+              placeholder="Enter email address">
+            <div *ngIf="employeeForm.get('email')?.invalid && employeeForm.get('email')?.touched" 
+                 class="mt-1 text-sm text-red-600">
+              <span *ngIf="employeeForm.get('email')?.errors?.['required']">Email is required</span>
+              <span *ngIf="employeeForm.get('email')?.errors?.['email']">Please enter a valid email</span>
+            </div>
+          </div>
+
+          <div>
+            <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+            <select 
+              id="status"
+              formControlName="status"
+              class="form-select mt-1">
+              <option value="Available">Available</option>
+              <option value="Allocated">Allocated</option>
+              <option value="On Leave">On Leave</option>
+              <option value="Training">Training</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="BU" class="block text-sm font-medium text-gray-700">Business Unit *</label>
+            <input 
+              type="text" 
+              id="BU"
+              formControlName="BU"
+              class="form-input mt-1"
+              placeholder="e.g., Technology, Finance">
+            <div *ngIf="employeeForm.get('BU')?.invalid && employeeForm.get('BU')?.touched" 
+                 class="mt-1 text-sm text-red-600">
+              Business Unit is required
+            </div>
+          </div>
+
+          <div>
+            <label for="location" class="block text-sm font-medium text-gray-700">Location</label>
+            <input 
+              type="text" 
+              id="location"
+              formControlName="location"
+              class="form-input mt-1"
+              placeholder="e.g., New York, Remote">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skills Section -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">Skills & Experience</h3>
+      </div>
+      <div class="card-body">
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 mb-6">
+          <div>
+            <label for="primarySkill" class="block text-sm font-medium text-gray-700">Primary Skill *</label>
+            <input 
+              type="text" 
+              id="primarySkill"
+              formControlName="primarySkill"
+              class="form-input mt-1"
+              placeholder="e.g., JavaScript, Python, Java">
+            <div *ngIf="employeeForm.get('primarySkill')?.invalid && employeeForm.get('primarySkill')?.touched" 
+                 class="mt-1 text-sm text-red-600">
+              Primary skill is required
+            </div>
+          </div>
+
+          <div>
+            <label for="primarySkillExperience" class="block text-sm font-medium text-gray-700">Primary Skill Experience (Years) *</label>
+            <input 
+              type="number" 
+              id="primarySkillExperience"
+              formControlName="primarySkillExperience"
+              min="0"
+              class="form-input mt-1"
+              placeholder="e.g., 5">
+            <div *ngIf="employeeForm.get('primarySkillExperience')?.invalid && employeeForm.get('primarySkillExperience')?.touched" 
+                 class="mt-1 text-sm text-red-600">
+              <span *ngIf="employeeForm.get('primarySkillExperience')?.errors?.['required']">Experience is required</span>
+              <span *ngIf="employeeForm.get('primarySkillExperience')?.errors?.['min']">Experience cannot be negative</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Secondary Skills -->
+        <div>
+          <div class="flex justify-between items-center mb-4">
+            <label class="block text-sm font-medium text-gray-700">Secondary Skills</label>
+            <button type="button" (click)="addSecondarySkill()" class="btn-secondary">
+              Add Skill
+            </button>
+          </div>
+
+          <div formArrayName="secondarySkills" class="space-y-3">
+            <div *ngFor="let skill of secondarySkillsArray.controls; let i = index" 
+                 [formGroupName]="i" 
+                 class="flex items-center space-x-3">
+              <div class="flex-1">
+                <input 
+                  type="text" 
+                  formControlName="skill"
+                  class="form-input"
+                  placeholder="Skill name">
+              </div>
+              <div class="w-32">
+                <input 
+                  type="number" 
+                  formControlName="experience"
+                  min="0"
+                  class="form-input"
+                  placeholder="Years">
+              </div>
+              <button type="button" (click)="removeSecondarySkill(i)" class="text-red-600 hover:text-red-800">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div *ngIf="secondarySkillsArray.length === 0" class="text-sm text-gray-500 italic">
+            No secondary skills added yet. Click "Add Skill" to add secondary skills.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resume Upload Section -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">Resume</h3>
+      </div>
+      <div class="card-body">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Upload Resume (PDF, DOC, DOCX)
+          </label>
+          <input 
+            type="file" 
+            accept=".pdf,.doc,.docx"
+            (change)="onResumeSelected($event)"
+            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100">
+          
+          <div *ngIf="selectedResume" class="mt-2 text-sm text-gray-600">
+            Selected: {{ selectedResume.name }}
+          </div>
+          
+          <div *ngIf="currentEmployee?.resumeUrl" class="mt-2">
+            <a [href]="currentEmployee.resumeUrl" target="_blank" class="text-primary-600 hover:text-primary-800 text-sm">
+              View current resume
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Display -->
+    <div *ngIf="error" class="rounded-md bg-red-50 p-4">
+      <div class="flex">
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-red-800">
+            {{ error }}
+          </h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="flex justify-end space-x-3">
+      <button type="button" (click)="goBack()" class="btn-secondary">
+        Cancel
+      </button>
+      <button 
+        type="submit" 
+        [disabled]="loading || employeeForm.invalid"
+        class="btn-primary">
+        <span *ngIf="loading" class="spinner mr-2"></span>
+        {{ isEditMode ? 'Update Employee' : 'Create Employee' }}
+      </button>
+    </div>
+  </form>
+</div>

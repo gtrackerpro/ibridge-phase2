@@ -1,0 +1,130 @@
+<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-md w-full space-y-8">
+    <div>
+      <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+        Create your account
+      </h2>
+      <p class="mt-2 text-center text-sm text-gray-600">
+        Join iBridge AI platform
+      </p>
+    </div>
+    
+    <form class="mt-8 space-y-6" [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+      <div class="space-y-4">
+        <div>
+          <label for="name" class="block text-sm font-medium text-gray-700">Full Name</label>
+          <input 
+            id="name" 
+            name="name" 
+            type="text" 
+            required 
+            formControlName="name"
+            class="form-input mt-1" 
+            placeholder="Enter your full name">
+          <div *ngIf="registerForm.get('name')?.invalid && registerForm.get('name')?.touched" 
+               class="mt-1 text-sm text-red-600">
+            Name is required
+          </div>
+        </div>
+
+        <div>
+          <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
+          <input 
+            id="email" 
+            name="email" 
+            type="email" 
+            autocomplete="email" 
+            required 
+            formControlName="email"
+            class="form-input mt-1" 
+            placeholder="Enter your email address">
+          <div *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched" 
+               class="mt-1 text-sm text-red-600">
+            <span *ngIf="registerForm.get('email')?.errors?.['required']">Email is required</span>
+            <span *ngIf="registerForm.get('email')?.errors?.['email']">Please enter a valid email</span>
+          </div>
+        </div>
+
+        <div>
+          <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+          <input 
+            id="password" 
+            name="password" 
+            type="password" 
+            autocomplete="new-password" 
+            required 
+            formControlName="password"
+            class="form-input mt-1" 
+            placeholder="Enter your password">
+          <div *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched" 
+               class="mt-1 text-sm text-red-600">
+            <span *ngIf="registerForm.get('password')?.errors?.['required']">Password is required</span>
+            <span *ngIf="registerForm.get('password')?.errors?.['minlength']">Password must be at least 6 characters</span>
+          </div>
+        </div>
+
+        <div>
+          <label for="confirmPassword" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+          <input 
+            id="confirmPassword" 
+            name="confirmPassword" 
+            type="password" 
+            required 
+            formControlName="confirmPassword"
+            class="form-input mt-1" 
+            placeholder="Confirm your password">
+          <div *ngIf="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched" 
+               class="mt-1 text-sm text-red-600">
+            <span *ngIf="registerForm.get('confirmPassword')?.errors?.['required']">Please confirm your password</span>
+          </div>
+          <div *ngIf="registerForm.errors?.['passwordMismatch'] && registerForm.get('confirmPassword')?.touched" 
+               class="mt-1 text-sm text-red-600">
+            Passwords do not match
+          </div>
+        </div>
+
+        <div>
+          <label for="role" class="block text-sm font-medium text-gray-700">Role</label>
+          <select 
+            id="role" 
+            name="role" 
+            formControlName="role"
+            class="form-select mt-1">
+            <option value="Employee">Employee</option>
+            <option value="RM">Resource Manager (RM)</option>
+            <option value="Admin">Administrator</option>
+          </select>
+        </div>
+      </div>
+
+      <div *ngIf="error" class="rounded-md bg-red-50 p-4">
+        <div class="flex">
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-red-800">
+              {{ error }}
+            </h3>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <button 
+          type="submit" 
+          [disabled]="loading || registerForm.invalid"
+          class="btn-primary w-full">
+          <span *ngIf="loading" class="spinner mr-2"></span>
+          Create Account
+        </button>
+      </div>
+
+      <div class="text-center">
+        <p class="text-sm text-gray-600">
+          Already have an account? 
+          <a routerLink="/login" class="font-medium text-primary-600 hover:text-primary-500">
+            Sign in here
+          </a>
+        </p>
+      </div>
+    </form>
+  </div>
+</div>

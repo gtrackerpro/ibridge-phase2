@@ -1,0 +1,37 @@
+{
+  "name": "ibridge-ai",
+  "version": "1.0.0",
+  "description": "iLink Resource and Training Manager - AI-based internal resource-demand matching platform",
+  "main": "server/src/app.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
+    "server:dev": "cd server && npm run dev",
+    "client:dev": "cd client && npm start",
+    "server:install": "cd server && npm install",
+    "client:install": "cd client && npm install",
+    "install:all": "npm install && npm run server:install && npm run client:install",
+    "build": "cd client && npm run build",
+    "start": "cd server && npm start"
+  },
+  "keywords": [
+    "resource-management",
+    "ai-matching",
+    "training",
+    "mean-stack"
+  ],
+  "author": "iLink",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "@angular/animations": "^20.1.0",
+    "@angular/cdk": "^20.1.0",
+    "@angular/material": "^20.1.0",
+    "@tailwindcss/forms": "^0.5.10",
+    "@tailwindcss/typography": "^0.5.16",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.11"
+  }
+}
