@@ -11,6 +11,7 @@ const employeeRoutes = require('./routes/employees');
 const demandRoutes = require('./routes/demands');
 const matchRoutes = require('./routes/matches');
 const trainingRoutes = require('./routes/training');
+const trainingResourceRoutes = require('./routes/trainingResources');
 const uploadRoutes = require('./routes/upload');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 
@@ -55,6 +56,7 @@ app.use('/api/employees', employeeRoutes);
 app.use('/api/demands', demandRoutes);
 app.use('/api/match', matchRoutes);
 app.use('/api/training', trainingRoutes);
+app.use('/api/training-resources', trainingResourceRoutes);
 app.use('/api/upload', uploadRoutes);
 
 // Health check endpoint

@@ -87,6 +87,14 @@ export class TrainingService {
     return this.http.put<SingleTrainingResponse>(`${environment.apiUrl}/training/${id}`, trainingPlan);
   }
 
+  updateTrainingProgress(id: string, progress: number, status?: string, notes?: string): Observable<SingleTrainingResponse> {
+    const updateData: any = { progress };
+    if (status) updateData.status = status;
+    if (notes) updateData.notes = notes;
+    
+    return this.http.put<SingleTrainingResponse>(`${environment.apiUrl}/training/${id}/progress`, updateData);
+  }
+
   deleteTrainingPlan(id: string): Observable<SingleTrainingResponse> {
     return this.http.delete<SingleTrainingResponse>(`${environment.apiUrl}/training/${id}`);
   }

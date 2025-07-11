@@ -2,6 +2,7 @@ const express = require('express');
 const TrainingPlan = require('../models/TrainingPlan');
 const EmployeeProfile = require('../models/EmployeeProfile');
 const Match = require('../models/Match');
+const { generateTrainingPlanResources } = require('../services/trainingRecommendationService');
 const { auth, authorize } = require('../middleware/auth');
 const { validateTrainingPlanMiddleware, sanitizeInputMiddleware } = require('../middleware/validation');
 
@@ -240,13 +241,8 @@ router.post('/generate-from-match', auth, authorize('Admin', 'RM'), sanitizeInpu
       priority: 'High'
     }));
 
-    // Generate resource links (placeholder - in real implementation, this would be more sophisticated)
-    const resourceLinks = match.missingSkills.map(skill => ({
-      title: `${skill} Training Course`,
-      url: `https://example-learning-platform.com/courses/${skill.toLowerCase().replace(/\s+/g, '-')}`,
-      type: 'Course',
-      estimatedHours: 40
-    }));
+    // Generate dynamic resource links using the training recommendation service
+    const resourceLinks = await generateTrainingPlanResources(skillsToTrain);
 
     const trainingPlan = new TrainingPlan({
       employeeId: match.employeeId._id,
@@ -272,6 +268,95 @@ router.post('/generate-from-match', auth, authorize('Admin', 'RM'), sanitizeInpu
     console.error('Generate training plan from match error:', error);
     res.status(500).json({ 
       message: 'Failed to generate training plan from match', 
+      error: error.message 
+    });
+  }
+});
+
+// Update training plan progress (enhanced for employee self-updates)
+router.put('/:id/progress', auth, sanitizeInputMiddleware, async (req, res) => {
+  try {
+    const { progress, status, notes } = req.body;
+    
+    // Validate progress
+    if (progress !== undefined && (isNaN(progress) || progress < 0 || progress > 100)) {
+      return res.status(400).json({
+        message: 'Progress must be a number between 0 and 100'
+      });
+    }
+    
+    // Validate status
+    if (status && !['Assigned', 'In Progress', 'Completed', 'On Hold'].includes(status)) {
+      return res.status(400).json({
+        message: 'Invalid status. Must be one of: Assigned, In Progress, Completed, On Hold'
+      });
+    }
+
+    const trainingPlan = await TrainingPlan.findById(req.params.id)
+      .populate('employeeId', 'email');
+
+    if (!trainingPlan) {
+      return res.status(404).json({ message: 'Training plan not found' });
+    }
+
+    // Check permissions - employees can only update their own plans
+    if (req.user.role === 'Employee') {
+      if (trainingPlan.employeeId.email !== req.user.email) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+    }
+
+    const updateData = {};
+    if (progress !== undefined) updateData.progress = progress;
+    if (status) updateData.status = status;
+    if (notes) updateData.notes = notes;
+    
+    // Auto-complete if progress reaches 100%
+    if (progress === 100 && status !== 'Completed') {
+      updateData.status = 'Completed';
+      updateData.actualCompletionDate = new Date();
+    }
+
+    const updatedTrainingPlan = await TrainingPlan.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true, runValidators: true }
+    )
+    .populate('employeeId', 'employeeId name email primarySkill')
+    .populate('demandId', 'demandId accountName projectName positionTitle')
+    .populate('assignedBy', 'name email');
+
+    res.json({
+      message: 'Training plan progress updated successfully',
+      trainingPlan: updatedTrainingPlan
+    });
+  } catch (error) {
+    console.error('Update training plan progress error:', error);
+    res.status(500).json({ 
+      message: 'Failed to update training plan progress', 
+      error: error.message 
+    });
+  }
+});
+
+// Get training plan recommendations for skill gaps
+router.get('/recommendations/skill-gaps', auth, authorize('Admin', 'RM'), async (req, res) => {
+  try {
+    const { analyzeSkillGaps } = require('../services/matchingService');
+    const { getSkillGapRecommendations } = require('../services/trainingRecommendationService');
+    
+    const skillGaps = await analyzeSkillGaps();
+    const recommendations = await getSkillGapRecommendations(skillGaps);
+
+    res.json({
+      message: 'Training recommendations for skill gaps retrieved successfully',
+      recommendations,
+      count: recommendations.length
+    });
+  } catch (error) {
+    console.error('Get skill gap recommendations error:', error);
+    res.status(500).json({ 
+      message: 'Failed to retrieve skill gap recommendations', 
       error: error.message 
     });
   }
