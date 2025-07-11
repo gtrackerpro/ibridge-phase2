@@ -10,6 +10,8 @@ import { DemandListComponent } from './components/demands/demand-list/demand-lis
 import { DemandFormComponent } from './components/demands/demand-form/demand-form.component';
 import { MatchListComponent } from './components/matches/match-list/match-list.component';
 import { TrainingListComponent } from './components/training/training-list/training-list.component';
+import { UserListComponent } from './components/users/user-list/user-list.component';
+import { AdminGuard } from './guards/admin.guard';
 
 const routes: Routes = [
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
@@ -59,6 +61,11 @@ const routes: Routes = [
     path: 'training', 
     component: TrainingListComponent, 
     canActivate: [AuthGuard] 
+  },
+  { 
+    path: 'users', 
+    component: UserListComponent, 
+    canActivate: [AuthGuard, AdminGuard] 
   },
   { path: '**', redirectTo: '/dashboard' }
 ];

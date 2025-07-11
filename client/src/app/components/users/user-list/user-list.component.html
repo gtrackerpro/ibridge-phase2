@@ -1,0 +1,487 @@
+<div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+  <!-- Page header -->
+  <div class="md:flex md:items-center md:justify-between mb-8">
+    <div class="flex-1 min-w-0">
+      <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+        User Management
+      </h2>
+      <p class="mt-1 text-sm text-gray-500">
+        Manage user accounts, roles, and permissions
+      </p>
+    </div>
+    <div class="mt-4 flex md:mt-0 md:ml-4">
+      <button (click)="showCreateModal = true" class="btn-primary">
+        Add New User
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+    <div class="card">
+      <div class="card-body">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+              </svg>
+            </div>
+          </div>
+          <div class="ml-5 w-0 flex-1">
+            <dl>
+              <dt class="text-sm font-medium text-gray-500 truncate">Total Users</dt>
+              <dd class="text-lg font-medium text-gray-900">{{ userStats.totalUsers || 0 }}</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+          </div>
+          <div class="ml-5 w-0 flex-1">
+            <dl>
+              <dt class="text-sm font-medium text-gray-500 truncate">Active Users</dt>
+              <dd class="text-lg font-medium text-gray-900">{{ userStats.activeUsers || 0 }}</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+          </div>
+          <div class="ml-5 w-0 flex-1">
+            <dl>
+              <dt class="text-sm font-medium text-gray-500 truncate">Admins</dt>
+              <dd class="text-lg font-medium text-gray-900">{{ userStats.adminUsers || 0 }}</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/>
+              </svg>
+            </div>
+          </div>
+          <div class="ml-5 w-0 flex-1">
+            <dl>
+              <dt class="text-sm font-medium text-gray-500 truncate">RMs</dt>
+              <dd class="text-lg font-medium text-gray-900">{{ userStats.rmUsers || 0 }}</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search and Filters -->
+  <div class="card mb-6">
+    <div class="card-body">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
+        <div>
+          <label for="search" class="block text-sm font-medium text-gray-700">Search</label>
+          <input 
+            type="text" 
+            id="search"
+            [(ngModel)]="searchTerm"
+            (input)="onSearch()"
+            class="form-input mt-1" 
+            placeholder="Search by name or email">
+        </div>
+        <div>
+          <label for="roleFilter" class="block text-sm font-medium text-gray-700">Role</label>
+          <select 
+            id="roleFilter"
+            [(ngModel)]="roleFilter"
+            (change)="onFilterChange()"
+            class="form-select mt-1">
+            <option value="">All Roles</option>
+            <option value="Admin">Admin</option>
+            <option value="RM">Resource Manager</option>
+            <option value="Employee">Employee</option>
+          </select>
+        </div>
+        <div>
+          <label for="statusFilter" class="block text-sm font-medium text-gray-700">Status</label>
+          <select 
+            id="statusFilter"
+            [(ngModel)]="statusFilter"
+            (change)="onFilterChange()"
+            class="form-select mt-1">
+            <option value="">All Statuses</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+        <div class="flex items-end">
+          <button (click)="clearFilters()" class="btn-secondary w-full">
+            Clear Filters
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Users Table -->
+  <div class="card">
+    <div class="card-body p-0">
+      <div *ngIf="loading" class="flex justify-center py-8">
+        <div class="spinner"></div>
+      </div>
+
+      <div *ngIf="!loading && users.length === 0" class="text-center py-8">
+        <p class="text-gray-500">No users found</p>
+      </div>
+
+      <div *ngIf="!loading && users.length > 0" class="overflow-x-auto">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Last Login</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr *ngFor="let user of users">
+              <td>
+                <div class="font-medium text-gray-900">{{ user.name }}</div>
+              </td>
+              <td class="text-gray-500">{{ user.email }}</td>
+              <td>
+                <span class="badge" 
+                      [ngClass]="{
+                        'badge-danger': user.role === 'Admin',
+                        'badge-warning': user.role === 'RM',
+                        'badge-info': user.role === 'Employee'
+                      }">
+                  {{ user.role }}
+                </span>
+              </td>
+              <td>
+                <span class="badge" 
+                      [ngClass]="{
+                        'badge-success': user.isActive,
+                        'badge-secondary': !user.isActive
+                      }">
+                  {{ user.isActive ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td>
+                <span *ngIf="user.lastLogin" class="text-sm text-gray-500">
+                  {{ user.lastLogin | date:'short' }}
+                </span>
+                <span *ngIf="!user.lastLogin" class="text-sm text-gray-400">
+                  Never
+                </span>
+              </td>
+              <td class="text-sm text-gray-500">
+                {{ user.createdAt | date:'shortDate' }}
+              </td>
+              <td>
+                <div class="flex space-x-2">
+                  <button (click)="viewUser(user)" 
+                          class="text-primary-600 hover:text-primary-900 text-sm">
+                    View
+                  </button>
+                  <button (click)="editUser(user)" 
+                          class="text-indigo-600 hover:text-indigo-900 text-sm">
+                    Edit
+                  </button>
+                  <button (click)="toggleUserStatus(user)" 
+                          [disabled]="user._id === currentUserId"
+                          class="text-sm"
+                          [ngClass]="{
+                            'text-yellow-600 hover:text-yellow-900': user.isActive,
+                            'text-green-600 hover:text-green-900': !user.isActive,
+                            'text-gray-400 cursor-not-allowed': user._id === currentUserId
+                          }">
+                    {{ user.isActive ? 'Deactivate' : 'Activate' }}
+                  </button>
+                  <button (click)="deleteUser(user)" 
+                          [disabled]="user._id === currentUserId"
+                          class="text-sm"
+                          [ngClass]="{
+                            'text-red-600 hover:text-red-900': user._id !== currentUserId,
+                            'text-gray-400 cursor-not-allowed': user._id === currentUserId
+                          }">
+                    Delete
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create User Modal -->
+  <div *ngIf="showCreateModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+      <div class="mt-3">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Create New User</h3>
+        
+        <form [formGroup]="createForm" (ngSubmit)="createUser()" class="space-y-4">
+          <div>
+            <label for="createName" class="block text-sm font-medium text-gray-700">Name *</label>
+            <input 
+              type="text" 
+              id="createName"
+              formControlName="name"
+              class="form-input mt-1"
+              placeholder="Enter full name">
+            <div *ngIf="createForm.get('name')?.invalid && createForm.get('name')?.touched" 
+                 class="mt-1 text-sm text-red-600">
+              Name is required
+            </div>
+          </div>
+
+          <div>
+            <label for="createEmail" class="block text-sm font-medium text-gray-700">Email *</label>
+            <input 
+              type="email" 
+              id="createEmail"
+              formControlName="email"
+              class="form-input mt-1"
+              placeholder="Enter email address">
+            <div *ngIf="createForm.get('email')?.invalid && createForm.get('email')?.touched" 
+                 class="mt-1 text-sm text-red-600">
+              <span *ngIf="createForm.get('email')?.errors?.['required']">Email is required</span>
+              <span *ngIf="createForm.get('email')?.errors?.['email']">Please enter a valid email</span>
+            </div>
+          </div>
+
+          <div>
+            <label for="createPassword" class="block text-sm font-medium text-gray-700">Password *</label>
+            <input 
+              type="password" 
+              id="createPassword"
+              formControlName="password"
+              class="form-input mt-1"
+              placeholder="Enter password">
+            <div *ngIf="createForm.get('password')?.invalid && createForm.get('password')?.touched" 
+                 class="mt-1 text-sm text-red-600">
+              <span *ngIf="createForm.get('password')?.errors?.['required']">Password is required</span>
+              <span *ngIf="createForm.get('password')?.errors?.['minlength']">Password must be at least 6 characters</span>
+            </div>
+          </div>
+
+          <div>
+            <label for="createRole" class="block text-sm font-medium text-gray-700">Role *</label>
+            <select 
+              id="createRole"
+              formControlName="role"
+              class="form-select mt-1">
+              <option value="Employee">Employee</option>
+              <option value="RM">Resource Manager</option>
+              <option value="Admin">Administrator</option>
+            </select>
+          </div>
+
+          <div *ngIf="createError" class="rounded-md bg-red-50 p-4">
+            <div class="flex">
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-red-800">
+                  {{ createError }}
+                </h3>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end space-x-3">
+            <button type="button" (click)="closeCreateModal()" class="btn-secondary">
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              [disabled]="creating || createForm.invalid"
+              class="btn-primary">
+              <span *ngIf="creating" class="spinner mr-2"></span>
+              Create User
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit User Modal -->
+  <div *ngIf="showEditModal && selectedUser" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+      <div class="mt-3">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Edit User</h3>
+        
+        <form [formGroup]="editForm" (ngSubmit)="updateUser()" class="space-y-4">
+          <div>
+            <label for="editName" class="block text-sm font-medium text-gray-700">Name *</label>
+            <input 
+              type="text" 
+              id="editName"
+              formControlName="name"
+              class="form-input mt-1">
+            <div *ngIf="editForm.get('name')?.invalid && editForm.get('name')?.touched" 
+                 class="mt-1 text-sm text-red-600">
+              Name is required
+            </div>
+          </div>
+
+          <div>
+            <label for="editEmail" class="block text-sm font-medium text-gray-700">Email *</label>
+            <input 
+              type="email" 
+              id="editEmail"
+              formControlName="email"
+              class="form-input mt-1">
+            <div *ngIf="editForm.get('email')?.invalid && editForm.get('email')?.touched" 
+                 class="mt-1 text-sm text-red-600">
+              <span *ngIf="editForm.get('email')?.errors?.['required']">Email is required</span>
+              <span *ngIf="editForm.get('email')?.errors?.['email']">Please enter a valid email</span>
+            </div>
+          </div>
+
+          <div>
+            <label for="editRole" class="block text-sm font-medium text-gray-700">Role *</label>
+            <select 
+              id="editRole"
+              formControlName="role"
+              class="form-select mt-1">
+              <option value="Employee">Employee</option>
+              <option value="RM">Resource Manager</option>
+              <option value="Admin">Administrator</option>
+            </select>
+          </div>
+
+          <div class="flex items-center">
+            <input 
+              type="checkbox" 
+              id="editIsActive"
+              formControlName="isActive"
+              class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+            <label for="editIsActive" class="ml-2 block text-sm text-gray-900">
+              Active User
+            </label>
+          </div>
+
+          <div *ngIf="editError" class="rounded-md bg-red-50 p-4">
+            <div class="flex">
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-red-800">
+                  {{ editError }}
+                </h3>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end space-x-3">
+            <button type="button" (click)="closeEditModal()" class="btn-secondary">
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              [disabled]="updating || editForm.invalid"
+              class="btn-primary">
+              <span *ngIf="updating" class="spinner mr-2"></span>
+              Update User
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Details Modal -->
+  <div *ngIf="selectedUser && showViewModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-10 mx-auto p-5 border max-w-2xl shadow-lg rounded-md bg-white">
+      <div class="mt-3">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-medium text-gray-900">User Details</h3>
+          <button (click)="closeViewModal()" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Name</label>
+              <p class="mt-1 text-sm text-gray-900">{{ selectedUser.name }}</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Email</label>
+              <p class="mt-1 text-sm text-gray-900">{{ selectedUser.email }}</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Role</label>
+              <span class="badge mt-1" 
+                    [ngClass]="{
+                      'badge-danger': selectedUser.role === 'Admin',
+                      'badge-warning': selectedUser.role === 'RM',
+                      'badge-info': selectedUser.role === 'Employee'
+                    }">
+                {{ selectedUser.role }}
+              </span>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Status</label>
+              <span class="badge mt-1" 
+                    [ngClass]="{
+                      'badge-success': selectedUser.isActive,
+                      'badge-secondary': !selectedUser.isActive
+                    }">
+                {{ selectedUser.isActive ? 'Active' : 'Inactive' }}
+              </span>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Last Login</label>
+              <p class="mt-1 text-sm text-gray-900">
+                {{ selectedUser.lastLogin ? (selectedUser.lastLogin | date:'medium') : 'Never' }}
+              </p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Created</label>
+              <p class="mt-1 text-sm text-gray-900">{{ selectedUser.createdAt | date:'medium' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6 flex justify-end">
+          <button (click)="closeViewModal()" class="btn-secondary">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

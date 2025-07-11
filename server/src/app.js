@@ -13,6 +13,7 @@ const matchRoutes = require('./routes/matches');
 const trainingRoutes = require('./routes/training');
 const trainingResourceRoutes = require('./routes/trainingResources');
 const uploadRoutes = require('./routes/upload');
+const userRoutes = require('./routes/users');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 
 const app = express();
@@ -58,6 +59,7 @@ app.use('/api/match', matchRoutes);
 app.use('/api/training', trainingRoutes);
 app.use('/api/training-resources', trainingResourceRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/users', userRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

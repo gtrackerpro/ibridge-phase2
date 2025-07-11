@@ -12,6 +12,7 @@ import { AuthInterceptor } from './interceptors/auth.interceptor';
 
 // Guards
 import { AuthGuard } from './guards/auth.guard';
+import { AdminGuard } from './guards/admin.guard';
 
 // Services
 import { AuthService } from './services/auth.service';
@@ -34,6 +35,7 @@ import { DemandFormComponent } from './components/demands/demand-form/demand-for
 import { MatchListComponent } from './components/matches/match-list/match-list.component';
 import { TrainingListComponent } from './components/training/training-list/training-list.component';
 import { NotificationComponent } from './components/shared/notification/notification.component';
+import { UserListComponent } from './components/users/user-list/user-list.component';
 
 @NgModule({
   declarations: [
@@ -47,7 +49,8 @@ import { NotificationComponent } from './components/shared/notification/notifica
     DemandFormComponent,
     MatchListComponent,
     TrainingListComponent,
-    NotificationComponent
+    NotificationComponent,
+    UserListComponent
   ],
   imports: [
     BrowserModule,
@@ -59,6 +62,7 @@ import { NotificationComponent } from './components/shared/notification/notifica
   ],
   providers: [
     AuthGuard,
+    AdminGuard,
     AuthService,
     EmployeeService,
     DemandService,
