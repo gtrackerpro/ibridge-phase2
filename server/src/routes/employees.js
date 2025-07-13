@@ -1,5 +1,6 @@
 const express = require('express');
 const EmployeeProfile = require('../models/EmployeeProfile');
+const User = require('../models/User');
 const { auth, authorize } = require('../middleware/auth');
 const { validateEmployeeProfileMiddleware, sanitizeInputMiddleware } = require('../middleware/validation');
 const { validateObjectIdParam } = require('../utils/objectIdValidator');
@@ -72,6 +73,30 @@ router.post('/', auth, authorize('Admin', 'RM'), sanitizeInputMiddleware, valida
 
     const employee = new EmployeeProfile(employeeData);
     await employee.save();
+
+    // Check if a user account already exists for this employee
+    const existingUser = await User.findOne({ email: employee.email });
+    
+    // If no user account exists, create one with default password
+    if (!existingUser) {
+      try {
+        const defaultPassword = "Wel@come@123";
+        const newUser = new User({
+          name: employee.name,
+          email: employee.email,
+          passwordHash: defaultPassword, // Will be hashed by the pre-save hook
+          role: 'Employee',
+          isActive: true
+        });
+        
+        await newUser.save();
+        console.log(`User account created for employee: ${employee.email}`);
+      } catch (userError) {
+        console.error('Error creating user account for employee:', userError);
+        // Continue with the response even if user creation fails
+        // We don't want to roll back the employee profile creation
+      }
+    }
 
     const populatedEmployee = await EmployeeProfile.findById(employee._id)
       .populate('createdBy', 'name email');

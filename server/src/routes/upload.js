@@ -2,6 +2,8 @@ const express = require('express');
 const multer = require('multer');
 const AWS = require('aws-sdk');
 const FileUpload = require('../models/FileUpload');
+const EmployeeProfile = require('../models/EmployeeProfile');
+const User = require('../models/User');
 const { auth, authorize } = require('../middleware/auth');
 const { processCSVUpload } = require('../services/csvProcessor');
 const { validateObjectIdParam, validateObjectIdBody } = require('../utils/objectIdValidator');
@@ -162,6 +164,42 @@ router.post('/csv', auth, authorize('Admin', 'RM'), upload.single('csv'), async 
         processResult
       };
       await fileUpload.save();
+      
+      // If this was an employee CSV upload, create user accounts for new employees
+      if (type === 'employees' && processResult.successful > 0) {
+        try {
+          // Get all employees that were just created/updated
+          const employeeEmails = processResult.processedEmails || [];
+          if (employeeEmails && employeeEmails.length > 0) {
+            for (const email of employeeEmails) {
+              // Check if a user account already exists
+              const existingUser = await User.findOne({ email });
+              
+              if (!existingUser) {
+                // Get the employee profile to get the name
+                const employee = await EmployeeProfile.findOne({ email });
+                
+                if (employee) {
+                  const defaultPassword = "Wel@come@123";
+                  const newUser = new User({
+                    name: employee.name,
+                    email: employee.email,
+                    passwordHash: defaultPassword, // Will be hashed by the pre-save hook
+                    role: 'Employee',
+                    isActive: true
+                  });
+                  
+                  await newUser.save();
+                  console.log(`User account created for employee from CSV: ${employee.email}`);
+                }
+              }
+            }
+          }
+        } catch (userError) {
+          console.error('Error creating user accounts from CSV:', userError);
+          // Continue with the response even if user creation fails
+        }
+      }
 
       res.status(201).json({
         message: 'CSV uploaded and processed successfully',
