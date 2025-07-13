@@ -1,0 +1,292 @@
+<div class="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
+  <!-- Page header -->
+  <div class="md:flex md:items-center md:justify-between mb-8">
+    <div class="flex-1 min-w-0">
+      <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+        {{ isEditMode ? 'Edit Training Resource' : 'Add New Training Resource' }}
+      </h2>
+    </div>
+    <div class="mt-4 flex md:mt-0 md:ml-4">
+      <button (click)="goBack()" class="btn-secondary">
+        Cancel
+      </button>
+    </div>
+  </div>
+
+  <!-- Resource Form -->
+  <form [formGroup]="resourceForm" (ngSubmit)="onSubmit()" class="space-y-6">
+    <!-- Basic Information -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">Basic Information</h3>
+      </div>
+      <div class="card-body">
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <div class="sm:col-span-2">
+            <label for="title" class="block text-sm font-medium text-gray-700">Title *</label>
+            <input 
+              type="text" 
+              id="title"
+              formControlName="title"
+              class="form-input mt-1"
+              placeholder="e.g., JavaScript: The Complete Guide">
+            <div *ngIf="resourceForm.get('title')?.invalid && resourceForm.get('title')?.touched" 
+                 class="mt-1 text-sm text-red-600">
+              <span *ngIf="resourceForm.get('title')?.errors?.['required']">Title is required</span>
+              <span *ngIf="resourceForm.get('title')?.errors?.['maxlength']">Title cannot exceed 200 characters</span>
+            </div>
+          </div>
+
+          <div class="sm:col-span-2">
+            <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+            <textarea 
+              id="description"
+              formControlName="description"
+              rows="3"
+              class="form-input mt-1"
+              placeholder="Brief description of the resource content and learning objectives..."></textarea>
+            <div *ngIf="resourceForm.get('description')?.invalid && resourceForm.get('description')?.touched" 
+                 class="mt-1 text-sm text-red-600">
+              <span *ngIf="resourceForm.get('description')?.errors?.['maxlength']">Description cannot exceed 1000 characters</span>
+            </div>
+          </div>
+
+          <div class="sm:col-span-2">
+            <label for="url" class="block text-sm font-medium text-gray-700">URL *</label>
+            <input 
+              type="url" 
+              id="url"
+              formControlName="url"
+              class="form-input mt-1"
+              placeholder="https://example.com/course">
+            <div *ngIf="resourceForm.get('url')?.invalid && resourceForm.get('url')?.touched" 
+                 class="mt-1 text-sm text-red-600">
+              <span *ngIf="resourceForm.get('url')?.errors?.['required']">URL is required</span>
+              <span *ngIf="resourceForm.get('url')?.errors?.['pattern']">Please enter a valid URL starting with http:// or https://</span>
+            </div>
+          </div>
+
+          <div>
+            <label for="type" class="block text-sm font-medium text-gray-700">Type *</label>
+            <select 
+              id="type"
+              formControlName="type"
+              class="form-select mt-1">
+              <option *ngFor="let type of types" [value]="type">{{ type }}</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="provider" class="block text-sm font-medium text-gray-700">Provider</label>
+            <input 
+              type="text" 
+              id="provider"
+              formControlName="provider"
+              class="form-input mt-1"
+              placeholder="e.g., Udemy, Coursera, YouTube">
+            <div *ngIf="resourceForm.get('provider')?.invalid && resourceForm.get('provider')?.touched" 
+                 class="mt-1 text-sm text-red-600">
+              <span *ngIf="resourceForm.get('provider')?.errors?.['maxlength']">Provider name cannot exceed 100 characters</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Classification -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">Classification</h3>
+      </div>
+      <div class="card-body">
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+          <div>
+            <label for="category" class="block text-sm font-medium text-gray-700">Category *</label>
+            <select 
+              id="category"
+              formControlName="category"
+              class="form-select mt-1">
+              <option *ngFor="let category of categories" [value]="category">{{ category }}</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="difficulty" class="block text-sm font-medium text-gray-700">Difficulty *</label>
+            <select 
+              id="difficulty"
+              formControlName="difficulty"
+              class="form-select mt-1">
+              <option *ngFor="let difficulty of difficulties" [value]="difficulty">{{ difficulty }}</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="cost" class="block text-sm font-medium text-gray-700">Cost *</label>
+            <select 
+              id="cost"
+              formControlName="cost"
+              class="form-select mt-1">
+              <option *ngFor="let cost of costs" [value]="cost">{{ cost }}</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="estimatedHours" class="block text-sm font-medium text-gray-700">Estimated Hours</label>
+            <input 
+              type="number" 
+              id="estimatedHours"
+              formControlName="estimatedHours"
+              min="0"
+              max="1000"
+              class="form-input mt-1"
+              placeholder="e.g., 40">
+            <div *ngIf="resourceForm.get('estimatedHours')?.invalid && resourceForm.get('estimatedHours')?.touched" 
+                 class="mt-1 text-sm text-red-600">
+              <span *ngIf="resourceForm.get('estimatedHours')?.errors?.['min']">Hours cannot be negative</span>
+              <span *ngIf="resourceForm.get('estimatedHours')?.errors?.['max']">Hours cannot exceed 1000</span>
+            </div>
+          </div>
+
+          <div>
+            <label for="rating" class="block text-sm font-medium text-gray-700">Rating (0-5)</label>
+            <input 
+              type="number" 
+              id="rating"
+              formControlName="rating"
+              min="0"
+              max="5"
+              step="0.1"
+              class="form-input mt-1"
+              placeholder="e.g., 4.5">
+            <div *ngIf="resourceForm.get('rating')?.invalid && resourceForm.get('rating')?.touched" 
+                 class="mt-1 text-sm text-red-600">
+              <span *ngIf="resourceForm.get('rating')?.errors?.['min']">Rating cannot be negative</span>
+              <span *ngIf="resourceForm.get('rating')?.errors?.['max']">Rating cannot exceed 5</span>
+            </div>
+          </div>
+
+          <div>
+            <label for="language" class="block text-sm font-medium text-gray-700">Language *</label>
+            <input 
+              type="text" 
+              id="language"
+              formControlName="language"
+              class="form-input mt-1"
+              placeholder="e.g., English, Spanish">
+          </div>
+        </div>
+
+        <div class="mt-6">
+          <div class="flex items-center">
+            <input 
+              type="checkbox" 
+              id="isActive"
+              formControlName="isActive"
+              class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+            <label for="isActive" class="ml-2 block text-sm text-gray-900">
+              Active Resource
+            </label>
+          </div>
+          <p class="mt-1 text-sm text-gray-500">Inactive resources will not appear in recommendations</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skills and Keywords -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">Skills and Keywords</h3>
+      </div>
+      <div class="card-body">
+        <!-- Associated Skills -->
+        <div class="mb-6">
+          <div class="flex justify-between items-center mb-4">
+            <label class="block text-sm font-medium text-gray-700">Associated Skills *</label>
+            <button type="button" (click)="addAssociatedSkill()" class="btn-secondary">
+              Add Skill
+            </button>
+          </div>
+
+          <div formArrayName="associatedSkills" class="space-y-3">
+            <div *ngFor="let skill of associatedSkillsArray.controls; let i = index" 
+                 class="flex items-center space-x-3">
+              <div class="flex-1">
+                <input 
+                  type="text" 
+                  [formControlName]="i"
+                  class="form-input"
+                  placeholder="e.g., JavaScript, React, Node.js">
+              </div>
+              <button type="button" (click)="removeAssociatedSkill(i)" class="text-red-600 hover:text-red-800">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div *ngIf="associatedSkillsArray.length === 0" class="text-sm text-gray-500 italic">
+            No skills added yet. Click "Add Skill" to add associated skills.
+          </div>
+        </div>
+
+        <!-- Keywords -->
+        <div>
+          <div class="flex justify-between items-center mb-4">
+            <label class="block text-sm font-medium text-gray-700">Keywords (Optional)</label>
+            <button type="button" (click)="addKeyword()" class="btn-secondary">
+              Add Keyword
+            </button>
+          </div>
+
+          <div formArrayName="keywords" class="space-y-3">
+            <div *ngFor="let keyword of keywordsArray.controls; let i = index" 
+                 class="flex items-center space-x-3">
+              <div class="flex-1">
+                <input 
+                  type="text" 
+                  [formControlName]="i"
+                  class="form-input"
+                  placeholder="e.g., tutorial, beginner, web development">
+              </div>
+              <button type="button" (click)="removeKeyword(i)" class="text-red-600 hover:text-red-800">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div *ngIf="keywordsArray.length === 0" class="text-sm text-gray-500 italic">
+            No keywords added yet. Keywords help with search and discovery.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Display -->
+    <div *ngIf="error" class="rounded-md bg-red-50 p-4">
+      <div class="flex">
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-red-800">
+            {{ error }}
+          </h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="flex justify-end space-x-3">
+      <button type="button" (click)="goBack()" class="btn-secondary">
+        Cancel
+      </button>
+      <button 
+        type="submit" 
+        [disabled]="loading || resourceForm.invalid"
+        class="btn-primary">
+        <span *ngIf="loading" class="spinner mr-2"></span>
+        {{ isEditMode ? 'Update Resource' : 'Create Resource' }}
+      </button>
+    </div>
+  </form>
+</div>

@@ -38,6 +38,8 @@ import { NotificationComponent } from './components/shared/notification/notifica
 import { UserListComponent } from './components/users/user-list/user-list.component';
 import { ProfileComponent } from './components/profile/profile.component';
 import { EmployeeProfileComponent } from './components/employee-profile/employee-profile.component';
+import { TrainingResourceListComponent } from './components/training-resources/training-resource-list/training-resource-list.component';
+import { TrainingResourceFormComponent } from './components/training-resources/training-resource-form/training-resource-form.component';
 
 @NgModule({
   declarations: [
@@ -54,7 +56,9 @@ import { EmployeeProfileComponent } from './components/employee-profile/employee
     NotificationComponent,
     UserListComponent,
     ProfileComponent,
-    EmployeeProfileComponent
+    EmployeeProfileComponent,
+    TrainingResourceListComponent,
+    TrainingResourceFormComponent
   ],
   imports: [
     BrowserModule,

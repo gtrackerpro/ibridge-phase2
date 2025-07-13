@@ -1,0 +1,402 @@
+<div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+  <!-- Page header -->
+  <div class="md:flex md:items-center md:justify-between mb-8">
+    <div class="flex-1 min-w-0">
+      <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+        Training Resources
+      </h2>
+      <p class="mt-1 text-sm text-gray-500">
+        Manage learning resources and training materials
+      </p>
+    </div>
+    <div class="mt-4 flex md:mt-0 md:ml-4">
+      <a routerLink="/training-resources/new" 
+         *ngIf="authService.hasRole(['Admin', 'RM'])"
+         class="btn-primary">
+        Add Resource
+      </a>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="card mb-6">
+    <div class="card-body">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-6">
+        <div>
+          <label for="categoryFilter" class="block text-sm font-medium text-gray-700">Category</label>
+          <select 
+            id="categoryFilter"
+            [(ngModel)]="filters.category"
+            (change)="onFilterChange()"
+            class="form-select mt-1">
+            <option value="">All Categories</option>
+            <option *ngFor="let category of categories" [value]="category">{{ category }}</option>
+          </select>
+        </div>
+        <div>
+          <label for="typeFilter" class="block text-sm font-medium text-gray-700">Type</label>
+          <select 
+            id="typeFilter"
+            [(ngModel)]="filters.type"
+            (change)="onFilterChange()"
+            class="form-select mt-1">
+            <option value="">All Types</option>
+            <option *ngFor="let type of types" [value]="type">{{ type }}</option>
+          </select>
+        </div>
+        <div>
+          <label for="difficultyFilter" class="block text-sm font-medium text-gray-700">Difficulty</label>
+          <select 
+            id="difficultyFilter"
+            [(ngModel)]="filters.difficulty"
+            (change)="onFilterChange()"
+            class="form-select mt-1">
+            <option value="">All Levels</option>
+            <option *ngFor="let difficulty of difficulties" [value]="difficulty">{{ difficulty }}</option>
+          </select>
+        </div>
+        <div>
+          <label for="costFilter" class="block text-sm font-medium text-gray-700">Cost</label>
+          <select 
+            id="costFilter"
+            [(ngModel)]="filters.cost"
+            (change)="onFilterChange()"
+            class="form-select mt-1">
+            <option value="">All Costs</option>
+            <option *ngFor="let cost of costs" [value]="cost">{{ cost }}</option>
+          </select>
+        </div>
+        <div>
+          <label for="skillFilter" class="block text-sm font-medium text-gray-700">Skill</label>
+          <input 
+            type="text" 
+            id="skillFilter"
+            [(ngModel)]="filters.skill"
+            (input)="onFilterChange()"
+            class="form-input mt-1" 
+            placeholder="Search by skill">
+        </div>
+        <div class="flex items-end">
+          <button (click)="clearFilters()" class="btn-secondary w-full">
+            Clear Filters
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+    <div class="card">
+      <div class="card-body">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+          </div>
+          <div class="ml-5 w-0 flex-1">
+            <dl>
+              <dt class="text-sm font-medium text-gray-500 truncate">Total Resources</dt>
+              <dd class="text-lg font-medium text-gray-900">{{ resources.length }}</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"/>
+              </svg>
+            </div>
+          </div>
+          <div class="ml-5 w-0 flex-1">
+            <dl>
+              <dt class="text-sm font-medium text-gray-500 truncate">Free Resources</dt>
+              <dd class="text-lg font-medium text-gray-900">{{ getResourceCountByType('Free') }}</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+          </div>
+          <div class="ml-5 w-0 flex-1">
+            <dl>
+              <dt class="text-sm font-medium text-gray-500 truncate">Courses</dt>
+              <dd class="text-lg font-medium text-gray-900">{{ getResourceCountByType('Course') }}</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                <path fill-rule="evenodd" d="M4 5a2 2 0 012-2v1a1 1 0 102 0V3a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 2V6a1 1 0 112 0v1a1 1 0 11-2 0zm2 3a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+          </div>
+          <div class="ml-5 w-0 flex-1">
+            <dl>
+              <dt class="text-sm font-medium text-gray-500 truncate">Certifications</dt>
+              <dd class="text-lg font-medium text-gray-900">{{ getResourceCountByType('Certification') }}</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resources Table -->
+  <div class="card">
+    <div class="card-body p-0">
+      <div *ngIf="loading" class="flex justify-center py-8">
+        <div class="spinner"></div>
+      </div>
+
+      <div *ngIf="!loading && resources.length === 0" class="text-center py-8">
+        <p class="text-gray-500">No training resources found</p>
+      </div>
+
+      <div *ngIf="!loading && resources.length > 0" class="overflow-x-auto">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Type</th>
+              <th>Category</th>
+              <th>Difficulty</th>
+              <th>Rating</th>
+              <th>Cost</th>
+              <th>Skills</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr *ngFor="let resource of resources">
+              <td>
+                <div>
+                  <div class="font-medium text-gray-900">{{ resource.title }}</div>
+                  <div class="text-sm text-gray-500">{{ resource.provider }}</div>
+                </div>
+              </td>
+              <td>
+                <span class="badge badge-info">{{ resource.type }}</span>
+              </td>
+              <td>
+                <span class="badge badge-secondary">{{ resource.category }}</span>
+              </td>
+              <td>
+                <span class="badge" 
+                      [ngClass]="{
+                        'badge-success': resource.difficulty === 'Beginner',
+                        'badge-warning': resource.difficulty === 'Intermediate',
+                        'badge-danger': resource.difficulty === 'Advanced'
+                      }">
+                  {{ resource.difficulty }}
+                </span>
+              </td>
+              <td>
+                <div class="flex items-center">
+                  <span class="text-sm font-medium mr-1">{{ resource.rating }}</span>
+                  <div class="flex">
+                    <svg *ngFor="let star of getRatingStars(resource.rating)" 
+                         class="w-4 h-4"
+                         [ngClass]="{
+                           'text-yellow-400': star === 'full',
+                           'text-gray-300': star === 'empty'
+                         }"
+                         fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                    </svg>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="badge" 
+                      [ngClass]="{
+                        'badge-success': resource.cost === 'Free',
+                        'badge-warning': resource.cost === 'Paid',
+                        'badge-info': resource.cost === 'Subscription'
+                      }">
+                  {{ resource.cost }}
+                </span>
+              </td>
+              <td>
+                <div class="flex flex-wrap gap-1">
+                  <span *ngFor="let skill of resource.associatedSkills.slice(0, 2)" 
+                        class="badge badge-secondary text-xs">
+                    {{ skill }}
+                  </span>
+                  <span *ngIf="resource.associatedSkills.length > 2" 
+                        class="text-xs text-gray-500">
+                    +{{ resource.associatedSkills.length - 2 }} more
+                  </span>
+                </div>
+              </td>
+              <td>
+                <div class="flex space-x-2">
+                  <button (click)="viewResource(resource)" 
+                          class="text-primary-600 hover:text-primary-900 text-sm">
+                    View
+                  </button>
+                  <button (click)="openResourceUrl(resource.url)" 
+                          class="text-green-600 hover:text-green-900 text-sm">
+                    Open
+                  </button>
+                  <button (click)="editResource(resource)" 
+                          *ngIf="canEditResource(resource)"
+                          class="text-indigo-600 hover:text-indigo-900 text-sm">
+                    Edit
+                  </button>
+                  <button (click)="deleteResource(resource)" 
+                          *ngIf="canEditResource(resource)"
+                          class="text-red-600 hover:text-red-900 text-sm">
+                    Delete
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resource Detail Modal -->
+  <div *ngIf="selectedResource" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-10 mx-auto p-5 border max-w-3xl shadow-lg rounded-md bg-white">
+      <div class="mt-3">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-medium text-gray-900">Resource Details</h3>
+          <button (click)="closeResourceModal()" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="space-y-4">
+          <div>
+            <h4 class="text-xl font-semibold text-gray-900">{{ selectedResource.title }}</h4>
+            <p class="text-sm text-gray-600 mt-1">{{ selectedResource.provider }}</p>
+          </div>
+
+          <div *ngIf="selectedResource.description" class="bg-gray-50 p-4 rounded-md">
+            <p class="text-sm text-gray-700">{{ selectedResource.description }}</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Type</label>
+              <span class="badge badge-info mt-1">{{ selectedResource.type }}</span>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Category</label>
+              <span class="badge badge-secondary mt-1">{{ selectedResource.category }}</span>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Difficulty</label>
+              <span class="badge mt-1" 
+                    [ngClass]="{
+                      'badge-success': selectedResource.difficulty === 'Beginner',
+                      'badge-warning': selectedResource.difficulty === 'Intermediate',
+                      'badge-danger': selectedResource.difficulty === 'Advanced'
+                    }">
+                {{ selectedResource.difficulty }}
+              </span>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Cost</label>
+              <span class="badge mt-1" 
+                    [ngClass]="{
+                      'badge-success': selectedResource.cost === 'Free',
+                      'badge-warning': selectedResource.cost === 'Paid',
+                      'badge-info': selectedResource.cost === 'Subscription'
+                    }">
+                {{ selectedResource.cost }}
+              </span>
+            </div>
+            <div *ngIf="selectedResource.estimatedHours">
+              <label class="block text-sm font-medium text-gray-700">Estimated Hours</label>
+              <p class="mt-1 text-sm text-gray-900">{{ selectedResource.estimatedHours }} hours</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Rating</label>
+              <div class="flex items-center mt-1">
+                <span class="text-sm font-medium mr-2">{{ selectedResource.rating }}/5</span>
+                <div class="flex">
+                  <svg *ngFor="let star of getRatingStars(selectedResource.rating)" 
+                       class="w-4 h-4"
+                       [ngClass]="{
+                         'text-yellow-400': star === 'full',
+                         'text-gray-300': star === 'empty'
+                       }"
+                       fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Associated Skills</label>
+            <div class="flex flex-wrap gap-2">
+              <span *ngFor="let skill of selectedResource.associatedSkills" 
+                    class="badge badge-info">
+                {{ skill }}
+              </span>
+            </div>
+          </div>
+
+          <div *ngIf="selectedResource.keywords.length > 0">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Keywords</label>
+            <div class="flex flex-wrap gap-1">
+              <span *ngFor="let keyword of selectedResource.keywords" 
+                    class="badge badge-secondary text-xs">
+                {{ keyword }}
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Language</label>
+            <p class="mt-1 text-sm text-gray-900">{{ selectedResource.language }}</p>
+          </div>
+        </div>
+
+        <div class="mt-6 flex justify-between">
+          <button (click)="openResourceUrl(selectedResource.url)" class="btn-primary">
+            Open Resource
+          </button>
+          <button (click)="closeResourceModal()" class="btn-secondary">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
