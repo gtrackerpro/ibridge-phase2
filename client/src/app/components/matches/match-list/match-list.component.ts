@@ -3,6 +3,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 import { MatchService, Match } from '../../../services/match.service';
 import { TrainingService } from '../../../services/training.service';
+import { CsvExportService } from '../../../services/csv-export.service';
+import { NotificationService } from '../../../services/notification.service';
 
 @Component({
   selector: 'app-match-list',
@@ -26,6 +28,8 @@ export class MatchListComponent implements OnInit {
     public authService: AuthService,
     private matchService: MatchService,
     private trainingService: TrainingService,
+    private csvExportService: CsvExportService,
+    private notificationService: NotificationService,
     private route: ActivatedRoute,
     private router: Router
   ) { }
@@ -146,5 +150,16 @@ export class MatchListComponent implements OnInit {
         }
       });
     }
+  }
+
+  exportMatches(): void {
+    if (this.matches.length === 0) {
+      this.notificationService.warning('No Data', 'No matches available to export');
+      return;
+    }
+
+    const filename = this.csvExportService.generateFilename('matches-export');
+    this.csvExportService.exportMatches(this.matches, filename);
+    this.notificationService.success('Export Complete', `Exported ${this.matches.length} matches to ${filename}`);
   }
 }

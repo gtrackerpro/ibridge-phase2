@@ -23,6 +23,7 @@ import { TrainingService } from './services/training.service';
 import { UploadService } from './services/upload.service';
 import { NotificationService } from './services/notification.service';
 import { ErrorHandlerService } from './services/error-handler.service';
+import { CsvExportService } from './services/csv-export.service';
 
 // Components
 import { LoginComponent } from './components/auth/login/login.component';
@@ -79,6 +80,7 @@ import { TrainingResourceFormComponent } from './components/training-resources/t
     UploadService,
     NotificationService,
     ErrorHandlerService,
+    CsvExportService,
     {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,

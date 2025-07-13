@@ -3,6 +3,8 @@ import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { AuthService } from '../../../services/auth.service';
 import { TrainingService, TrainingPlan } from '../../../services/training.service';
 import { EmployeeService, Employee } from '../../../services/employee.service';
+import { CsvExportService } from '../../../services/csv-export.service';
+import { NotificationService } from '../../../services/notification.service';
 
 @Component({
   selector: 'app-training-list',
@@ -35,7 +37,9 @@ export class TrainingListComponent implements OnInit {
     public authService: AuthService,
     private trainingService: TrainingService,
     private employeeService: EmployeeService,
-    private formBuilder: FormBuilder
+    private formBuilder: FormBuilder,
+    private csvExportService: CsvExportService,
+    private notificationService: NotificationService
   ) { }
 
   ngOnInit(): void {
@@ -263,5 +267,16 @@ export class TrainingListComponent implements OnInit {
         });
       }
     });
+  }
+
+  exportTrainingPlans(): void {
+    if (this.trainingPlans.length === 0) {
+      this.notificationService.warning('No Data', 'No training plans available to export');
+      return;
+    }
+
+    const filename = this.csvExportService.generateFilename('training-plans-export');
+    this.csvExportService.exportTrainingPlans(this.trainingPlans, filename);
+    this.notificationService.success('Export Complete', `Exported ${this.trainingPlans.length} training plans to ${filename}`);
   }
 }

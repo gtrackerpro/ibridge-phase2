@@ -4,6 +4,7 @@ import { AuthService } from '../../../services/auth.service';
 import { TrainingResourceService, TrainingResource } from '../../../services/training-resource.service';
 import { NotificationService } from '../../../services/notification.service';
 import { ErrorHandlerService } from '../../../services/error-handler.service';
+import { CsvExportService } from '../../../services/csv-export.service';
 
 @Component({
   selector: 'app-training-resource-list',
@@ -36,7 +37,8 @@ export class TrainingResourceListComponent implements OnInit {
     private trainingResourceService: TrainingResourceService,
     private notificationService: NotificationService,
     private errorHandler: ErrorHandlerService,
-    private router: Router
+    private router: Router,
+    private csvExportService: CsvExportService
   ) { }
 
   ngOnInit(): void {
@@ -136,5 +138,15 @@ export class TrainingResourceListComponent implements OnInit {
       }
     }
     return stars;
+  }
+  exportResources(): void {
+    if (this.resources.length === 0) {
+      this.notificationService.warning('No Data', 'No training resources available to export');
+      return;
+    }
+
+    const filename = this.csvExportService.generateFilename('training-resources-export');
+    this.csvExportService.exportTrainingResources(this.resources, filename);
+    this.notificationService.success('Export Complete', `Exported ${this.resources.length} training resources to ${filename}`);
   }
 }

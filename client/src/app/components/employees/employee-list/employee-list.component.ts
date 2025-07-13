@@ -5,6 +5,7 @@ import { EmployeeService, Employee } from '../../../services/employee.service';
 import { UploadService } from '../../../services/upload.service';
 import { NotificationService } from '../../../services/notification.service';
 import { ErrorHandlerService } from '../../../services/error-handler.service';
+import { CsvExportService } from '../../../services/csv-export.service';
 
 @Component({
   selector: 'app-employee-list',
@@ -35,7 +36,8 @@ export class EmployeeListComponent implements OnInit {
     private uploadService: UploadService,
     private router: Router,
     private notificationService: NotificationService,
-    private errorHandler: ErrorHandlerService
+    private errorHandler: ErrorHandlerService,
+    private csvExportService: CsvExportService
   ) { }
 
   ngOnInit(): void {
@@ -166,5 +168,15 @@ export class EmployeeListComponent implements OnInit {
     this.showUploadModal = false;
     this.selectedFile = null;
     this.uploadError = '';
+  }
+
+  exportEmployees(): void {
+    if (this.employees.length === 0) {
+      this.notificationService.warning('No Data', 'No employees available to export');
+      return;
+    }
+    const filename = this.csvExportService.generateFilename('employees-export');
+    this.csvExportService.exportEmployees(this.employees, filename);
+    this.notificationService.success('Export Complete', `Exported ${this.employees.length} employees to ${filename}`);
   }
 }

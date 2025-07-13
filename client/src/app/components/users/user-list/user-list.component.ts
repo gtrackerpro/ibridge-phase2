@@ -4,6 +4,7 @@ import { AuthService } from '../../../services/auth.service';
 import { UserService, User, UserStats } from '../../../services/user.service';
 import { NotificationService } from '../../../services/notification.service';
 import { ErrorHandlerService } from '../../../services/error-handler.service';
+import { CsvExportService } from '../../../services/csv-export.service';
 
 @Component({
   selector: 'app-user-list',
@@ -52,7 +53,8 @@ export class UserListComponent implements OnInit {
     private userService: UserService,
     private notificationService: NotificationService,
     private errorHandler: ErrorHandlerService,
-    private formBuilder: FormBuilder
+    private formBuilder: FormBuilder,
+    private csvExportService: CsvExportService
   ) {
     this.currentUserId = this.authService.getCurrentUser()?.id || '';
   }
@@ -258,6 +260,17 @@ export class UserListComponent implements OnInit {
         }
       });
     }
+  }
+
+  exportUsers(): void {
+    if (this.users.length === 0) {
+      this.notificationService.warning('No Data', 'No users available to export');
+      return;
+    }
+
+    const filename = this.csvExportService.generateFilename('users-export');
+    this.csvExportService.exportUsers(this.users, filename);
+    this.notificationService.success('Export Complete', `Exported ${this.users.length} users to ${filename}`);
   }
 
   private markFormGroupTouched(formGroup: FormGroup): void {

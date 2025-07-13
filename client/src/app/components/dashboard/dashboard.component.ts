@@ -5,6 +5,8 @@ import { DemandService } from '../../services/demand.service';
 import { MatchService, Match, MatchStats, SkillGap } from '../../services/match.service';
 import { TrainingService, TrainingStats } from '../../services/training.service';
 import { Router } from '@angular/router';
+import { CsvExportService } from '../../services/csv-export.service';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -47,7 +49,9 @@ export class DashboardComponent implements OnInit {
     private demandService: DemandService,
     private matchService: MatchService,
     private trainingService: TrainingService,
-    private router: Router
+    private router: Router,
+    private csvExportService: CsvExportService,
+    private notificationService: NotificationService
   ) { }
 
   ngOnInit(): void {
@@ -128,5 +132,15 @@ export class DashboardComponent implements OnInit {
     // Navigate to a dedicated skill gaps page or show modal
     // For now, we'll just log the action
     console.log('View all skill gaps clicked');
+  }
+  exportSkillGaps(): void {
+    if (this.skillGaps.length === 0) {
+      this.notificationService.warning('No Data', 'No skill gaps available to export');
+      return;
+    }
+
+    const filename = this.csvExportService.generateFilename('skill-gaps-export');
+    this.csvExportService.exportSkillGaps(this.skillGaps, filename);
+    this.notificationService.success('Export Complete', `Exported ${this.skillGaps.length} skill gaps to ${filename}`);
   }
 }
