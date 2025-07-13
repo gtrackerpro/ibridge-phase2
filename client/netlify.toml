@@ -1,0 +1,22 @@
+```toml
+# client/netlify.toml
+
+[build]
+  # The directory where your Angular application builds its production assets.
+  # This should match the "outputPath" in your angular.json for the production build.
+  publish = "dist/ibridge-ai-client"
+  
+  # The command Netlify will run to build your Angular application.
+  # This typically corresponds to your "build" script in client/package.json.
+  command = "npm run build"
+
+# Redirect rule to proxy API requests from your Netlify frontend to your backend service.
+# This is crucial because your Angular app's apiUrl is set to '/api'.
+[[redirects]]
+  from = "/api/*"
+  # IMPORTANT: Replace "YOUR_RENDER_BACKEND_URL" with the actual URL of your deployed Node.js backend.
+  # For example: "https://ibridge-ai-backend.onrender.com/api/:splat"
+  to = "YOUR_RENDER_BACKEND_URL/api/:splat"
+  status = 200
+  force = true
+```
