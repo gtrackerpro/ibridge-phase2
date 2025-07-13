@@ -125,7 +125,8 @@ async function processEmployeesCSV(csvData, createdBy) {
   const results = {
     successful: 0,
     failed: 0,
-    errors: []
+    errors: [],
+    processedEmails: []
   };
   
   for (let i = 0; i < csvData.length; i++) {
@@ -179,6 +180,8 @@ async function processEmployeesCSV(csvData, createdBy) {
         await employee.save();
       }
       
+      // Add email to processed list for user account creation
+      results.processedEmails.push(employeeData.email);
       results.successful++;
     } catch (error) {
       results.errors.push({
