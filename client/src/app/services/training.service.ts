@@ -17,6 +17,11 @@ export interface ResourceLink {
   url: string;
   type: 'Course' | 'Documentation' | 'Video' | 'Book' | 'Certification';
   estimatedHours?: number;
+  difficulty?: string;
+  provider?: string;
+  cost?: string;
+  associatedSkill?: string;
+  rating?: number;
 }
 
 export interface TrainingPlan {

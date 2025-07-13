@@ -76,7 +76,7 @@ app.use(errorHandler);
 // 404 handler
 app.use('*', notFoundHandler);
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => {
   console.log(`🚀 iBridge AI Server running on port ${PORT}`);

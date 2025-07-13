@@ -111,7 +111,7 @@ export class MatchListComponent implements OnInit {
       return; // User cancelled
     }
 
-    this.matchService.updateMatchStatus(match._id, status, notes).subscribe({
+    this.matchService.updateMatchStatus(match._id, status, notes || undefined).subscribe({
       next: (response) => {
         // Update the match in the local array
         const index = this.matches.findIndex(m => m._id === match._id);

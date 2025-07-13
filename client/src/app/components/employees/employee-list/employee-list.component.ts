@@ -153,7 +153,6 @@ export class EmployeeListComponent implements OnInit {
         this.uploading = false;
         this.closeUploadModal();
         this.notificationService.success('Upload Successful', 'CSV uploaded and processed successfully');
-        this.notificationService.success('Success', `${employee.name} deleted successfully`);
         this.loadEmployees();
       },
       error: (error) => {

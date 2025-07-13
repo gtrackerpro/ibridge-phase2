@@ -63,37 +63,30 @@ export class UserService {
       if (filters.status) params = params.set('status', filters.status);
     }
 
-    return this.http.get<UserResponse>(`${environment.apiUrl}/users`, { params })
-      .pipe(catchError(this.errorHandler.handleError.bind(this.errorHandler)));
+    return this.http.get<UserResponse>(`${environment.apiUrl}/users`, { params });
   }
 
   getUser(id: string): Observable<SingleUserResponse> {
-    return this.http.get<SingleUserResponse>(`${environment.apiUrl}/users/${id}`)
-      .pipe(catchError(this.errorHandler.handleError.bind(this.errorHandler)));
+    return this.http.get<SingleUserResponse>(`${environment.apiUrl}/users/${id}`);
   }
 
   createUser(user: Partial<User> & { password: string }): Observable<SingleUserResponse> {
-    return this.http.post<SingleUserResponse>(`${environment.apiUrl}/users`, user)
-      .pipe(catchError(this.errorHandler.handleError.bind(this.errorHandler)));
+    return this.http.post<SingleUserResponse>(`${environment.apiUrl}/users`, user);
   }
 
   updateUser(id: string, user: Partial<User>): Observable<SingleUserResponse> {
-    return this.http.put<SingleUserResponse>(`${environment.apiUrl}/users/${id}`, user)
-      .pipe(catchError(this.errorHandler.handleError.bind(this.errorHandler)));
+    return this.http.put<SingleUserResponse>(`${environment.apiUrl}/users/${id}`, user);
   }
 
   deleteUser(id: string): Observable<SingleUserResponse> {
-    return this.http.delete<SingleUserResponse>(`${environment.apiUrl}/users/${id}`)
-      .pipe(catchError(this.errorHandler.handleError.bind(this.errorHandler)));
+    return this.http.delete<SingleUserResponse>(`${environment.apiUrl}/users/${id}`);
   }
 
   toggleUserStatus(id: string): Observable<SingleUserResponse> {
-    return this.http.patch<SingleUserResponse>(`${environment.apiUrl}/users/${id}/toggle-status`, {})
-      .pipe(catchError(this.errorHandler.handleError.bind(this.errorHandler)));
+    return this.http.patch<SingleUserResponse>(`${environment.apiUrl}/users/${id}/toggle-status`, {});
   }
 
   getUserStats(): Observable<UserStatsResponse> {
-    return this.http.get<UserStatsResponse>(`${environment.apiUrl}/users/stats/overview`)
-      .pipe(catchError(this.errorHandler.handleError.bind(this.errorHandler)));
+    return this.http.get<UserStatsResponse>(`${environment.apiUrl}/users/stats/overview`);
   }
 }

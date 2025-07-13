@@ -5,13 +5,13 @@
   "main": "server/src/app.js",
   "scripts": {
     "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
-    "server:dev": "cd server && npm run dev",
-    "client:dev": "cd client && npm start",
-    "server:install": "cd server && npm install",
-    "client:install": "cd client && npm install",
+    "server:dev": "npm --prefix server run dev",
+    "client:dev": "npm --prefix client start",
+    "server:install": "npm --prefix server install",
+    "client:install": "npm --prefix client install",
     "install:all": "npm install && npm run server:install && npm run client:install",
-    "build": "cd client && npm run build",
-    "start": "cd server && npm start"
+    "build": "npm --prefix client run build",
+    "start": "npm --prefix server start"
   },
   "keywords": [
     "resource-management",
@@ -31,6 +31,7 @@
     "@tailwindcss/forms": "^0.5.10",
     "@tailwindcss/typography": "^0.5.16",
     "autoprefixer": "^10.4.21",
+    "csv-parser": "^3.2.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.11"
   }

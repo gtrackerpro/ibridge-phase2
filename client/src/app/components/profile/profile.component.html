@@ -200,7 +200,7 @@
         <div>
           <label class="block text-sm font-medium text-gray-700">Last Login</label>
           <p class="mt-1 text-sm text-gray-900">
-            {{ currentUser?.lastLogin ? (currentUser.lastLogin | date:'medium') : 'Never' }}
+            {{ currentUser?.lastLogin ? (currentUser?.lastLogin | date:'medium') : 'Never' }}
           </p>
         </div>
       </div>

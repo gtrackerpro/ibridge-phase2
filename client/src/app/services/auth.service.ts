@@ -10,6 +10,7 @@ export interface User {
   name: string;
   email: string;
   role: 'Admin' | 'RM' | 'Employee';
+  createdAt?: Date;
   lastLogin?: Date;
 }
 
@@ -50,8 +51,7 @@ export class AuthService {
           localStorage.setItem('token', response.token);
           this.currentUserSubject.next(response.user);
           return response;
-        }),
-        catchError(this.errorHandler.handleError.bind(this.errorHandler))
+        })
       );
   }
 
@@ -67,8 +67,7 @@ export class AuthService {
       localStorage.setItem('token', response.token);
       this.currentUserSubject.next(response.user);
       return response;
-    }),
-    catchError(this.errorHandler.handleError.bind(this.errorHandler))
+    })
     );
   }
 
@@ -110,8 +109,7 @@ export class AuthService {
   }
 
   getProfile(): Observable<{ user: User }> {
-    return this.http.get<{ user: User }>(`${environment.apiUrl}/auth/profile`)
-      .pipe(catchError(this.errorHandler.handleError.bind(this.errorHandler)));
+    return this.http.get<{ user: User }>(`${environment.apiUrl}/auth/profile`);
   }
 
   updateProfile(name: string): Observable<{ message: string; user: User }> {
@@ -121,8 +119,7 @@ export class AuthService {
         localStorage.setItem('currentUser', JSON.stringify(response.user));
         this.currentUserSubject.next(response.user);
         return response;
-      }),
-      catchError(this.errorHandler.handleError.bind(this.errorHandler))
+      })
     );
   }
 
@@ -131,6 +128,6 @@ export class AuthService {
       currentPassword, 
       newPassword, 
       confirmPassword 
-    }).pipe(catchError(this.errorHandler.handleError.bind(this.errorHandler)));
+    });
   }
 }
