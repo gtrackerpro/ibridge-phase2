@@ -1,0 +1,514 @@
+<div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+  <!-- Page header -->
+  <div class="md:flex md:items-center md:justify-between mb-8">
+    <div class="flex-1 min-w-0">
+      <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+        My Employee Profile
+      </h2>
+      <p class="mt-1 text-sm text-gray-500">
+        Manage your professional profile, skills, and career information
+      </p>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="flex justify-center py-12">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="rounded-md bg-red-50 p-4 mb-6">
+    <div class="flex">
+      <div class="ml-3">
+        <h3 class="text-sm font-medium text-red-800">
+          {{ error }}
+        </h3>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Content -->
+  <div *ngIf="employeeProfile && !loading" class="space-y-6">
+    <!-- Tab Navigation -->
+    <div class="border-b border-gray-200">
+      <nav class="-mb-px flex space-x-8">
+        <button (click)="setActiveTab('profile')"
+                [class]="activeTab === 'profile' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+          Profile & Skills
+        </button>
+        <button (click)="setActiveTab('opportunities')"
+                [class]="activeTab === 'opportunities' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+          Opportunities
+        </button>
+        <button (click)="setActiveTab('training')"
+                [class]="activeTab === 'training' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+          Training Plans
+        </button>
+      </nav>
+    </div>
+
+    <!-- Profile Tab -->
+    <div *ngIf="activeTab === 'profile'" class="space-y-6">
+      <!-- Basic Information Card -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Basic Information</h3>
+          <p class="mt-1 text-sm text-gray-500">
+            Your basic profile information and contact details
+          </p>
+        </div>
+        <div class="card-body">
+          <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Employee ID</label>
+              <p class="mt-1 text-sm text-gray-900 bg-gray-50 px-3 py-2 rounded-md">{{ employeeProfile.employeeId }}</p>
+              <p class="mt-1 text-xs text-gray-500">This field cannot be changed</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Email Address</label>
+              <p class="mt-1 text-sm text-gray-900 bg-gray-50 px-3 py-2 rounded-md">{{ employeeProfile.email }}</p>
+              <p class="mt-1 text-xs text-gray-500">Contact admin to change email</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Business Unit</label>
+              <p class="mt-1 text-sm text-gray-900">{{ employeeProfile.BU }}</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Current Status</label>
+              <span class="badge mt-1" 
+                    [ngClass]="{
+                      'badge-success': employeeProfile.status === 'Available',
+                      'badge-warning': employeeProfile.status === 'Training',
+                      'badge-info': employeeProfile.status === 'Allocated',
+                      'badge-secondary': employeeProfile.status === 'On Leave'
+                    }">
+                {{ employeeProfile.status }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Editable Profile Form -->
+      <form [formGroup]="profileForm" (ngSubmit)="updateProfile()" class="space-y-6">
+        <!-- Personal Information -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">Personal Information</h3>
+            <p class="mt-1 text-sm text-gray-500">
+              Update your personal and professional details
+            </p>
+          </div>
+          <div class="card-body">
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <div>
+                <label for="name" class="block text-sm font-medium text-gray-700">Full Name *</label>
+                <input 
+                  type="text" 
+                  id="name"
+                  formControlName="name"
+                  class="form-input mt-1"
+                  placeholder="Enter your full name">
+                <div *ngIf="profileForm.get('name')?.invalid && profileForm.get('name')?.touched" 
+                     class="mt-1 text-sm text-red-600">
+                  <span *ngIf="profileForm.get('name')?.errors?.['required']">Name is required</span>
+                  <span *ngIf="profileForm.get('name')?.errors?.['minlength']">Name must be at least 2 characters</span>
+                  <span *ngIf="profileForm.get('name')?.errors?.['maxlength']">Name cannot exceed 100 characters</span>
+                </div>
+              </div>
+
+              <div>
+                <label for="status" class="block text-sm font-medium text-gray-700">Availability Status</label>
+                <select 
+                  id="status"
+                  formControlName="status"
+                  class="form-select mt-1">
+                  <option value="Available">Available</option>
+                  <option value="Allocated">Allocated</option>
+                  <option value="On Leave">On Leave</option>
+                  <option value="Training">Training</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="BU" class="block text-sm font-medium text-gray-700">Business Unit *</label>
+                <input 
+                  type="text" 
+                  id="BU"
+                  formControlName="BU"
+                  class="form-input mt-1"
+                  placeholder="e.g., Technology, Finance">
+                <div *ngIf="profileForm.get('BU')?.invalid && profileForm.get('BU')?.touched" 
+                     class="mt-1 text-sm text-red-600">
+                  Business Unit is required
+                </div>
+              </div>
+
+              <div>
+                <label for="location" class="block text-sm font-medium text-gray-700">Location</label>
+                <input 
+                  type="text" 
+                  id="location"
+                  formControlName="location"
+                  class="form-input mt-1"
+                  placeholder="e.g., New York, Remote">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skills Section -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">Skills & Experience</h3>
+            <p class="mt-1 text-sm text-gray-500">
+              Manage your technical skills and experience levels
+            </p>
+          </div>
+          <div class="card-body">
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 mb-6">
+              <div>
+                <label for="primarySkill" class="block text-sm font-medium text-gray-700">Primary Skill *</label>
+                <input 
+                  type="text" 
+                  id="primarySkill"
+                  formControlName="primarySkill"
+                  class="form-input mt-1"
+                  placeholder="e.g., JavaScript, Python, Java">
+                <div *ngIf="profileForm.get('primarySkill')?.invalid && profileForm.get('primarySkill')?.touched" 
+                     class="mt-1 text-sm text-red-600">
+                  Primary skill is required
+                </div>
+              </div>
+
+              <div>
+                <label for="primarySkillExperience" class="block text-sm font-medium text-gray-700">Primary Skill Experience (Years) *</label>
+                <input 
+                  type="number" 
+                  id="primarySkillExperience"
+                  formControlName="primarySkillExperience"
+                  min="0"
+                  class="form-input mt-1"
+                  placeholder="e.g., 5">
+                <div *ngIf="profileForm.get('primarySkillExperience')?.invalid && profileForm.get('primarySkillExperience')?.touched" 
+                     class="mt-1 text-sm text-red-600">
+                  <span *ngIf="profileForm.get('primarySkillExperience')?.errors?.['required']">Experience is required</span>
+                  <span *ngIf="profileForm.get('primarySkillExperience')?.errors?.['min']">Experience cannot be negative</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Secondary Skills -->
+            <div>
+              <div class="flex justify-between items-center mb-4">
+                <label class="block text-sm font-medium text-gray-700">Secondary Skills</label>
+                <button type="button" (click)="addSecondarySkill()" class="btn-secondary">
+                  Add Skill
+                </button>
+              </div>
+
+              <div formArrayName="secondarySkills" class="space-y-3">
+                <div *ngFor="let skill of secondarySkillsArray.controls; let i = index" 
+                     [formGroupName]="i" 
+                     class="flex items-center space-x-3">
+                  <div class="flex-1">
+                    <input 
+                      type="text" 
+                      formControlName="skill"
+                      class="form-input"
+                      placeholder="Skill name">
+                  </div>
+                  <div class="w-32">
+                    <input 
+                      type="number" 
+                      formControlName="experience"
+                      min="0"
+                      class="form-input"
+                      placeholder="Years">
+                  </div>
+                  <button type="button" (click)="removeSecondarySkill(i)" class="text-red-600 hover:text-red-800">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div *ngIf="secondarySkillsArray.length === 0" class="text-sm text-gray-500 italic">
+                No secondary skills added yet. Click "Add Skill" to add your additional skills.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex justify-end space-x-3">
+          <button 
+            type="submit" 
+            [disabled]="updating || profileForm.invalid || !profileForm.dirty"
+            class="btn-primary">
+            <span *ngIf="updating" class="spinner mr-2"></span>
+            Update Profile
+          </button>
+        </div>
+      </form>
+
+      <!-- Resume Section -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Resume</h3>
+          <p class="mt-1 text-sm text-gray-500">
+            Upload or update your resume (PDF, DOC, DOCX)
+          </p>
+        </div>
+        <div class="card-body">
+          <div class="space-y-4">
+            <div *ngIf="employeeProfile.resumeUrl" class="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-md">
+              <div class="flex items-center">
+                <svg class="w-5 h-5 text-green-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+                <span class="text-sm text-green-800">Resume uploaded</span>
+              </div>
+              <a [href]="employeeProfile.resumeUrl" target="_blank" class="text-primary-600 hover:text-primary-800 text-sm font-medium">
+                View Current Resume
+              </a>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Upload New Resume
+              </label>
+              <input 
+                type="file" 
+                accept=".pdf,.doc,.docx"
+                (change)="onResumeSelected($event)"
+                class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100">
+              
+              <div *ngIf="selectedResume" class="mt-3 flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-md">
+                <span class="text-sm text-blue-800">Selected: {{ selectedResume.name }}</span>
+                <button (click)="uploadResume()" 
+                        [disabled]="uploadingResume"
+                        class="btn-primary">
+                  <span *ngIf="uploadingResume" class="spinner mr-2"></span>
+                  Upload
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Opportunities Tab -->
+    <div *ngIf="activeTab === 'opportunities'" class="space-y-6">
+      <!-- Job Recommendations -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Recommended Opportunities</h3>
+          <p class="mt-1 text-sm text-gray-500">
+            AI-generated job recommendations based on your skills and experience
+          </p>
+        </div>
+        <div class="card-body">
+          <div *ngIf="loadingRecommendations" class="flex justify-center py-8">
+            <div class="spinner"></div>
+          </div>
+
+          <div *ngIf="!loadingRecommendations && recommendations.length === 0" class="text-center py-8">
+            <p class="text-gray-500">No recommendations available at this time</p>
+          </div>
+
+          <div *ngIf="!loadingRecommendations && recommendations.length > 0" class="space-y-4">
+            <div *ngFor="let rec of recommendations" class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+              <div class="flex items-start justify-between">
+                <div class="flex-1">
+                  <h4 class="text-lg font-medium text-gray-900">{{ rec.demand.positionTitle }}</h4>
+                  <p class="text-sm text-gray-600">{{ rec.demand.accountName }} - {{ rec.demand.projectName }}</p>
+                  <div class="mt-2 flex items-center space-x-4">
+                    <span class="badge badge-info">{{ rec.demand.primarySkill }}</span>
+                    <span class="text-sm text-gray-500">{{ rec.demand.experienceRange.min }}-{{ rec.demand.experienceRange.max }} years</span>
+                  </div>
+                </div>
+                <div class="ml-4 text-right">
+                  <div class="text-lg font-bold" [class]="getMatchTypeColor(rec.matchType)">
+                    {{ rec.matchScore }}%
+                  </div>
+                  <div class="text-sm text-gray-500">{{ rec.matchType }} Match</div>
+                </div>
+              </div>
+              
+              <div *ngIf="rec.missingSkills.length > 0" class="mt-3">
+                <p class="text-sm font-medium text-gray-700 mb-1">Skills to develop:</p>
+                <div class="flex flex-wrap gap-1">
+                  <span *ngFor="let skill of rec.missingSkills" class="badge badge-warning text-xs">
+                    {{ skill }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Current Matches -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Current Matches</h3>
+          <p class="mt-1 text-sm text-gray-500">
+            Your current job matches and their status
+          </p>
+        </div>
+        <div class="card-body">
+          <div *ngIf="loadingMatches" class="flex justify-center py-8">
+            <div class="spinner"></div>
+          </div>
+
+          <div *ngIf="!loadingMatches && matches.length === 0" class="text-center py-8">
+            <p class="text-gray-500">No current matches</p>
+          </div>
+
+          <div *ngIf="!loadingMatches && matches.length > 0" class="overflow-x-auto">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Position</th>
+                  <th>Account</th>
+                  <th>Match Score</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let match of matches">
+                  <td>
+                    <div>
+                      <div class="font-medium">{{ match.demandId.positionTitle }}</div>
+                      <div class="text-sm text-gray-500">{{ match.demandId.primarySkill }}</div>
+                    </div>
+                  </td>
+                  <td>{{ match.demandId.accountName }}</td>
+                  <td>
+                    <div class="flex items-center">
+                      <span class="text-sm font-medium mr-2">{{ match.matchScore }}%</span>
+                      <div class="w-16 bg-gray-200 rounded-full h-2">
+                        <div class="h-2 rounded-full" 
+                             [style.width.%]="match.matchScore"
+                             [ngClass]="{
+                               'bg-green-500': match.matchScore >= 80,
+                               'bg-yellow-500': match.matchScore >= 60 && match.matchScore < 80,
+                               'bg-red-500': match.matchScore < 60
+                             }"></div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge" 
+                          [ngClass]="{
+                            'badge-success': match.status === 'Approved',
+                            'badge-warning': match.status === 'Training Required',
+                            'badge-danger': match.status === 'Rejected',
+                            'badge-secondary': match.status === 'Pending'
+                          }">
+                      {{ match.status }}
+                    </span>
+                  </td>
+                  <td class="text-sm text-gray-500">
+                    {{ match.createdAt | date:'shortDate' }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Training Tab -->
+    <div *ngIf="activeTab === 'training'" class="space-y-6">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">My Training Plans</h3>
+          <p class="mt-1 text-sm text-gray-500">
+            Track your skill development and training progress
+          </p>
+        </div>
+        <div class="card-body">
+          <div *ngIf="loadingTraining" class="flex justify-center py-8">
+            <div class="spinner"></div>
+          </div>
+
+          <div *ngIf="!loadingTraining && trainingPlans.length === 0" class="text-center py-8">
+            <p class="text-gray-500">No training plans assigned</p>
+          </div>
+
+          <div *ngIf="!loadingTraining && trainingPlans.length > 0" class="space-y-4">
+            <div *ngFor="let plan of trainingPlans" class="border border-gray-200 rounded-lg p-4">
+              <div class="flex items-start justify-between mb-3">
+                <div class="flex-1">
+                  <h4 class="text-lg font-medium text-gray-900">Skills Development Plan</h4>
+                  <div class="mt-1 flex flex-wrap gap-1">
+                    <span *ngFor="let skill of plan.skillsToTrain.slice(0, 3)" 
+                          class="badge badge-info text-xs">
+                      {{ skill.skill }}
+                    </span>
+                    <span *ngIf="plan.skillsToTrain.length > 3" 
+                          class="text-xs text-gray-500">
+                      +{{ plan.skillsToTrain.length - 3 }} more
+                    </span>
+                  </div>
+                </div>
+                <div class="ml-4 text-right">
+                  <span class="badge" 
+                        [ngClass]="{
+                          'badge-secondary': plan.status === 'Draft',
+                          'badge-info': plan.status === 'Assigned',
+                          'badge-warning': plan.status === 'In Progress',
+                          'badge-success': plan.status === 'Completed',
+                          'badge-danger': plan.status === 'On Hold'
+                        }">
+                    {{ plan.status }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-sm font-medium text-gray-700">Progress</span>
+                  <span class="text-sm text-gray-600">{{ plan.progress }}%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                  <div class="h-2 rounded-full bg-blue-500" 
+                       [style.width.%]="plan.progress"></div>
+                </div>
+              </div>
+
+              <div *ngIf="plan.targetCompletionDate" class="text-sm text-gray-500">
+                Target completion: {{ plan.targetCompletionDate | date:'mediumDate' }}
+              </div>
+
+              <div *ngIf="plan.resourceLinks.length > 0" class="mt-3">
+                <p class="text-sm font-medium text-gray-700 mb-2">Learning Resources:</p>
+                <div class="space-y-1">
+                  <div *ngFor="let resource of plan.resourceLinks.slice(0, 3)" class="text-sm">
+                    <a [href]="resource.url" target="_blank" 
+                       class="text-primary-600 hover:text-primary-800">
+                      {{ resource.title }}
+                    </a>
+                    <span class="text-gray-500 ml-2">({{ resource.type }})</span>
+                  </div>
+                  <div *ngIf="plan.resourceLinks.length > 3" class="text-xs text-gray-500">
+                    +{{ plan.resourceLinks.length - 3 }} more resources
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

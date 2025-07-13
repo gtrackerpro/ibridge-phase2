@@ -37,6 +37,7 @@ import { TrainingListComponent } from './components/training/training-list/train
 import { NotificationComponent } from './components/shared/notification/notification.component';
 import { UserListComponent } from './components/users/user-list/user-list.component';
 import { ProfileComponent } from './components/profile/profile.component';
+import { EmployeeProfileComponent } from './components/employee-profile/employee-profile.component';
 
 @NgModule({
   declarations: [
@@ -52,7 +53,8 @@ import { ProfileComponent } from './components/profile/profile.component';
     TrainingListComponent,
     NotificationComponent,
     UserListComponent,
-    ProfileComponent
+    ProfileComponent,
+    EmployeeProfileComponent
   ],
   imports: [
     BrowserModule,

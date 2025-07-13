@@ -12,6 +12,7 @@ import { MatchListComponent } from './components/matches/match-list/match-list.c
 import { TrainingListComponent } from './components/training/training-list/training-list.component';
 import { UserListComponent } from './components/users/user-list/user-list.component';
 import { ProfileComponent } from './components/profile/profile.component';
+import { EmployeeProfileComponent } from './components/employee-profile/employee-profile.component';
 import { AdminGuard } from './guards/admin.guard';
 
 const routes: Routes = [
@@ -26,6 +27,11 @@ const routes: Routes = [
   { 
     path: 'profile', 
     component: ProfileComponent, 
+    canActivate: [AuthGuard] 
+  },
+  { 
+    path: 'employee-profile', 
+    component: EmployeeProfileComponent, 
     canActivate: [AuthGuard] 
   },
   { 
