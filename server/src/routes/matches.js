@@ -4,6 +4,7 @@ const EmployeeProfile = require('../models/EmployeeProfile');
 const Demand = require('../models/Demand');
 const { auth, authorize } = require('../middleware/auth');
 const { generateMatches, analyzeSkillGaps, getEmployeeRecommendations } = require('../services/matchingService');
+const { validateObjectIdParam, validateObjectIdBody, isValidObjectId } = require('../utils/objectIdValidator');
 
 const router = express.Router();
 
@@ -14,6 +15,11 @@ router.post('/generate', auth, authorize('Admin', 'RM'), async (req, res) => {
 
     if (!demandId) {
       return res.status(400).json({ message: 'Demand ID is required' });
+    }
+
+    // Validate demandId format
+    if (!isValidObjectId(demandId)) {
+      return res.status(400).json({ message: 'Invalid demand ID format' });
     }
 
     // Check if demand exists
@@ -79,8 +85,13 @@ router.get('/results', auth, async (req, res) => {
 // Get matches for a specific demand
 router.get('/demand/:demandId', auth, async (req, res) => {
   try {
-    const { demandId } = req.params;
+const { demandId } = req.params;
 
+    // Validate demandId
+    if (!isValidObjectId(demandId)) {
+      return res.status(400).json({ message: 'Invalid demand ID format' });
+    }
+    
     // Check if demand exists and user has access
     const demand = await Demand.findById(demandId);
     if (!demand) {
@@ -114,6 +125,11 @@ router.get('/demand/:demandId', auth, async (req, res) => {
 router.get('/employee/:employeeId', auth, async (req, res) => {
   try {
     const { employeeId } = req.params;
+
+    // Validate employeeId
+    if (!isValidObjectId(employeeId)) {
+      return res.status(400).json({ message: 'Invalid employee ID format' });
+    }
 
     // Check if employee exists
     const employee = await EmployeeProfile.findById(employeeId);
@@ -169,6 +185,11 @@ router.get('/recommendations/:employeeId', auth, async (req, res) => {
   try {
     const { employeeId } = req.params;
 
+    // Validate employeeId
+    if (!isValidObjectId(employeeId)) {
+      return res.status(400).json({ message: 'Invalid employee ID format' });
+    }
+
     // Check if employee exists
     const employee = await EmployeeProfile.findById(employeeId);
     if (!employee) {
@@ -197,7 +218,7 @@ router.get('/recommendations/:employeeId', auth, async (req, res) => {
 });
 
 // Update match status
-router.put('/:id/status', auth, authorize('Admin', 'RM'), async (req, res) => {
+router.put('/:id/status', auth, authorize('Admin', 'RM'), validateObjectIdParam('id'), async (req, res) => {
   try {
     const { status, notes } = req.body;
     

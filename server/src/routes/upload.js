@@ -4,6 +4,7 @@ const AWS = require('aws-sdk');
 const FileUpload = require('../models/FileUpload');
 const { auth, authorize } = require('../middleware/auth');
 const { processCSVUpload } = require('../services/csvProcessor');
+const { validateObjectIdParam, validateObjectIdBody } = require('../utils/objectIdValidator');
 
 const router = express.Router();
 
@@ -46,6 +47,12 @@ router.post('/resume', auth, upload.single('resume'), async (req, res) => {
     }
 
     const { employeeId } = req.body;
+    
+    // Validate employeeId
+    const { isValidObjectId } = require('../utils/objectIdValidator');
+    if (!employeeId || !isValidObjectId(employeeId)) {
+      return res.status(400).json({ message: 'Valid employee ID is required' });
+    }
     
     // Generate unique filename
     const timestamp = Date.now();
@@ -218,7 +225,7 @@ router.get('/history', auth, async (req, res) => {
 });
 
 // Get file by ID (with signed URL for download)
-router.get('/:id', auth, async (req, res) => {
+router.get('/:id', auth, validateObjectIdParam('id'), async (req, res) => {
   try {
     const fileUpload = await FileUpload.findById(req.params.id)
       .populate('uploadedBy', 'name email');
@@ -256,7 +263,7 @@ router.get('/:id', auth, async (req, res) => {
 });
 
 // Delete file
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', auth, validateObjectIdParam('id'), async (req, res) => {
   try {
     const fileUpload = await FileUpload.findById(req.params.id);
 

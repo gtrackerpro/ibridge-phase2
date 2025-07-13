@@ -2,6 +2,7 @@ const express = require('express');
 const EmployeeProfile = require('../models/EmployeeProfile');
 const { auth, authorize } = require('../middleware/auth');
 const { validateEmployeeProfileMiddleware, sanitizeInputMiddleware } = require('../middleware/validation');
+const { validateObjectIdParam } = require('../utils/objectIdValidator');
 
 const router = express.Router();
 
@@ -34,7 +35,7 @@ router.get('/', auth, async (req, res) => {
 });
 
 // Get employee by ID
-router.get('/:id', auth, async (req, res) => {
+router.get('/:id', auth, validateObjectIdParam('id'), async (req, res) => {
   try {
     const employee = await EmployeeProfile.findById(req.params.id)
       .populate('createdBy', 'name email');
@@ -94,12 +95,8 @@ router.post('/', auth, authorize('Admin', 'RM'), sanitizeInputMiddleware, valida
 });
 
 // Update employee profile
-router.put('/:id', auth, sanitizeInputMiddleware, async (req, res) => {
+router.put('/:id', auth, validateObjectIdParam('id'), sanitizeInputMiddleware, async (req, res) => {
   try {
-    // Validate ObjectId format
-    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
-      return res.status(400).json({ message: 'Invalid employee ID format' });
-    }
 
     const employee = await EmployeeProfile.findById(req.params.id);
     
@@ -145,7 +142,7 @@ router.put('/:id', auth, sanitizeInputMiddleware, async (req, res) => {
 });
 
 // Delete employee profile
-router.delete('/:id', auth, authorize('Admin'), async (req, res) => {
+router.delete('/:id', auth, authorize('Admin'), validateObjectIdParam('id'), async (req, res) => {
   try {
     const employee = await EmployeeProfile.findByIdAndDelete(req.params.id);
     

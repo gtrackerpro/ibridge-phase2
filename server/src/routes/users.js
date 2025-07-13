@@ -2,6 +2,7 @@ const express = require('express');
 const User = require('../models/User');
 const { auth, authorize } = require('../middleware/auth');
 const { validateUserRegistrationMiddleware, sanitizeInputMiddleware } = require('../middleware/validation');
+const { validateObjectIdParam } = require('../utils/objectIdValidator');
 
 const router = express.Router();
 
@@ -49,7 +50,7 @@ router.get('/', auth, authorize('Admin'), async (req, res) => {
 });
 
 // Get user by ID (Admin only)
-router.get('/:id', auth, authorize('Admin'), async (req, res) => {
+router.get('/:id', auth, authorize('Admin'), validateObjectIdParam('id'), async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select('-passwordHash');
 
@@ -108,14 +109,9 @@ router.post('/', auth, authorize('Admin'), sanitizeInputMiddleware, validateUser
 });
 
 // Update user (Admin only)
-router.put('/:id', auth, authorize('Admin'), sanitizeInputMiddleware, async (req, res) => {
+router.put('/:id', auth, authorize('Admin'), validateObjectIdParam('id'), sanitizeInputMiddleware, async (req, res) => {
   try {
     const { name, email, role, isActive } = req.body;
-    
-    // Validate ObjectId format
-    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
-      return res.status(400).json({ message: 'Invalid user ID format' });
-    }
 
     const user = await User.findById(req.params.id);
     
@@ -168,7 +164,7 @@ router.put('/:id', auth, authorize('Admin'), sanitizeInputMiddleware, async (req
 });
 
 // Delete user (Admin only)
-router.delete('/:id', auth, authorize('Admin'), async (req, res) => {
+router.delete('/:id', auth, authorize('Admin'), validateObjectIdParam('id'), async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     
@@ -197,7 +193,7 @@ router.delete('/:id', auth, authorize('Admin'), async (req, res) => {
 });
 
 // Toggle user active status (Admin only)
-router.patch('/:id/toggle-status', auth, authorize('Admin'), async (req, res) => {
+router.patch('/:id/toggle-status', auth, authorize('Admin'), validateObjectIdParam('id'), async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     

@@ -5,6 +5,7 @@ const Match = require('../models/Match');
 const { generateTrainingPlanResources } = require('../services/trainingRecommendationService');
 const { auth, authorize } = require('../middleware/auth');
 const { validateTrainingPlanMiddleware, sanitizeInputMiddleware } = require('../middleware/validation');
+const { validateObjectIdParam, isValidObjectId } = require('../utils/objectIdValidator');
 
 const router = express.Router();
 
@@ -42,7 +43,7 @@ router.get('/', auth, async (req, res) => {
 });
 
 // Get training plan by ID
-router.get('/:id', auth, async (req, res) => {
+router.get('/:id', auth, validateObjectIdParam('id'), async (req, res) => {
   try {
     const trainingPlan = await TrainingPlan.findById(req.params.id)
       .populate('employeeId', 'employeeId name email primarySkill')
@@ -110,12 +111,8 @@ router.post('/', auth, authorize('Admin', 'RM'), sanitizeInputMiddleware, valida
 });
 
 // Update training plan
-router.put('/:id', auth, sanitizeInputMiddleware, async (req, res) => {
+router.put('/:id', auth, validateObjectIdParam('id'), sanitizeInputMiddleware, async (req, res) => {
   try {
-    // Validate ObjectId format
-    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
-      return res.status(400).json({ message: 'Invalid training plan ID format' });
-    }
 
     const trainingPlan = await TrainingPlan.findById(req.params.id);
     
@@ -186,7 +183,7 @@ router.put('/:id', auth, sanitizeInputMiddleware, async (req, res) => {
 });
 
 // Delete training plan
-router.delete('/:id', auth, authorize('Admin', 'RM'), async (req, res) => {
+router.delete('/:id', auth, authorize('Admin', 'RM'), validateObjectIdParam('id'), async (req, res) => {
   try {
     const trainingPlan = await TrainingPlan.findByIdAndDelete(req.params.id);
     
@@ -217,7 +214,7 @@ router.post('/generate-from-match', auth, authorize('Admin', 'RM'), sanitizeInpu
       return res.status(400).json({ message: 'Match ID is required' });
     }
 
-    if (!matchId.match(/^[0-9a-fA-F]{24}$/)) {
+    if (!isValidObjectId(matchId)) {
       return res.status(400).json({ message: 'Invalid match ID format' });
     }
 
@@ -274,7 +271,7 @@ router.post('/generate-from-match', auth, authorize('Admin', 'RM'), sanitizeInpu
 });
 
 // Update training plan progress (enhanced for employee self-updates)
-router.put('/:id/progress', auth, sanitizeInputMiddleware, async (req, res) => {
+router.put('/:id/progress', auth, validateObjectIdParam('id'), sanitizeInputMiddleware, async (req, res) => {
   try {
     const { progress, status, notes } = req.body;
     

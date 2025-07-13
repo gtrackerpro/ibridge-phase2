@@ -2,6 +2,7 @@ const express = require('express');
 const TrainingResource = require('../models/TrainingResource');
 const { auth, authorize } = require('../middleware/auth');
 const { sanitizeInputMiddleware } = require('../middleware/validation');
+const { validateObjectIdParam } = require('../utils/objectIdValidator');
 
 const router = express.Router();
 
@@ -42,7 +43,7 @@ router.get('/', auth, async (req, res) => {
 });
 
 // Get training resource by ID
-router.get('/:id', auth, async (req, res) => {
+router.get('/:id', auth, validateObjectIdParam('id'), async (req, res) => {
   try {
     const resource = await TrainingResource.findById(req.params.id)
       .populate('createdBy', 'name email');
@@ -92,7 +93,7 @@ router.post('/', auth, authorize('Admin', 'RM'), sanitizeInputMiddleware, async 
 });
 
 // Update training resource
-router.put('/:id', auth, authorize('Admin', 'RM'), sanitizeInputMiddleware, async (req, res) => {
+router.put('/:id', auth, authorize('Admin', 'RM'), validateObjectIdParam('id'), sanitizeInputMiddleware, async (req, res) => {
   try {
     const resource = await TrainingResource.findById(req.params.id);
     
@@ -125,7 +126,7 @@ router.put('/:id', auth, authorize('Admin', 'RM'), sanitizeInputMiddleware, asyn
 });
 
 // Delete training resource
-router.delete('/:id', auth, authorize('Admin', 'RM'), async (req, res) => {
+router.delete('/:id', auth, authorize('Admin', 'RM'), validateObjectIdParam('id'), async (req, res) => {
   try {
     const resource = await TrainingResource.findById(req.params.id);
     

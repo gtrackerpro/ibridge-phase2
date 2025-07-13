@@ -2,6 +2,7 @@ const express = require('express');
 const Demand = require('../models/Demand');
 const { auth, authorize } = require('../middleware/auth');
 const { validateDemandMiddleware, sanitizeInputMiddleware } = require('../middleware/validation');
+const { validateObjectIdParam } = require('../utils/objectIdValidator');
 
 const router = express.Router();
 
@@ -34,7 +35,7 @@ router.get('/', auth, async (req, res) => {
 });
 
 // Get demand by ID
-router.get('/:id', auth, async (req, res) => {
+router.get('/:id', auth, validateObjectIdParam('id'), async (req, res) => {
   try {
     const demand = await Demand.findById(req.params.id)
       .populate('createdBy', 'name email');
@@ -94,12 +95,8 @@ router.post('/', auth, authorize('Admin', 'RM'), sanitizeInputMiddleware, valida
 });
 
 // Update demand
-router.put('/:id', auth, authorize('Admin', 'RM'), sanitizeInputMiddleware, async (req, res) => {
+router.put('/:id', auth, authorize('Admin', 'RM'), validateObjectIdParam('id'), sanitizeInputMiddleware, async (req, res) => {
   try {
-    // Validate ObjectId format
-    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
-      return res.status(400).json({ message: 'Invalid demand ID format' });
-    }
 
     const demand = await Demand.findById(req.params.id);
     
@@ -145,7 +142,7 @@ router.put('/:id', auth, authorize('Admin', 'RM'), sanitizeInputMiddleware, asyn
 });
 
 // Delete demand
-router.delete('/:id', auth, authorize('Admin', 'RM'), async (req, res) => {
+router.delete('/:id', auth, authorize('Admin', 'RM'), validateObjectIdParam('id'), async (req, res) => {
   try {
     const demand = await Demand.findById(req.params.id);
     
