@@ -38,6 +38,14 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Configure mongoose to prevent duplicate index warnings
+mongoose.set('strictQuery', false);
+
+// Disable automatic index creation in production
+if (process.env.NODE_ENV === 'production') {
+  mongoose.set('autoIndex', false);
+}
+
 // MongoDB connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/ibridge-ai', {
   useNewUrlParser: true,

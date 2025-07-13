@@ -87,7 +87,7 @@ demandSchema.pre('save', function(next) {
 
 // Index for efficient searching
 demandSchema.index({ primarySkill: 1, status: 1 });
-demandSchema.index({ demandId: 1 });
+// Note: demandId already has unique index from schema definition
 demandSchema.index({ createdBy: 1 });
 
 module.exports = mongoose.model('Demand', demandSchema);

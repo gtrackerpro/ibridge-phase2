@@ -77,7 +77,7 @@ const employeeProfileSchema = new mongoose.Schema({
 
 // Index for efficient searching
 employeeProfileSchema.index({ primarySkill: 1, status: 1 });
-employeeProfileSchema.index({ employeeId: 1 });
-employeeProfileSchema.index({ email: 1 });
+// Note: employeeId already has unique index from schema definition
+// Note: email index not needed if not unique at schema level
 
 module.exports = mongoose.model('EmployeeProfile', employeeProfileSchema);
