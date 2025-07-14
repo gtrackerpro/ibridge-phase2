@@ -53,7 +53,24 @@ userSchema.pre('save', async function(next) {
 
 // Compare password method
 userSchema.methods.comparePassword = async function(candidatePassword) {
-  return bcrypt.compare(candidatePassword, this.passwordHash);
+  try {
+    if (!candidatePassword) {
+      throw new Error('Password is required for comparison');
+    }
+    
+    if (!this.passwordHash) {
+      throw new Error('User password hash not found');
+    }
+    
+    return await bcrypt.compare(candidatePassword, this.passwordHash);
+  } catch (error) {
+    console.error('Password comparison error:', {
+      message: error.message,
+      userId: this._id,
+      timestamp: new Date().toISOString()
+    });
+    throw error;
+  }
 };
 
 // Remove password from JSON output

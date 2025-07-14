@@ -86,7 +86,7 @@ if (process.env.NODE_ENV === 'production') {
   mongoose.set('autoIndex', false);
 }
 
-// MongoDB connection
+// MongoDB connection with better error handling
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/ibridge-ai')
 .then(() => {
   console.log('✅ Connected to MongoDB Atlas');
@@ -94,6 +94,28 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/ibridge-a
 .catch((error) => {
   console.error('❌ MongoDB connection error:', error);
   process.exit(1);
+});
+
+// MongoDB connection event listeners
+mongoose.connection.on('connected', () => {
+  console.log('🔌 Mongoose connected to MongoDB');
+});
+
+mongoose.connection.on('error', (error) => {
+  console.error('🚨 MongoDB connection error:', error);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.log('🔌 Mongoose disconnected from MongoDB');
+});
+
+mongoose.connection.on('reconnected', () => {
+  console.log('🔌 Mongoose reconnected to MongoDB');
+});
+
+// Handle MongoDB connection issues during runtime
+mongoose.connection.on('close', () => {
+  console.log('🔌 MongoDB connection closed');
 });
 
 // Routes
@@ -123,7 +145,45 @@ app.use('*', notFoundHandler);
 
 const PORT = process.env.PORT || 3001;
 
-app.listen(PORT, () => {
+// Add process crash protection
+process.on('uncaughtException', (error) => {
+  console.error('🚨 Uncaught Exception:', {
+    message: error.message,
+    stack: error.stack,
+    timestamp: new Date().toISOString()
+  });
+  // Don't exit - try to recover gracefully
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('🚨 Unhandled Rejection at:', promise, 'reason:', reason);
+  console.error('Stack:', reason?.stack);
+  // Don't exit - try to recover gracefully
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully...');
+  mongoose.connection.close();
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT received, shutting down gracefully...');
+  mongoose.connection.close();
+  process.exit(0);
+});
+
+const server = app.listen(PORT, () => {
   console.log(`🚀 iBridge AI Server running on port ${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+});
+
+// Handle server errors
+server.on('error', (error) => {
+  console.error('Server error:', error);
+  if (error.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use`);
+    process.exit(1);
+  }
 });

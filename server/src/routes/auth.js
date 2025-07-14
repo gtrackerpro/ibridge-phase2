@@ -56,42 +56,97 @@ router.post('/register', sanitizeInputMiddleware, validateUserRegistrationMiddle
 // Login
 router.post('/login', sanitizeInputMiddleware, async (req, res) => {
   try {
+    console.log('Login request received:', { email: req.body.email, timestamp: new Date().toISOString() });
+    
     const { email, password } = req.body;
 
     // Basic validation for login
     if (!email || !password) {
+      console.log('Login failed: Missing email or password');
       return res.status(400).json({ 
         message: 'Email and password are required' 
       });
     }
 
-    // Find user by email
-    const user = await User.findOne({ email });
+    // Sanitize email
+    const sanitizedEmail = email.toLowerCase().trim();
+    console.log('Searching for user:', sanitizedEmail);
+
+    // Find user by email with error handling
+    let user;
+    try {
+      user = await User.findOne({ email: sanitizedEmail });
+    } catch (dbError) {
+      console.error('Database error during user lookup:', dbError);
+      return res.status(500).json({ 
+        message: 'Database connection error. Please try again.' 
+      });
+    }
+
     if (!user) {
+      console.log('Login failed: User not found for email:', sanitizedEmail);
       return res.status(401).json({ message: 'Invalid email or password' });
     }
+
+    console.log('User found:', { id: user._id, email: user.email, role: user.role, isActive: user.isActive });
 
     // Check if account is active
     if (!user.isActive) {
+      console.log('Login failed: Account deactivated for user:', user.email);
       return res.status(401).json({ message: 'Account is deactivated' });
     }
 
-    // Verify password
-    const isPasswordValid = await user.comparePassword(password);
+    // Verify password with error handling
+    let isPasswordValid;
+    try {
+      isPasswordValid = await user.comparePassword(password);
+    } catch (passwordError) {
+      console.error('Password comparison error:', passwordError);
+      return res.status(500).json({ 
+        message: 'Authentication error. Please try again.' 
+      });
+    }
+
     if (!isPasswordValid) {
+      console.log('Login failed: Invalid password for user:', user.email);
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // Update last login
-    user.lastLogin = new Date();
-    await user.save();
+    // Update last login with error handling
+    try {
+      user.lastLogin = new Date();
+      await user.save();
+      console.log('Last login updated for user:', user.email);
+    } catch (saveError) {
+      console.error('Error updating last login:', saveError);
+      // Continue with login even if last login update fails
+    }
 
-    // Generate JWT token
-    const token = jwt.sign(
-      { userId: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
-    );
+    // Generate JWT token with error handling
+    let token;
+    try {
+      if (!process.env.JWT_SECRET) {
+        throw new Error('JWT_SECRET not configured');
+      }
+      
+      token = jwt.sign(
+        { userId: user._id, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      );
+    } catch (tokenError) {
+      console.error('JWT token generation error:', tokenError);
+      return res.status(500).json({ 
+        message: 'Authentication token generation failed. Please try again.' 
+      });
+    }
+
+    console.log('Login successful for user:', { 
+      id: user._id, 
+      email: user.email, 
+      role: user.role,
+      timestamp: new Date().toISOString()
+    });
 
     res.json({
       message: 'Login successful',
@@ -105,11 +160,18 @@ router.post('/login', sanitizeInputMiddleware, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ 
-      message: 'Login failed', 
-      error: error.message 
+    console.error('Unexpected login error:', {
+      message: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
     });
+    
+    // Ensure we always send a response
+    if (!res.headersSent) {
+      res.status(500).json({ 
+        message: 'Internal server error. Please try again later.'
+      });
+    }
   }
 });
 
