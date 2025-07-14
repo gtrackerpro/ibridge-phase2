@@ -83,25 +83,27 @@ export class DashboardComponent implements OnInit {
       });
     }
 
-    // Load match statistics
-    this.matchService.getMatchStats().subscribe({
-      next: (response) => {
-        this.matchStats = response.stats;
-      },
-      error: (error) => {
-        console.error('Error loading match stats:', error);
-      }
-    });
+    // Load match statistics (Admin and RM only)
+    if (this.authService.hasRole(['Admin', 'RM'])) {
+      this.matchService.getMatchStats().subscribe({
+        next: (response) => {
+          this.matchStats = response.stats;
+        },
+        error: (error) => {
+          console.error('Error loading match stats:', error);
+        }
+      });
 
-    // Load training statistics
-    this.trainingService.getTrainingStats().subscribe({
-      next: (response) => {
-        this.trainingStats = response.stats;
-      },
-      error: (error) => {
-        console.error('Error loading training stats:', error);
-      }
-    });
+      // Load training statistics
+      this.trainingService.getTrainingStats().subscribe({
+        next: (response) => {
+          this.trainingStats = response.stats;
+        },
+        error: (error) => {
+          console.error('Error loading training stats:', error);
+        }
+      });
+    }
 
     // Load recent matches
     this.matchService.getMatchResults().subscribe({

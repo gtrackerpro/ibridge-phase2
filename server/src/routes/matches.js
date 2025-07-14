@@ -61,6 +61,20 @@ router.get('/results', auth, async (req, res) => {
       const demandIds = userDemands.map(d => d._id);
       query.demandId = { $in: demandIds };
     }
+    // If user is Employee, they can only see matches where they are the employee
+    else if (req.user.role === 'Employee') {
+      const employee = await EmployeeProfile.findOne({ email: req.user.email });
+      if (employee) {
+        query.employeeId = employee._id;
+      } else {
+        // If no employee profile found, return empty results
+        return res.json({
+          message: 'No employee profile found',
+          matches: [],
+          count: 0
+        });
+      }
+    }
 
     const matches = await Match.find(query)
       .populate('demandId', 'demandId accountName projectName positionTitle primarySkill')

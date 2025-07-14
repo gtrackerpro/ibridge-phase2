@@ -42,6 +42,45 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+// Get training statistics
+router.get('/stats', auth, authorize('Admin', 'RM'), async (req, res) => {
+  try {
+    const stats = await TrainingPlan.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalPlans: { $sum: 1 },
+          draftPlans: { $sum: { $cond: [{ $eq: ['$status', 'Draft'] }, 1, 0] } },
+          assignedPlans: { $sum: { $cond: [{ $eq: ['$status', 'Assigned'] }, 1, 0] } },
+          inProgressPlans: { $sum: { $cond: [{ $eq: ['$status', 'In Progress'] }, 1, 0] } },
+          completedPlans: { $sum: { $cond: [{ $eq: ['$status', 'Completed'] }, 1, 0] } },
+          averageProgress: { $avg: '$progress' }
+        }
+      }
+    ]);
+
+    const result = stats[0] || {
+      totalPlans: 0,
+      draftPlans: 0,
+      assignedPlans: 0,
+      inProgressPlans: 0,
+      completedPlans: 0,
+      averageProgress: 0
+    };
+
+    res.json({
+      message: 'Training statistics retrieved successfully',
+      stats: result
+    });
+  } catch (error) {
+    console.error('Get training stats error:', error);
+    res.status(500).json({ 
+      message: 'Failed to retrieve training statistics', 
+      error: error.message 
+    });
+  }
+});
+
 // Get training plan by ID
 router.get('/:id', auth, validateObjectIdParam('id'), async (req, res) => {
   try {
@@ -359,43 +398,5 @@ router.get('/recommendations/skill-gaps', auth, authorize('Admin', 'RM'), async 
   }
 });
 
-// Get training statistics
-router.get('/stats', auth, authorize('Admin', 'RM'), async (req, res) => {
-  try {
-    const stats = await TrainingPlan.aggregate([
-      {
-        $group: {
-          _id: null,
-          totalPlans: { $sum: 1 },
-          draftPlans: { $sum: { $cond: [{ $eq: ['$status', 'Draft'] }, 1, 0] } },
-          assignedPlans: { $sum: { $cond: [{ $eq: ['$status', 'Assigned'] }, 1, 0] } },
-          inProgressPlans: { $sum: { $cond: [{ $eq: ['$status', 'In Progress'] }, 1, 0] } },
-          completedPlans: { $sum: { $cond: [{ $eq: ['$status', 'Completed'] }, 1, 0] } },
-          averageProgress: { $avg: '$progress' }
-        }
-      }
-    ]);
-
-    const result = stats[0] || {
-      totalPlans: 0,
-      draftPlans: 0,
-      assignedPlans: 0,
-      inProgressPlans: 0,
-      completedPlans: 0,
-      averageProgress: 0
-    };
-
-    res.json({
-      message: 'Training statistics retrieved successfully',
-      stats: result
-    });
-  } catch (error) {
-    console.error('Get training stats error:', error);
-    res.status(500).json({ 
-      message: 'Failed to retrieve training statistics', 
-      error: error.message 
-    });
-  }
-});
 
 module.exports = router;
