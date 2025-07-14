@@ -1,6 +1,22 @@
 <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-  <!-- Page header -->
-  <div class="md:flex md:items-center md:justify-between mb-8">
+  <!-- Employee Dashboard Header -->
+  <div *ngIf="authService.hasRole(['Employee'])" class="mb-8">
+    <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-6 text-white">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold">Welcome back, {{ authService.getCurrentUser()?.name }}!</h1>
+          <p class="mt-2 text-blue-100">Track your opportunities and career development</p>
+        </div>
+        <div class="text-right">
+          <div class="text-2xl font-bold">{{ recentMatches.length }}</div>
+          <div class="text-sm text-blue-100">Active Opportunities</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin/RM Dashboard Header -->
+  <div *ngIf="!authService.hasRole(['Employee'])" class="md:flex md:items-center md:justify-between mb-8">
     <div class="flex-1 min-w-0">
       <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
         Dashboard
@@ -11,10 +27,97 @@
     </div>
   </div>
 
-  <!-- Stats Grid -->
-  <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+  <!-- Employee Stats Grid -->
+  <div *ngIf="authService.hasRole(['Employee'])" class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+    <!-- My Matches -->
+    <div class="card">
+      <div class="card-body">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+          </div>
+          <div class="ml-5 w-0 flex-1">
+            <dl>
+              <dt class="text-sm font-medium text-gray-500 truncate">My Matches</dt>
+              <dd class="text-lg font-medium text-gray-900">{{ recentMatches.length }}</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Exact Matches -->
+    <div class="card">
+      <div class="card-body">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+          </div>
+          <div class="ml-5 w-0 flex-1">
+            <dl>
+              <dt class="text-sm font-medium text-gray-500 truncate">Exact Matches</dt>
+              <dd class="text-lg font-medium text-gray-900">{{ getMatchCountByType('Exact') }}</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Near Matches -->
+    <div class="card">
+      <div class="card-body">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+          </div>
+          <div class="ml-5 w-0 flex-1">
+            <dl>
+              <dt class="text-sm font-medium text-gray-500 truncate">Near Matches</dt>
+              <dd class="text-lg font-medium text-gray-900">{{ getMatchCountByType('Near') }}</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Average Score -->
+    <div class="card">
+      <div class="card-body">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+          </div>
+          <div class="ml-5 w-0 flex-1">
+            <dl>
+              <dt class="text-sm font-medium text-gray-500 truncate">Avg. Score</dt>
+              <dd class="text-lg font-medium text-gray-900">{{ getAverageMatchScore() }}%</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin/RM Stats Grid -->
+  <div *ngIf="!authService.hasRole(['Employee'])" class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
     <!-- Total Employees -->
-    <div class="card" *ngIf="authService.hasRole(['Admin', 'RM'])">
+    <div class="card">
       <div class="card-body">
         <div class="flex items-center">
           <div class="flex-shrink-0">
@@ -35,7 +138,7 @@
     </div>
 
     <!-- Open Demands -->
-    <div class="card" *ngIf="authService.hasRole(['Admin', 'RM'])">
+    <div class="card">
       <div class="card-body">
         <div class="flex items-center">
           <div class="flex-shrink-0">
@@ -56,7 +159,7 @@
     </div>
 
     <!-- Total Matches -->
-    <div class="card" *ngIf="authService.hasRole(['Admin', 'RM'])">
+    <div class="card">
       <div class="card-body">
         <div class="flex items-center">
           <div class="flex-shrink-0">
@@ -77,7 +180,7 @@
     </div>
 
     <!-- Training Plans -->
-    <div class="card" *ngIf="authService.hasRole(['Admin', 'RM'])">
+    <div class="card">
       <div class="card-body">
         <div class="flex items-center">
           <div class="flex-shrink-0">
@@ -98,74 +201,240 @@
     </div>
   </div>
 
-  <!-- Quick Actions -->
-  <div class="grid grid-cols-1 gap-5 lg:grid-cols-2 mb-8">
-    <!-- Recent Matches -->
-    <div class="card">
-      <div class="card-header">
-        <h3 class="text-lg leading-6 font-medium text-gray-900">Recent Matches</h3>
-      </div>
-      <div class="card-body">
-        <div *ngIf="recentMatches.length === 0" class="text-center py-4">
-          <p class="text-gray-500">No matches found</p>
-        </div>
-        <div *ngIf="recentMatches.length > 0" class="space-y-3">
-          <div *ngFor="let match of recentMatches.slice(0, 5)" 
-               class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-            <div class="flex-1">
-              <p class="text-sm font-medium text-gray-900">
-                {{ match.employeeId.name }}
-              </p>
-              <p class="text-xs text-gray-500">
-                {{ match.demandId.positionTitle }} - {{ match.demandId.accountName }}
-              </p>
+  <!-- Employee Dashboard Content -->
+  <div *ngIf="authService.hasRole(['Employee'])">
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3 mb-8">
+      <!-- My Opportunities -->
+      <div class="lg:col-span-2">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">My Opportunities</h3>
+          </div>
+          <div class="card-body">
+            <div *ngIf="recentMatches.length === 0" class="text-center py-8">
+              <div class="mx-auto h-12 w-12 text-gray-400">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 48 48" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M34 40h10v-4a6 6 0 00-10.712-3.714M34 40H14m20 0v-4a9.971 9.971 0 00-.712-3.714M14 40H4v-4a6 6 0 0110.712-3.714M14 40v-4a9.971 9.971 0 01.712-3.714M8 32a6 6 0 1112 0v4M20 32a6 6 0 1112 0v4m-12-4a6 6 0 00-12 0"/>
+                </svg>
+              </div>
+              <h3 class="mt-2 text-sm font-medium text-gray-900">No opportunities yet</h3>
+              <p class="mt-1 text-sm text-gray-500">Check back later for new job matches!</p>
             </div>
-            <div class="flex items-center space-x-2">
-              <span class="badge" 
-                    [ngClass]="{
-                      'badge-success': match.matchType === 'Exact',
-                      'badge-warning': match.matchType === 'Near',
-                      'badge-danger': match.matchType === 'Not Eligible'
-                    }">
-                {{ match.matchType }}
-              </span>
-              <span class="text-sm font-medium text-gray-900">{{ match.matchScore }}%</span>
+            
+            <div *ngIf="recentMatches.length > 0" class="space-y-4">
+              <div *ngFor="let match of recentMatches" 
+                   class="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                <div class="flex items-start justify-between">
+                  <div class="flex-1">
+                    <h4 class="text-lg font-medium text-gray-900">{{ match.demandId.positionTitle }}</h4>
+                    <p class="text-sm text-gray-600 mt-1">{{ match.demandId.accountName }}</p>
+                    <p class="text-xs text-gray-500 mt-1">{{ match.demandId.projectName }}</p>
+                  </div>
+                  <div class="flex items-center space-x-3">
+                    <div class="text-right">
+                      <div class="text-lg font-bold text-gray-900">{{ match.matchScore }}%</div>
+                      <div class="text-xs text-gray-500">Match Score</div>
+                    </div>
+                    <span class="badge" 
+                          [ngClass]="{
+                            'badge-success': match.matchType === 'Exact',
+                            'badge-warning': match.matchType === 'Near',
+                            'badge-danger': match.matchType === 'Not Eligible'
+                          }">
+                      {{ match.matchType }}
+                    </span>
+                  </div>
+                </div>
+                
+                <!-- Skills Analysis -->
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div *ngIf="match.skillsMatched && match.skillsMatched.length > 0">
+                    <h5 class="text-sm font-medium text-green-700 mb-2">✓ Your Matching Skills</h5>
+                    <div class="space-y-1">
+                      <div *ngFor="let skill of match.skillsMatched.slice(0, 3)" 
+                           class="flex justify-between text-xs">
+                        <span class="text-gray-700">{{ skill.skill }}</span>
+                        <span class="text-green-600">{{ skill.employeeExperience }}y / {{ skill.requiredExperience }}y</span>
+                      </div>
+                      <div *ngIf="match.skillsMatched.length > 3" class="text-xs text-gray-500">
+                        +{{ match.skillsMatched.length - 3 }} more skills
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div *ngIf="match.missingSkills && match.missingSkills.length > 0">
+                    <h5 class="text-sm font-medium text-red-700 mb-2">⚠ Skills to Develop</h5>
+                    <div class="space-y-1">
+                      <div *ngFor="let skill of match.missingSkills.slice(0, 3)" 
+                           class="text-xs text-gray-700">
+                        {{ skill }}
+                      </div>
+                      <div *ngIf="match.missingSkills.length > 3" class="text-xs text-gray-500">
+                        +{{ match.missingSkills.length - 3 }} more skills
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Actions -->
+                <div class="mt-4 flex justify-between items-center">
+                  <span class="badge" 
+                        [ngClass]="{
+                          'badge-success': match.status === 'Approved',
+                          'badge-warning': match.status === 'Training Required',
+                          'badge-danger': match.status === 'Rejected',
+                          'badge-secondary': match.status === 'Pending'
+                        }">
+                    {{ match.status }}
+                  </span>
+                  <button class="btn-primary btn-sm" 
+                          (click)="viewMatchDetails(match)">
+                    View Full Details
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-        <div *ngIf="recentMatches.length > 0" class="mt-4">
-          <a routerLink="/matches" class="text-sm text-primary-600 hover:text-primary-500">
-            View all matches →
-          </a>
+      </div>
+      
+      <!-- My Profile & Actions -->
+      <div class="space-y-6">
+        <!-- Profile Summary -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">My Profile</h3>
+          </div>
+          <div class="card-body">
+            <div class="text-center">
+              <div class="mx-auto h-16 w-16 bg-gray-300 rounded-full flex items-center justify-center">
+                <span class="text-xl font-medium text-gray-700">
+                  {{ authService.getCurrentUser()?.name?.charAt(0) }}
+                </span>
+              </div>
+              <h4 class="mt-2 text-lg font-medium text-gray-900">{{ authService.getCurrentUser()?.name }}</h4>
+              <p class="text-sm text-gray-500">{{ authService.getCurrentUser()?.email }}</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">Quick Actions</h3>
+          </div>
+          <div class="card-body">
+            <div class="space-y-3">
+              <a routerLink="/matches" 
+                 class="block w-full btn-primary text-center">
+                View All My Matches
+              </a>
+              <a routerLink="/training" 
+                 class="block w-full btn-secondary text-center">
+                My Training Plans
+              </a>
+              <a routerLink="/profile" 
+                 class="block w-full btn-secondary text-center">
+                Update Profile
+              </a>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Career Tips -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">💡 Career Tips</h3>
+          </div>
+          <div class="card-body">
+            <div class="space-y-3 text-sm">
+              <div class="p-3 bg-blue-50 rounded-lg">
+                <p class="font-medium text-blue-900">Improve Your Match Score</p>
+                <p class="text-blue-700 mt-1">Focus on developing the missing skills shown in your matches.</p>
+              </div>
+              <div class="p-3 bg-green-50 rounded-lg">
+                <p class="font-medium text-green-900">Stay Active</p>
+                <p class="text-green-700 mt-1">Keep your profile updated with new skills and experiences.</p>
+              </div>
+              <div class="p-3 bg-purple-50 rounded-lg">
+                <p class="font-medium text-purple-900">Training Opportunities</p>
+                <p class="text-purple-700 mt-1">Complete training plans to qualify for more positions.</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-
-    <!-- Quick Actions -->
-    <div class="card">
-      <div class="card-header">
-        <h3 class="text-lg leading-6 font-medium text-gray-900">Quick Actions</h3>
+  </div>
+  
+  <!-- Admin/RM Dashboard Content -->
+  <div *ngIf="!authService.hasRole(['Employee'])">
+    <div class="grid grid-cols-1 gap-5 lg:grid-cols-2 mb-8">
+      <!-- Recent Matches -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Recent Matches</h3>
+        </div>
+        <div class="card-body">
+          <div *ngIf="recentMatches.length === 0" class="text-center py-4">
+            <p class="text-gray-500">No matches found</p>
+          </div>
+          <div *ngIf="recentMatches.length > 0" class="space-y-3">
+            <div *ngFor="let match of recentMatches.slice(0, 5)" 
+                 class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div class="flex-1">
+                <p class="text-sm font-medium text-gray-900">
+                  {{ match.employeeId.name }}
+                </p>
+                <p class="text-xs text-gray-500">
+                  {{ match.demandId.positionTitle }} - {{ match.demandId.accountName }}
+                </p>
+              </div>
+              <div class="flex items-center space-x-2">
+                <span class="badge" 
+                      [ngClass]="{
+                        'badge-success': match.matchType === 'Exact',
+                        'badge-warning': match.matchType === 'Near',
+                        'badge-danger': match.matchType === 'Not Eligible'
+                      }">
+                  {{ match.matchType }}
+                </span>
+                <span class="text-sm font-medium text-gray-900">{{ match.matchScore }}%</span>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="recentMatches.length > 0" class="mt-4">
+            <a routerLink="/matches" class="text-sm text-primary-600 hover:text-primary-500">
+              View all matches →
+            </a>
+          </div>
+        </div>
       </div>
-      <div class="card-body">
-        <div class="space-y-3">
-          <a routerLink="/employees/new" 
-             *ngIf="authService.hasRole(['Admin', 'RM'])"
-             class="block w-full btn-primary text-center">
-            Add New Employee
-          </a>
-          <a routerLink="/demands/new" 
-             *ngIf="authService.hasRole(['Admin', 'RM'])"
-             class="block w-full btn-secondary text-center">
-            Create New Demand
-          </a>
-          <a routerLink="/matches" 
-             class="block w-full btn-secondary text-center">
-            View Match Results
-          </a>
-          <a routerLink="/training" 
-             class="block w-full btn-secondary text-center">
-            Manage Training Plans
-          </a>
+  
+      <!-- Quick Actions -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Quick Actions</h3>
+        </div>
+        <div class="card-body">
+          <div class="space-y-3">
+            <a routerLink="/employees/new" 
+               class="block w-full btn-primary text-center">
+              Add New Employee
+            </a>
+            <a routerLink="/demands/new" 
+               class="block w-full btn-secondary text-center">
+              Create New Demand
+            </a>
+            <a routerLink="/matches" 
+               class="block w-full btn-secondary text-center">
+              View Match Results
+            </a>
+            <a routerLink="/training" 
+               class="block w-full btn-secondary text-center">
+              Manage Training Plans
+            </a>
+          </div>
         </div>
       </div>
     </div>

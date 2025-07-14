@@ -78,7 +78,7 @@ router.get('/results', auth, async (req, res) => {
 
     const matches = await Match.find(query)
       .populate('demandId', 'demandId accountName projectName positionTitle primarySkill')
-      .populate('employeeId', 'employeeId name email primarySkill primarySkillExperience')
+      .populate('employeeId', 'employeeId name email primarySkill primarySkillExperience secondarySkills')
       .populate('reviewedBy', 'name email')
       .sort({ matchScore: -1, createdAt: -1 });
 

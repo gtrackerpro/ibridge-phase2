@@ -104,20 +104,10 @@
           </div>
           <div class="card-body">
             <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-              <div>
-                <label for="name" class="block text-sm font-medium text-gray-700">Full Name *</label>
-                <input 
-                  type="text" 
-                  id="name"
-                  formControlName="name"
-                  class="form-input mt-1"
-                  placeholder="Enter your full name">
-                <div *ngIf="profileForm.get('name')?.invalid && profileForm.get('name')?.touched" 
-                     class="mt-1 text-sm text-red-600">
-                  <span *ngIf="profileForm.get('name')?.errors?.['required']">Name is required</span>
-                  <span *ngIf="profileForm.get('name')?.errors?.['minlength']">Name must be at least 2 characters</span>
-                  <span *ngIf="profileForm.get('name')?.errors?.['maxlength']">Name cannot exceed 100 characters</span>
-                </div>
+<div>
+                <label class="block text-sm font-medium text-gray-700">Full Name</label>
+                <p class="mt-1 text-sm text-gray-900 bg-gray-50 px-3 py-2 rounded-md">{{ employeeProfile.name }}</p>
+                <p class="mt-1 text-xs text-gray-500">Contact admin to change name</p>
               </div>
 
               <div>
@@ -244,16 +234,8 @@
           </div>
         </div>
 
-        <!-- Form Actions -->
-        <div class="flex justify-end space-x-3">
-          <button 
-            type="submit" 
-            [disabled]="updating || profileForm.invalid || !profileForm.dirty"
-            class="btn-primary">
-            <span *ngIf="updating" class="spinner mr-2"></span>
-            Update Profile
-          </button>
-        </div>
+        <!-- Form Actions - Removed for employees -->
+        <!-- Employees can only change password, not profile information -->
       </form>
 
       <!-- Resume Section -->

@@ -145,4 +145,23 @@ export class DashboardComponent implements OnInit {
     this.csvExportService.exportSkillGaps(this.skillGaps, filename);
     this.notificationService.success('Export Complete', `Exported ${this.skillGaps.length} skill gaps to ${filename}`);
   }
+
+  viewMatchDetails(match: Match): void {
+    // Navigate to the matches page and show the details modal
+    this.router.navigate(['/matches'], { 
+      queryParams: { 
+        showDetails: match._id 
+      } 
+    });
+  }
+
+  getMatchCountByType(type: string): number {
+    return this.recentMatches.filter(match => match.matchType === type).length;
+  }
+
+  getAverageMatchScore(): number {
+    if (this.recentMatches.length === 0) return 0;
+    const totalScore = this.recentMatches.reduce((sum, match) => sum + match.matchScore, 0);
+    return Math.round(totalScore / this.recentMatches.length);
+  }
 }
