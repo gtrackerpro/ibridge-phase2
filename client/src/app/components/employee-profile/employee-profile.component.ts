@@ -270,6 +270,13 @@ export class EmployeeProfileComponent implements OnInit {
     }
   }
 
+  resetForm(): void {
+    if (this.employeeProfile) {
+      this.profileForm.reset();
+      this.populateForm(this.employeeProfile);
+    }
+  }
+
   private markFormGroupTouched(formGroup: FormGroup): void {
     Object.keys(formGroup.controls).forEach(key => {
       const control = formGroup.get(key);

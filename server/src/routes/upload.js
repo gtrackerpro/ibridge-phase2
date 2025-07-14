@@ -89,6 +89,16 @@ router.post('/resume', auth, upload.single('resume'), async (req, res) => {
 
     await fileUpload.save();
 
+    // Update employee profile with resume URL
+    try {
+      await EmployeeProfile.findByIdAndUpdate(employeeId, {
+        resumeUrl: s3Result.Location
+      });
+    } catch (updateError) {
+      console.error('Error updating employee profile with resume URL:', updateError);
+      // Continue with response even if profile update fails
+    }
+
     res.status(201).json({
       message: 'Resume uploaded successfully',
       fileUpload: {

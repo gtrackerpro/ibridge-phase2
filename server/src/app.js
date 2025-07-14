@@ -47,10 +47,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // MongoDB connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/ibridge-ai', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/ibridge-ai')
 .then(() => {
   console.log('✅ Connected to MongoDB Atlas');
 })
