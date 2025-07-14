@@ -28,11 +28,16 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// CORS configuration
+// CORS configuration with debugging
 const corsOptions = {
   origin: function (origin, callback) {
+    console.log('CORS Request from origin:', origin);
+    
     // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
+    if (!origin) {
+      console.log('Allowing request with no origin');
+      return callback(null, true);
+    }
     
     const allowedOrigins = [
       'http://localhost:4200',
@@ -40,23 +45,34 @@ const corsOptions = {
       process.env.CLIENT_URL
     ].filter(Boolean);
     
+    console.log('Allowed origins:', allowedOrigins);
+    
     if (allowedOrigins.indexOf(origin) !== -1) {
+      console.log('Origin allowed:', origin);
       callback(null, true);
     } else {
+      console.log('Origin blocked:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
-  optionsSuccessStatus: 200, // Some legacy browsers (IE11, various SmartTVs) choke on 204
+  optionsSuccessStatus: 200,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
   exposedHeaders: ['Content-Length', 'X-Foo', 'X-Bar']
 };
 
+// Apply CORS middleware
 app.use(cors(corsOptions));
 
 // Handle preflight requests explicitly
 app.options('*', cors(corsOptions));
+
+// Add request logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path} from ${req.get('origin') || 'no origin'}`);
+  next();
+});
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
