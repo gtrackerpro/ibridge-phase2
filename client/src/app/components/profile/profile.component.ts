@@ -37,7 +37,7 @@ export class ProfileComponent implements OnInit {
 
   constructor(
     private formBuilder: FormBuilder,
-    private authService: AuthService,
+    public authService: AuthService,
     private notificationService: NotificationService,
     private errorHandler: ErrorHandlerService
   ) { }

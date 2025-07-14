@@ -6,14 +6,15 @@
         My Profile
       </h2>
       <p class="mt-1 text-sm text-gray-500">
-        Manage your personal information and account settings
+        <span *ngIf="!authService.hasRole(['Employee'])">Manage your personal information and account settings</span>
+        <span *ngIf="authService.hasRole(['Employee'])">Change your password and view account information</span>
       </p>
     </div>
   </div>
 
-  <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-    <!-- Profile Information -->
-    <div class="card">
+  <div class="grid grid-cols-1 gap-6" [ngClass]="{'lg:grid-cols-2': !authService.hasRole(['Employee']), 'lg:grid-cols-1 max-w-2xl mx-auto': authService.hasRole(['Employee'])}">
+    <!-- Profile Information (Admin/RM only) -->
+    <div class="card" *ngIf="!authService.hasRole(['Employee'])">
       <div class="card-header">
         <h3 class="text-lg leading-6 font-medium text-gray-900">Profile Information</h3>
         <p class="mt-1 text-sm text-gray-500">
