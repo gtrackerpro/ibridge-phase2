@@ -17,6 +17,10 @@ export interface FileUpload {
     name: string;
     email: string;
   };
+  associatedEntity?: {
+    entityType: 'Employee' | 'Demand' | 'Training';
+    entityId: string;
+  };
   metadata?: any;
   createdAt: Date;
   updatedAt: Date;

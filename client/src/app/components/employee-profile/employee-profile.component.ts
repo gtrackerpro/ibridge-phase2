@@ -91,6 +91,7 @@ export class EmployeeProfileComponent implements OnInit {
           this.loadRecommendations();
           this.loadMatches();
           this.loadTrainingPlans();
+          this.loadResumeUrl(); // Load resume URL with signed link
         } else {
           this.error = 'Employee profile not found. Please contact your administrator.';
         }
@@ -233,6 +234,38 @@ export class EmployeeProfileComponent implements OnInit {
       error: (error) => {
         this.loadingTraining = false;
         console.error('Error loading training plans:', error);
+      }
+    });
+  }
+
+  loadResumeUrl(): void {
+    if (!this.employeeProfile || !this.employeeProfile.resumeUrl) return;
+
+    // Get upload history to find the resume file
+    this.uploadService.getUploadHistory().subscribe({
+      next: (response) => {
+        const resumeFile = response.uploads.find(upload => 
+          upload.fileType === 'Resume' && 
+          upload.associatedEntity?.entityType === 'Employee' &&
+          upload.associatedEntity?.entityId === this.employeeProfile?._id
+        );
+        
+        if (resumeFile) {
+          // Get the signed URL for the resume
+          this.uploadService.getFile(resumeFile._id).subscribe({
+            next: (fileResponse) => {
+              if (this.employeeProfile) {
+                this.employeeProfile.resumeUrl = fileResponse.fileUpload.downloadUrl;
+              }
+            },
+            error: (error) => {
+              console.error('Error getting resume signed URL:', error);
+            }
+          });
+        }
+      },
+      error: (error) => {
+        console.error('Error loading upload history:', error);
       }
     });
   }

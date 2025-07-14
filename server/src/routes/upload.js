@@ -1,6 +1,7 @@
 const express = require('express');
 const multer = require('multer');
-const AWS = require('aws-sdk');
+const { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const FileUpload = require('../models/FileUpload');
 const EmployeeProfile = require('../models/EmployeeProfile');
 const User = require('../models/User');
@@ -10,11 +11,13 @@ const { validateObjectIdParam, validateObjectIdBody } = require('../utils/object
 
 const router = express.Router();
 
-// Configure AWS S3
-const s3 = new AWS.S3({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: process.env.AWS_REGION
+// Configure AWS S3 Client
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+  }
 });
 
 // Configure multer for memory storage
@@ -65,11 +68,14 @@ router.post('/resume', auth, upload.single('resume'), async (req, res) => {
       Bucket: process.env.S3_BUCKET_NAME,
       Key: fileName,
       Body: req.file.buffer,
-      ContentType: req.file.mimetype,
-      ACL: 'private' // Keep resumes private
+      ContentType: req.file.mimetype
     };
 
-    const s3Result = await s3.upload(uploadParams).promise();
+    const command = new PutObjectCommand(uploadParams);
+    const s3Result = await s3Client.send(command);
+    
+    // Construct the S3 URL
+    const s3Url = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
 
     // Save file metadata to database
     const fileUpload = new FileUpload({
@@ -78,8 +84,8 @@ router.post('/resume', auth, upload.single('resume'), async (req, res) => {
       fileType: 'Resume',
       mimeType: req.file.mimetype,
       fileSize: req.file.size,
-      s3Url: s3Result.Location,
-      s3Key: s3Result.Key,
+      s3Url: s3Url,
+      s3Key: fileName,
       uploadedBy: req.user._id,
       associatedEntity: {
         entityType: 'Employee',
@@ -92,7 +98,7 @@ router.post('/resume', auth, upload.single('resume'), async (req, res) => {
     // Update employee profile with resume URL
     try {
       await EmployeeProfile.findByIdAndUpdate(employeeId, {
-        resumeUrl: s3Result.Location
+        resumeUrl: s3Url
       });
     } catch (updateError) {
       console.error('Error updating employee profile with resume URL:', updateError);
@@ -140,11 +146,14 @@ router.post('/csv', auth, authorize('Admin', 'RM'), upload.single('csv'), async 
       Bucket: process.env.S3_BUCKET_NAME,
       Key: fileName,
       Body: req.file.buffer,
-      ContentType: req.file.mimetype,
-      ACL: 'private'
+      ContentType: req.file.mimetype
     };
 
-    const s3Result = await s3.upload(uploadParams).promise();
+    const command = new PutObjectCommand(uploadParams);
+    const s3Result = await s3Client.send(command);
+    
+    // Construct the S3 URL
+    const s3Url = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
 
     // Save file metadata to database
     const fileUpload = new FileUpload({
@@ -153,8 +162,8 @@ router.post('/csv', auth, authorize('Admin', 'RM'), upload.single('csv'), async 
       fileType: 'CSV',
       mimeType: req.file.mimetype,
       fileSize: req.file.size,
-      s3Url: s3Result.Location,
-      s3Key: s3Result.Key,
+      s3Url: s3Url,
+      s3Key: fileName,
       uploadedBy: req.user._id,
       metadata: { csvType: type }
     });
@@ -283,16 +292,36 @@ router.get('/:id', auth, validateObjectIdParam('id'), async (req, res) => {
     }
 
     // Check if user can access this file
-    if (req.user.role !== 'Admin' && fileUpload.uploadedBy._id.toString() !== req.user._id.toString()) {
+    let canAccess = false;
+    
+    if (req.user.role === 'Admin') {
+      canAccess = true;
+    } else if (fileUpload.uploadedBy._id.toString() === req.user._id.toString()) {
+      canAccess = true;
+    } else if (req.user.role === 'Employee' && fileUpload.fileType === 'Resume') {
+      const EmployeeProfile = require('../models/EmployeeProfile');
+      const employeeProfile = await EmployeeProfile.findOne({ email: req.user.email });
+      
+      if (employeeProfile && fileUpload.associatedEntity && 
+          fileUpload.associatedEntity.entityType === 'Employee' && 
+          fileUpload.associatedEntity.entityId && 
+          fileUpload.associatedEntity.entityId.toString() === employeeProfile._id.toString()) {
+        canAccess = true;
+      }
+    }
+    
+    if (!canAccess) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
     // Generate signed URL for download
-    const signedUrl = s3.getSignedUrl('getObject', {
+    const getObjectParams = {
       Bucket: process.env.S3_BUCKET_NAME,
-      Key: fileUpload.s3Key,
-      Expires: 3600 // 1 hour
-    });
+      Key: fileUpload.s3Key
+    };
+    
+    const command = new GetObjectCommand(getObjectParams);
+    const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
 
     res.json({
       message: 'File retrieved successfully',
@@ -325,10 +354,13 @@ router.delete('/:id', auth, validateObjectIdParam('id'), async (req, res) => {
     }
 
     // Delete from S3
-    await s3.deleteObject({
+    const deleteParams = {
       Bucket: process.env.S3_BUCKET_NAME,
       Key: fileUpload.s3Key
-    }).promise();
+    };
+    
+    const deleteCommand = new DeleteObjectCommand(deleteParams);
+    await s3Client.send(deleteCommand);
 
     // Delete from database
     await FileUpload.findByIdAndDelete(req.params.id);
