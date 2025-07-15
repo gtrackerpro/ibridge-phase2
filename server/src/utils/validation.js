@@ -216,11 +216,21 @@ function validateTrainingPlan(data) {
 }
 
 /**
- * Sanitize input data
+ * Enhanced input sanitization with XSS protection
  */
 function sanitizeInput(data) {
   if (typeof data === 'string') {
-    return validator.escape(data.trim());
+    // Trim whitespace and escape HTML entities
+    let sanitized = data.trim();
+    
+    // Remove potential XSS patterns
+    sanitized = sanitized.replace(/<script[^>]*>.*?<\/script>/gi, '');
+    sanitized = sanitized.replace(/<iframe[^>]*>.*?<\/iframe>/gi, '');
+    sanitized = sanitized.replace(/javascript:/gi, '');
+    sanitized = sanitized.replace(/on\w+\s*=/gi, '');
+    
+    // Escape HTML entities
+    return validator.escape(sanitized);
   }
   
   if (Array.isArray(data)) {

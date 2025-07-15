@@ -3,6 +3,12 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const { 
+  apiLimiter, 
+  securityHeaders, 
+  validateInput, 
+  securityLogger 
+} = require('./middleware/security');
 require('dotenv').config();
 
 // Import routes
@@ -18,15 +24,11 @@ const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 
 const app = express();
 
-// Security middleware
-app.use(helmet());
-
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
-});
-app.use(limiter);
+// Enhanced security middleware
+app.use(securityHeaders);
+app.use(securityLogger);
+app.use(validateInput);
+app.use(apiLimiter);
 
 // CORS configuration with debugging
 const corsOptions = {
