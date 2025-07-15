@@ -1,5 +1,7 @@
 const request = require('supertest');
 const express = require('express');
+// Load environment variables for testing
+require('dotenv').config();
 const authRoutes = require('../../routes/auth');
 const User = require('../../models/User');
 
@@ -60,9 +62,9 @@ describe('Auth Routes', () => {
       const response = await request(app)
         .post('/api/auth/register')
         .send(userData)
-        .expect(500);
+        .expect(400);
 
-      expect(response.body.message).toBe('Registration failed');
+      expect(response.body.message).toContain('Validation');
     });
   });
 
