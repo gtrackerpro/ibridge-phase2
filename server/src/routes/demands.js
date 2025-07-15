@@ -34,6 +34,34 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+// Get demands by status
+router.get('/status/:status', auth, async (req, res) => {
+  try {
+    let query = { status: req.params.status };
+    
+    // If user is RM, they can only see demands they created
+    if (req.user.role === 'RM') {
+      query.createdBy = req.user._id;
+    }
+
+    const demands = await Demand.find(query)
+      .populate('createdBy', 'name email')
+      .sort({ createdAt: -1 });
+
+    res.json({
+      message: `Demands with status '${req.params.status}' retrieved successfully`,
+      demands,
+      count: demands.length
+    });
+  } catch (error) {
+    console.error('Get demands by status error:', error);
+    res.status(500).json({ 
+      message: 'Failed to retrieve demands by status', 
+      error: error.message 
+    });
+  }
+});
+
 // Get demand by ID
 router.get('/:id', auth, validateObjectIdParam('id'), async (req, res) => {
   try {
@@ -165,34 +193,6 @@ router.delete('/:id', auth, authorize('Admin', 'RM'), validateObjectIdParam('id'
     console.error('Delete demand error:', error);
     res.status(500).json({ 
       message: 'Failed to delete demand', 
-      error: error.message 
-    });
-  }
-});
-
-// Get demands by status
-router.get('/status/:status', auth, async (req, res) => {
-  try {
-    let query = { status: req.params.status };
-    
-    // If user is RM, they can only see demands they created
-    if (req.user.role === 'RM') {
-      query.createdBy = req.user._id;
-    }
-
-    const demands = await Demand.find(query)
-      .populate('createdBy', 'name email')
-      .sort({ createdAt: -1 });
-
-    res.json({
-      message: `Demands with status '${req.params.status}' retrieved successfully`,
-      demands,
-      count: demands.length
-    });
-  } catch (error) {
-    console.error('Get demands by status error:', error);
-    res.status(500).json({ 
-      message: 'Failed to retrieve demands by status', 
       error: error.message 
     });
   }
