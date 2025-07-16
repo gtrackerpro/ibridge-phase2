@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../../services/auth.service';
 import { NotificationService } from '../../../services/notification.service';
 import { ErrorHandlerService } from '../../../services/error-handler.service';
+import { HealthService } from '../../../services/health.service';
 import { environment } from '../../../../environments/environment';
 
 @Component({
@@ -26,7 +27,8 @@ export class LoginComponent implements OnInit {
     private http: HttpClient,
     private authService: AuthService,
     private notificationService: NotificationService,
-    private errorHandler: ErrorHandlerService
+    private errorHandler: ErrorHandlerService,
+    private healthService: HealthService
   ) {
     // Redirect to dashboard if already logged in
     if (this.authService.isAuthenticated()) {
@@ -71,16 +73,45 @@ export class LoginComponent implements OnInit {
     this.refreshing = true;
     this.error = '';
     
-    // Make health check request to wake up server
-    this.http.get(`${environment.apiUrl}/health`).subscribe({
-      next: (response: any) => {
+    // Use the health service to check all services and wake them up
+    this.healthService.wakeUpServices().subscribe({
+      next: (healthStatus) => {
         this.refreshing = false;
-        this.notificationService.success('Server Ready', 'Server is awake and ready for login');
+        const message = this.healthService.getStatusMessage(healthStatus);
+        
+        // Show response time information
+        const responseDetails = [];
+        if (healthStatus.backend.responseTime) {
+          responseDetails.push(`Backend: ${healthStatus.backend.responseTime}ms`);
+        }
+        if (healthStatus.fastapi.responseTime) {
+          responseDetails.push(`FastAPI: ${healthStatus.fastapi.responseTime}ms`);
+        }
+        
+        const detailedMessage = responseDetails.length > 0 
+          ? `${message} (${responseDetails.join(', ')})`
+          : message;
+        
+        switch (healthStatus.overall) {
+          case 'healthy':
+            this.notificationService.success('Services Ready', detailedMessage);
+            break;
+          case 'partial':
+            this.notificationService.warning('Partial Service', detailedMessage);
+            break;
+          case 'unhealthy':
+            this.notificationService.error('Services Error', detailedMessage);
+            break;
+        }
+        
+        // Log detailed status for debugging
+        console.log('Health check results:', healthStatus);
       },
       error: (error) => {
         this.refreshing = false;
         const errorMessage = this.errorHandler.getErrorMessage(error);
-        this.notificationService.error('Server Error', `Failed to wake up server: ${errorMessage}`);
+        this.notificationService.error('Server Error', `Failed to check services: ${errorMessage}`);
+        console.error('Health check error:', error);
       }
     });
   }
