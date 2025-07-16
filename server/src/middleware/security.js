@@ -92,17 +92,20 @@ const validateInput = (req, res, next) => {
     const sqlPatterns = [
       /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION|SCRIPT)\b)/i,
       /(\b(OR|AND)\s+\d+\s*=\s*\d+)/i,
-      /('|(\\')|(;)|(\\)|(--)|(\s))/i,
+      /('|(\\')|(;)|(\\)|(--))/i,
       /(\b(INFORMATION_SCHEMA|SYSOBJECTS|SYSCOLUMNS)\b)/i
     ];
     
-    // XSS patterns
+    // XSS patterns - more aggressive
     const xssPatterns = [
       /<script[^>]*>.*?<\/script>/gi,
       /<iframe[^>]*>.*?<\/iframe>/gi,
       /javascript:/gi,
       /on\w+\s*=/gi,
-      /<[^>]*>/g
+      /<[^>]*>/g,
+      /eval\s*\(/gi,
+      /document\.(write|cookie)/gi,
+      /window\.(location|open)/gi
     ];
     
     return sqlPatterns.some(pattern => pattern.test(input)) || 

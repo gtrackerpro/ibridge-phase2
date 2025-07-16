@@ -3,12 +3,12 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { auth } = require('../middleware/auth');
 const { validateUserRegistrationMiddleware, sanitizeInputMiddleware } = require('../middleware/validation');
-const { authLimiter, validatePasswordStrength } = require('../middleware/security');
+const { authLimiter, validatePasswordStrength, validateInput } = require('../middleware/security');
 
 const router = express.Router();
 
 // Register
-router.post('/register', authLimiter, sanitizeInputMiddleware, validateUserRegistrationMiddleware, validatePasswordStrength, async (req, res) => {
+router.post('/register', authLimiter, validateInput, sanitizeInputMiddleware, validateUserRegistrationMiddleware, validatePasswordStrength, async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
 
@@ -55,7 +55,7 @@ router.post('/register', authLimiter, sanitizeInputMiddleware, validateUserRegis
 });
 
 // Login
-router.post('/login', authLimiter, sanitizeInputMiddleware, async (req, res) => {
+router.post('/login', authLimiter, validateInput, sanitizeInputMiddleware, async (req, res) => {
   try {
     console.log('Login request received:', { email: req.body.email, timestamp: new Date().toISOString() });
     
