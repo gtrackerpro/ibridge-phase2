@@ -14,16 +14,49 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import PorterStemmer
 
-# Download required NLTK data (only once)
-try:
-    nltk.data.find('tokenizers/punkt')
-except LookupError:
-    nltk.download('punkt', quiet=True)
+# Global variables for NLTK components
+NLTK_AVAILABLE = True
+stop_words = set()
+stemmer = None
 
-try:
-    nltk.data.find('corpora/stopwords')
-except LookupError:
-    nltk.download('stopwords', quiet=True)
+# Download required NLTK data and set up components
+def setup_nltk():
+    global NLTK_AVAILABLE, stop_words, stemmer
+    
+    try:
+        # Try to download punkt_tab (newer NLTK versions)
+        try:
+            nltk.data.find('tokenizers/punkt_tab')
+        except LookupError:
+            nltk.download('punkt_tab', quiet=True)
+        
+        # Fallback to punkt (older NLTK versions)
+        try:
+            nltk.data.find('tokenizers/punkt')
+        except LookupError:
+            nltk.download('punkt', quiet=True)
+        
+        # Download stopwords
+        try:
+            nltk.data.find('corpora/stopwords')
+        except LookupError:
+            nltk.download('stopwords', quiet=True)
+        
+        # Initialize components
+        stop_words = set(stopwords.words('english'))
+        stemmer = PorterStemmer()
+        NLTK_AVAILABLE = True
+        
+    except Exception as e:
+        print(f"Warning: NLTK setup failed: {e}")
+        print("Falling back to basic text processing")
+        NLTK_AVAILABLE = False
+        # Fallback stopwords
+        stop_words = {'a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'for', 'from', 'has', 'he', 'in', 'is', 'it', 'its', 'of', 'on', 'that', 'the', 'to', 'was', 'will', 'with'}
+        stemmer = None
+
+# Initialize NLTK
+setup_nltk()
 
 # Configure logging
 logging.basicConfig(
