@@ -251,21 +251,21 @@ async function calculateMatchScore(employee, demand) {
     let matchedSecondarySkills = 0;
     let totalSecondarySkillScore = 0;
     
-    demand.secondarySkills.forEach(demandSecSkill => {
+    for (const demandSecSkill of demand.secondarySkills) {
       let bestMatch = 0;
-      employee.secondarySkills.forEach(async (empSecSkill) => {
-        if (areSkillsSimilar(empSecSkill.skill, demandSecSkill)) {
+      for (const empSecSkill of employee.secondarySkills) {
+        if (await areSkillsSimilar(empSecSkill.skill, demandSecSkill)) {
           // Consider experience level for secondary skills too
           const skillScore = Math.min(1, empSecSkill.experience / 2); // Normalize to max 1
           bestMatch = Math.max(bestMatch, skillScore);
         }
-      });
+      }
       
       if (bestMatch > 0) {
         matchedSecondarySkills++;
         totalSecondarySkillScore += bestMatch;
       }
-    });
+    }
     
     if (matchedSecondarySkills > 0) {
       const matchRatio = matchedSecondarySkills / demand.secondarySkills.length;
@@ -317,8 +317,8 @@ async function calculateMatchScore(employee, demand) {
 /**
  * Enhanced match type determination with more nuanced categories
  */
-function determineMatchType(score, missingSkills, employee, demand) {
-  const primarySkillMatch = areSkillsSimilar(employee.primarySkill, demand.primarySkill);
+async function determineMatchType(score, missingSkills, employee, demand) {
+  const primarySkillMatch = await areSkillsSimilar(employee.primarySkill, demand.primarySkill);
   const experienceGap = demand.experienceRange.min - employee.primarySkillExperience;
   
   if (score >= 85 && missingSkills.length === 0 && primarySkillMatch) {
@@ -360,10 +360,14 @@ async function findMissingSkills(employee, demand) {
   
   // Check secondary skills
   if (demand.secondarySkills && demand.secondarySkills.length > 0) {
-    demand.secondarySkills.forEach(demandSecSkill => {
-      const hasSkill = employee.secondarySkills.some(async (empSecSkill) => 
-        await areSkillsSimilar(empSecSkill.skill, demandSecSkill)
-      );
+    for (const demandSecSkill of demand.secondarySkills) {
+      let hasSkill = false;
+      for (const empSecSkill of employee.secondarySkills) {
+        if (await areSkillsSimilar(empSecSkill.skill, demandSecSkill)) {
+          hasSkill = true;
+          break;
+        }
+      }
       if (!hasSkill) {
         missingSkills.push({
           skill: demandSecSkill,
@@ -372,7 +376,7 @@ async function findMissingSkills(employee, demand) {
           reason: 'Secondary skill not found'
         });
       }
-    });
+    }
   }
   
   // Return simplified array for backward compatibility
@@ -401,10 +405,14 @@ async function generateSkillsMatched(employee, demand) {
   
   // Secondary skills analysis
   if (demand.secondarySkills && demand.secondarySkills.length > 0) {
-    demand.secondarySkills.forEach(demandSecSkill => {
-      const matchedSecSkill = employee.secondarySkills.find(async (empSecSkill) => 
-        await areSkillsSimilar(empSecSkill.skill, demandSecSkill)
-      );
+    for (const demandSecSkill of demand.secondarySkills) {
+      let matchedSecSkill = null;
+      for (const empSecSkill of employee.secondarySkills) {
+        if (await areSkillsSimilar(empSecSkill.skill, demandSecSkill)) {
+          matchedSecSkill = empSecSkill;
+          break;
+        }
+      }
       if (matchedSecSkill) {
         const similarity = await calculateSkillSimilarity(matchedSecSkill.skill, demandSecSkill);
         skillsMatched.push({
@@ -416,7 +424,7 @@ async function generateSkillsMatched(employee, demand) {
           matchQuality: 'good'
         });
       }
-    });
+    }
   }
   
   return skillsMatched;
@@ -451,7 +459,7 @@ async function generateMatches(demandId) {
       const missingSkills = await findMissingSkills(employee, demand);
       
       // Determine match type with refined logic
-      const matchType = determineMatchType(matchScore, missingSkills, employee, demand);
+      const matchType = await determineMatchType(matchScore, missingSkills, employee, demand);
       
       // Generate enhanced skills matched analysis
       const skillsMatched = await generateSkillsMatched(employee, demand);
@@ -509,7 +517,7 @@ async function getEmployeeRecommendations(employeeId) {
     for (const demand of demands) {
       const matchScore = await calculateMatchScore(employee, demand);
       const missingSkills = await findMissingSkills(employee, demand);
-      const matchType = determineMatchType(matchScore, missingSkills, employee, demand);
+      const matchType = await determineMatchType(matchScore, missingSkills, employee, demand);
       
       if (matchScore >= 40) { // Slightly higher threshold for recommendations
         recommendations.push({
@@ -546,8 +554,8 @@ async function analyzeSkillGaps() {
       const matches = [];
       
       for (const employee of employees) {
-        const matchScore = calculateMatchScore(employee, demand);
-        const missingSkills = findMissingSkills(employee, demand);
+        const matchScore = await calculateMatchScore(employee, demand);
+        const missingSkills = await findMissingSkills(employee, demand);
         
         matches.push({
           employee,

@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 import numpy as np
 from sentence_transformers import SentenceTransformer
 import os
@@ -89,7 +89,7 @@ class MatchAnalysisRequest(BaseModel):
     employeeSkills: List[str]
     employeeExperience: Dict[str, int]
     demandSkills: List[str]
-    demandRequirements: Dict[str, any]
+    demandRequirements: Dict[str, Any]
 
 class SkillMatch(BaseModel):
     skill: str
@@ -104,7 +104,7 @@ class MatchAnalysisResponse(BaseModel):
     matchType: str
     missingSkills: List[str]
     skillsMatched: List[SkillMatch]
-    semanticInsights: Optional[Dict[str, any]] = None
+    semanticInsights: Optional[Dict[str, Any]] = None
 
 # Helper functions
 def compute_embedding(text):

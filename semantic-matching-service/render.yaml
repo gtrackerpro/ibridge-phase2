@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: semantic-matching-service
+    runtime: docker
+    repo: https://github.com/abdulfirdows/iBridge-AI  # Replace with your GitHub repo
+    rootDir: semantic-matching-service
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: EMBEDDING_MODEL
+        value: all-MiniLM-L6-v2
+      - key: PORT
+        value: 8000
+    scaling:
+      minInstances: 1
+      maxInstances: 3
+    disk:
+      name: semantic-service-disk
+      size: 512MB
+      mountPath: /app/data
