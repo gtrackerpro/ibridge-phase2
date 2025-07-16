@@ -4,6 +4,9 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 
+// Security
+import { SecurityService, SecurityInterceptor } from './services/security.service';
+
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 
@@ -81,9 +84,15 @@ import { TrainingResourceFormComponent } from './components/training-resources/t
     NotificationService,
     ErrorHandlerService,
     CsvExportService,
+    SecurityService,
     {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,
+      multi: true
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: SecurityInterceptor,
       multi: true
     }
   ],
