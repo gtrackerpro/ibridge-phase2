@@ -1,9 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../../services/auth.service';
 import { NotificationService } from '../../../services/notification.service';
 import { ErrorHandlerService } from '../../../services/error-handler.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -13,6 +15,7 @@ import { ErrorHandlerService } from '../../../services/error-handler.service';
 export class LoginComponent implements OnInit {
   loginForm!: FormGroup;
   loading = false;
+  refreshing = false;
   error = '';
   returnUrl = '';
 
@@ -20,6 +23,7 @@ export class LoginComponent implements OnInit {
     private formBuilder: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
+    private http: HttpClient,
     private authService: AuthService,
     private notificationService: NotificationService,
     private errorHandler: ErrorHandlerService
@@ -59,6 +63,24 @@ export class LoginComponent implements OnInit {
         this.error = this.errorHandler.getErrorMessage(error);
         this.notificationService.error('Login Failed', this.error);
         this.loading = false;
+      }
+    });
+  }
+
+  refreshServer(): void {
+    this.refreshing = true;
+    this.error = '';
+    
+    // Make health check request to wake up server
+    this.http.get(`${environment.apiUrl}/health`).subscribe({
+      next: (response: any) => {
+        this.refreshing = false;
+        this.notificationService.success('Server Ready', 'Server is awake and ready for login');
+      },
+      error: (error) => {
+        this.refreshing = false;
+        const errorMessage = this.errorHandler.getErrorMessage(error);
+        this.notificationService.error('Server Error', `Failed to wake up server: ${errorMessage}`);
       }
     });
   }
