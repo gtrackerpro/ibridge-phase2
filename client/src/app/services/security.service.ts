@@ -130,7 +130,7 @@ export class SecurityService {
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: https:",
-      "connect-src 'self' http://localhost:3001 https://ibridge-ai.onrender.com",
+      "connect-src 'self' http://localhost:4200 http://localhost:3001 https://localhost:3001 https://ibridge-ai.onrender.com",
       "frame-src 'none'",
       "object-src 'none'",
       "base-uri 'self'",
