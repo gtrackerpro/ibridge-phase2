@@ -1,6 +1,7 @@
 const natural = require('natural');
 const TrainingResource = require('../models/TrainingResource');
-const { areSkillsSimilar, SKILL_SYNONYMS, SKILL_CATEGORIES } = require('./matchingService');
+const { areSkillsSimilar } = require('./matchingService');
+const { SKILL_SYNONYMS, SKILL_CATEGORIES } = require('./skillData');
 
 // Skill to category mapping for better resource matching
 const SKILL_TO_CATEGORY = {

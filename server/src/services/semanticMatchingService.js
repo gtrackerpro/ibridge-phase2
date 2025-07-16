@@ -1,6 +1,6 @@
 const axios = require('axios');
 const natural = require('natural');
-const { SKILL_SYNONYMS, SKILL_CATEGORIES } = require('./matchingService');
+const { SKILL_SYNONYMS, SKILL_CATEGORIES } = require('./skillData');
 
 // Configuration for the semantic matching service
 const SEMANTIC_MATCHING_API_URL = process.env.SEMANTIC_MATCHING_API_URL || 'http://localhost:8000';

@@ -3,9 +3,9 @@ const {
   areSkillsSimilar, 
   generateMatches,
   calculateSkillSimilarity,
-  analyzeSkillGaps,
-  SKILL_SYNONYMS
+  analyzeSkillGaps
 } = require('../../services/matchingService');
+const { SKILL_SYNONYMS } = require('../../services/skillData');
 const EmployeeProfile = require('../../models/EmployeeProfile');
 const Demand = require('../../models/Demand');
 const User = require('../../models/User');
