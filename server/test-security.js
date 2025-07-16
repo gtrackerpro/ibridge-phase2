@@ -5,14 +5,14 @@ const colors = require('colors');
 const BASE_URL = 'http://localhost:3001';
 const CLIENT_URL = 'http://localhost:4200';
 const TEST_USER = {
-  email: 'admin@xyz.com',
-  password: 'Admin@123'
+  email: 'abdullah.firdowsi@ilink-systems.com',
+  password: 'Wel@come@123'
 };
 
 // Alternative test users if admin doesn't work
 const ALTERNATIVE_USERS = [
-  { email: 'rm@xyz.com', password: 'Abdullah@52' },
-  { email: 'abdullah.firdowsi@ilink-systems.com', password: 'Wel@come@123' }
+  { email: 'admin@xyz.com', password: 'Admin@123' },
+  { email: 'rm@xyz.com', password: 'Abdullah@52' }
 ];
 
 // Test results
