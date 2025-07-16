@@ -3,7 +3,12 @@ const Match = require('../models/Match');
 const EmployeeProfile = require('../models/EmployeeProfile');
 const Demand = require('../models/Demand');
 const { auth, authorize } = require('../middleware/auth');
-const { generateMatches, analyzeSkillGaps, getEmployeeRecommendations } = require('../services/matchingService');
+const { 
+  generateMatches, 
+  analyzeSkillGaps, 
+  getEmployeeRecommendations,
+  semanticMatchingService 
+} = require('../services/matchingService');
 const { validateObjectIdParam, validateObjectIdBody, isValidObjectId } = require('../utils/objectIdValidator');
 
 const router = express.Router();
@@ -323,6 +328,58 @@ router.get('/stats', auth, authorize('Admin', 'RM'), async (req, res) => {
     console.error('Get match stats error:', error);
     res.status(500).json({ 
       message: 'Failed to retrieve match statistics', 
+      error: error.message 
+    });
+  }
+});
+
+// Get semantic skill similarity
+router.post('/semantic-similarity', auth, authorize('Admin', 'RM'), async (req, res) => {
+  try {
+    const { skill1, skill2 } = req.body;
+
+    if (!skill1 || !skill2) {
+      return res.status(400).json({ message: 'Both skills are required' });
+    }
+
+    const similarity = await semanticMatchingService.calculateSemanticSimilarity(skill1, skill2);
+
+    res.json({
+      message: 'Semantic similarity calculated successfully',
+      skill1,
+      skill2,
+      similarity,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Semantic similarity error:', error);
+    res.status(500).json({ 
+      message: 'Failed to calculate semantic similarity', 
+      error: error.message 
+    });
+  }
+});
+
+// Find similar skills
+router.post('/find-similar-skills', auth, authorize('Admin', 'RM'), async (req, res) => {
+  try {
+    const { targetSkill, skillList } = req.body;
+
+    if (!targetSkill || !Array.isArray(skillList)) {
+      return res.status(400).json({ message: 'Target skill and skill list are required' });
+    }
+
+    const similarSkills = await semanticMatchingService.findSimilarSkills(targetSkill, skillList);
+
+    res.json({
+      message: 'Similar skills found successfully',
+      targetSkill,
+      similarSkills
+    });
+  } catch (error) {
+    console.error('Find similar skills error:', error);
+    res.status(500).json({ 
+      message: 'Failed to find similar skills', 
       error: error.message 
     });
   }

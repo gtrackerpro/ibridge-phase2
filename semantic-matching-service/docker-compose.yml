@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  semantic-matching-service:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - EMBEDDING_MODEL=all-MiniLM-L6-v2
+    volumes:
+      - ./:/app
+    restart: unless-stopped

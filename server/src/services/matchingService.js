@@ -2,6 +2,7 @@ const natural = require('natural');
 const EmployeeProfile = require('../models/EmployeeProfile');
 const Demand = require('../models/Demand');
 const Match = require('../models/Match');
+const semanticMatchingService = require('./semanticMatchingService');
 
 // Initialize stemmer for better text matching
 const stemmer = natural.PorterStemmer;
@@ -106,12 +107,21 @@ const SKILL_CATEGORIES = {
 /**
  * Enhanced skill similarity calculation using multiple algorithms
  */
-function calculateSkillSimilarity(skill1, skill2) {
+async function calculateSkillSimilarity(skill1, skill2) {
   const normalizedSkill1 = skill1.toLowerCase().trim();
   const normalizedSkill2 = skill2.toLowerCase().trim();
   
   if (normalizedSkill1 === normalizedSkill2) {
     return 1.0;
+  }
+  
+  try {
+    // Try semantic similarity first
+    const semanticSimilarity = await semanticMatchingService.calculateSemanticSimilarity(normalizedSkill1, normalizedSkill2);
+    return semanticSimilarity;
+  } catch (error) {
+    console.log('Falling back to legacy similarity calculation:', error.message);
+    // Fall back to legacy calculation if semantic service fails
   }
   
   // Jaro-Winkler distance
@@ -131,8 +141,16 @@ function calculateSkillSimilarity(skill1, skill2) {
 /**
  * Enhanced skill similarity check with comprehensive synonym matching
  */
-function areSkillsSimilar(skill1, skill2) {
-  const similarity = calculateSkillSimilarity(skill1, skill2);
+async function areSkillsSimilar(skill1, skill2) {
+  try {
+    // Try semantic similarity first
+    return await semanticMatchingService.areSkillsSemanticallyRelated(skill1, skill2);
+  } catch (error) {
+    console.log('Falling back to legacy skill similarity check:', error.message);
+    // Fall back to legacy check if semantic service fails
+  }
+  
+  const similarity = await calculateSkillSimilarity(skill1, skill2);
   
   if (similarity >= SIMILARITY_THRESHOLD) {
     return true;
@@ -183,7 +201,7 @@ function areSkillsDirectlyRelated(skill, categorySkill) {
 /**
  * Enhanced match score calculation with refined weights and logic
  */
-function calculateMatchScore(employee, demand) {
+async function calculateMatchScore(employee, demand) {
   let score = 0;
   const weights = {
     primarySkill: 50,      // Reduced from 60 to allow other factors more influence
@@ -194,7 +212,7 @@ function calculateMatchScore(employee, demand) {
   
   // Primary skill match with enhanced experience evaluation
   let primarySkillScore = 0;
-  const primarySkillMatch = areSkillsSimilar(employee.primarySkill, demand.primarySkill);
+  const primarySkillMatch = await areSkillsSimilar(employee.primarySkill, demand.primarySkill);
   
   if (primarySkillMatch) {
     const minExp = demand.experienceRange.min;
@@ -219,7 +237,7 @@ function calculateMatchScore(employee, demand) {
     }
   } else {
     // Check for related skills in same category
-    const skillSimilarity = calculateSkillSimilarity(employee.primarySkill, demand.primarySkill);
+    const skillSimilarity = await calculateSkillSimilarity(employee.primarySkill, demand.primarySkill);
     if (skillSimilarity >= 0.4) {
       primarySkillScore = weights.primarySkill * skillSimilarity * 0.6;
     }
@@ -235,7 +253,7 @@ function calculateMatchScore(employee, demand) {
     
     demand.secondarySkills.forEach(demandSecSkill => {
       let bestMatch = 0;
-      employee.secondarySkills.forEach(empSecSkill => {
+      employee.secondarySkills.forEach(async (empSecSkill) => {
         if (areSkillsSimilar(empSecSkill.skill, demandSecSkill)) {
           // Consider experience level for secondary skills too
           const skillScore = Math.min(1, empSecSkill.experience / 2); // Normalize to max 1
@@ -317,11 +335,11 @@ function determineMatchType(score, missingSkills, employee, demand) {
 /**
  * Enhanced missing skills identification with prioritization
  */
-function findMissingSkills(employee, demand) {
+async function findMissingSkills(employee, demand) {
   const missingSkills = [];
   
   // Check primary skill and experience gap
-  const primarySkillMatch = areSkillsSimilar(employee.primarySkill, demand.primarySkill);
+  const primarySkillMatch = await areSkillsSimilar(employee.primarySkill, demand.primarySkill);
   
   if (!primarySkillMatch) {
     missingSkills.push({
@@ -343,8 +361,8 @@ function findMissingSkills(employee, demand) {
   // Check secondary skills
   if (demand.secondarySkills && demand.secondarySkills.length > 0) {
     demand.secondarySkills.forEach(demandSecSkill => {
-      const hasSkill = employee.secondarySkills.some(empSecSkill => 
-        areSkillsSimilar(empSecSkill.skill, demandSecSkill)
+      const hasSkill = employee.secondarySkills.some(async (empSecSkill) => 
+        await areSkillsSimilar(empSecSkill.skill, demandSecSkill)
       );
       if (!hasSkill) {
         missingSkills.push({
@@ -364,13 +382,13 @@ function findMissingSkills(employee, demand) {
 /**
  * Enhanced skills matched details with better analysis
  */
-function generateSkillsMatched(employee, demand) {
+async function generateSkillsMatched(employee, demand) {
   const skillsMatched = [];
   
   // Primary skill analysis
-  const primarySkillMatch = areSkillsSimilar(employee.primarySkill, demand.primarySkill);
+  const primarySkillMatch = await areSkillsSimilar(employee.primarySkill, demand.primarySkill);
   if (primarySkillMatch) {
-    const similarity = calculateSkillSimilarity(employee.primarySkill, demand.primarySkill);
+    const similarity = await calculateSkillSimilarity(employee.primarySkill, demand.primarySkill);
     skillsMatched.push({
       skill: employee.primarySkill,
       required: true,
@@ -384,11 +402,11 @@ function generateSkillsMatched(employee, demand) {
   // Secondary skills analysis
   if (demand.secondarySkills && demand.secondarySkills.length > 0) {
     demand.secondarySkills.forEach(demandSecSkill => {
-      const matchedSecSkill = employee.secondarySkills.find(empSecSkill => 
-        areSkillsSimilar(empSecSkill.skill, demandSecSkill)
+      const matchedSecSkill = employee.secondarySkills.find(async (empSecSkill) => 
+        await areSkillsSimilar(empSecSkill.skill, demandSecSkill)
       );
       if (matchedSecSkill) {
-        const similarity = calculateSkillSimilarity(matchedSecSkill.skill, demandSecSkill);
+        const similarity = await calculateSkillSimilarity(matchedSecSkill.skill, demandSecSkill);
         skillsMatched.push({
           skill: matchedSecSkill.skill,
           required: false,
@@ -427,16 +445,16 @@ async function generateMatches(demandId) {
     
     for (const employee of employees) {
       // Calculate enhanced match score
-      const matchScore = calculateMatchScore(employee, demand);
+      const matchScore = await calculateMatchScore(employee, demand);
       
       // Find missing skills with enhanced analysis
-      const missingSkills = findMissingSkills(employee, demand);
+      const missingSkills = await findMissingSkills(employee, demand);
       
       // Determine match type with refined logic
       const matchType = determineMatchType(matchScore, missingSkills, employee, demand);
       
       // Generate enhanced skills matched analysis
-      const skillsMatched = generateSkillsMatched(employee, demand);
+      const skillsMatched = await generateSkillsMatched(employee, demand);
       
       // Only create matches above a minimum threshold
       if (matchScore >= 30) {
@@ -489,8 +507,8 @@ async function getEmployeeRecommendations(employeeId) {
     const recommendations = [];
     
     for (const demand of demands) {
-      const matchScore = calculateMatchScore(employee, demand);
-      const missingSkills = findMissingSkills(employee, demand);
+      const matchScore = await calculateMatchScore(employee, demand);
+      const missingSkills = await findMissingSkills(employee, demand);
       const matchType = determineMatchType(matchScore, missingSkills, employee, demand);
       
       if (matchScore >= 40) { // Slightly higher threshold for recommendations
@@ -499,7 +517,7 @@ async function getEmployeeRecommendations(employeeId) {
           matchScore,
           matchType,
           missingSkills,
-          skillsMatched: generateSkillsMatched(employee, demand)
+          skillsMatched: await generateSkillsMatched(employee, demand)
         });
       }
     }
@@ -580,5 +598,7 @@ module.exports = {
   calculateSkillSimilarity,
   analyzeSkillGaps,
   SKILL_SYNONYMS,
-  SKILL_CATEGORIES
+  SKILL_CATEGORIES,
+  // Export semantic matching functions for direct use
+  semanticMatchingService
 };
