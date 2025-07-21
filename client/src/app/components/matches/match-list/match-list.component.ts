@@ -168,6 +168,11 @@ export class MatchListComponent implements OnInit {
     if (allIndex !== -1) {
       this.allMatches[allIndex] = updatedMatch;
     }
+
+    // Close modal if it's the selected match
+    if (this.selectedMatch && this.selectedMatch._id === matchId) {
+      this.selectedMatch = updatedMatch;
+    }
   }
 
   createTrainingPlan(match: Match): void {
