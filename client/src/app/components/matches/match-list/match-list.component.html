@@ -183,18 +183,31 @@
                           class="text-primary-600 hover:text-primary-900 text-sm">
                     View
                   </button>
-                  <button (click)="updateMatchStatus(match, 'Approved')" 
-                          *ngIf="authService.hasRole(['Admin', 'RM']) && match.status === 'Pending'"
+                  <!-- RM actions -->
+                  <button (click)="updateMatchStatus(match, 'Approved')"
+                          *ngIf="authService.hasRole(['Admin', 'RM']) && match.approvalStatus === 'Approved' && match.status !== 'Approved'"
+                          class="text-green-600 hover:text-green-900 text-sm">
+                    Set Approved
+                  </button>
+                  <button (click)="updateMatchStatus(match, 'Rejected')"
+                          *ngIf="authService.hasRole(['Admin', 'RM']) && match.approvalStatus === 'Rejected' && match.status !== 'Rejected'"
+                          class="text-red-600 hover:text-red-900 text-sm">
+                    Set Rejected
+                  </button>
+
+                  <!-- Manager actions -->
+                  <button (click)="approveMatch(match)"
+                          *ngIf="authService.isManager() && match.approvalStatus === 'Pending' && match.approverUser?._id === authService.getCurrentUser()?.id"
                           class="text-green-600 hover:text-green-900 text-sm">
                     Approve
                   </button>
-                  <button (click)="updateMatchStatus(match, 'Rejected')" 
-                          *ngIf="authService.hasRole(['Admin', 'RM']) && match.status === 'Pending'"
+                  <button (click)="declineMatch(match)"
+                          *ngIf="authService.isManager() && match.approvalStatus === 'Pending' && match.approverUser?._id === authService.getCurrentUser()?.id"
                           class="text-red-600 hover:text-red-900 text-sm">
-                    Reject
+                    Decline
                   </button>
                   <button (click)="createTrainingPlan(match)" 
-                          *ngIf="authService.hasRole(['Admin', 'RM']) && match.matchType === 'Near'"
+                          *ngIf="authService.hasRole(['Admin', 'RM']) && match.matchType === 'Near' && match.status !== 'Training Required'"
                           class="text-blue-600 hover:text-blue-900 text-sm">
                     Train
                   </button>
@@ -355,6 +368,18 @@
             <div *ngIf="selectedMatch.notes" class="mt-4">
               <label class="block text-sm font-medium text-gray-700">Notes</label>
               <p class="mt-1 text-sm text-gray-900">{{ selectedMatch.notes }}</p>
+            </div>
+          </div>
+
+          <!-- Approval Workflow Details -->
+          <div class="card mt-6" *ngIf="selectedMatch.approverUser">
+            <div class="card-header">
+              <h4 class="text-md font-medium text-gray-900">Approval Workflow</h4>
+            </div>
+            <div class="card-body">
+              <p class="text-sm text-gray-700">Approval Status: <span class="font-semibold">{{ selectedMatch.approvalStatus }}</span></p>
+              <p class="text-sm text-gray-700" *ngIf="selectedMatch.approverUser">Approver: {{ selectedMatch.approverUser.name }} ({{ selectedMatch.approverUser.email }})</p>
+              <p class="text-sm text-gray-700" *ngIf="selectedMatch.reviewedBy">Reviewed By: {{ selectedMatch.reviewedBy.name }} ({{ selectedMatch.reviewedBy.email }}) on {{ selectedMatch.reviewedAt | date:'medium' }}</p>
             </div>
           </div>
         </div>

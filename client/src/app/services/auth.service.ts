@@ -8,8 +8,8 @@ import { ErrorHandlerService } from './error-handler.service';
 export interface User {
   id: string;
   name: string;
-  email: string;
-  role: 'Admin' | 'RM' | 'Employee';
+  email: string; 
+  role: 'Admin' | 'RM' | 'Manager' | 'Employee';
   createdAt?: Date;
   lastLogin?: Date;
 }
@@ -102,6 +102,10 @@ export class AuthService {
 
   isRM(): boolean {
     return this.hasRole(['RM']);
+  }
+
+  isManager(): boolean {
+    return this.hasRole(['Manager']);
   }
 
   isEmployee(): boolean {

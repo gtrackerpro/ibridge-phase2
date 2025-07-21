@@ -53,6 +53,12 @@
                *ngIf="authService.isAdmin()">
               Users
             </a>
+            <a routerLink="/manager-approvals" 
+               routerLinkActive="border-primary-500 text-gray-900"
+               class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+               *ngIf="authService.isManager()">
+              Approvals
+            </a>
           </div>
         </div>
         <div class="flex items-center space-x-4">
@@ -60,6 +66,14 @@
           <div class="relative">
             <button (click)="showUserMenu = !showUserMenu" 
                     class="flex items-center space-x-2 text-sm text-gray-700 hover:text-gray-900 focus:outline-none">
+              <span *ngIf="unreadNotificationCount > 0" class="relative inline-flex items-center">
+                <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                </svg>
+                <span class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">{{ unreadNotificationCount }}</span>
+                <span class="sr-only">Unread notifications</span>
+              </span>
+
               <span>{{ authService.getCurrentUser()?.name }}</span>
               <span class="badge badge-info">{{ authService.getCurrentUser()?.role }}</span>
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

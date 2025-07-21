@@ -5,6 +5,7 @@ import { MatchService, Match } from '../../../services/match.service';
 import { TrainingService } from '../../../services/training.service';
 import { CsvExportService } from '../../../services/csv-export.service';
 import { NotificationService } from '../../../services/notification.service';
+import { ErrorHandlerService } from '../../../services/error-handler.service';
 
 @Component({
   selector: 'app-match-list',
@@ -29,7 +30,8 @@ export class MatchListComponent implements OnInit {
     private matchService: MatchService,
     private trainingService: TrainingService,
     private csvExportService: CsvExportService,
-    private notificationService: NotificationService,
+    private notificationService: NotificationService, 
+    private errorHandler: ErrorHandlerService,
     private route: ActivatedRoute,
     private router: Router
   ) { }
@@ -102,25 +104,67 @@ export class MatchListComponent implements OnInit {
     this.selectedMatch = null;
   }
 
-  updateMatchStatus(match: Match, status: string): void {
-    const notes = status === 'Rejected' ? 
-      prompt('Please provide a reason for rejection:') : 
-      undefined;
+  approveMatch(match: Match): void {
+    if (confirm(`Are you sure you want to approve the match for ${match.employeeId.name} on ${match.demandId.positionTitle}?`)) {
+      this.matchService.approveDeclineMatch(match._id, 'Approved').subscribe({
+        next: (response) => {
+          this.updateMatchInLists(match._id, response.match);
+          this.notificationService.success('Match Approved', `Match for ${response.match.employeeId.name} approved successfully.`);
+          this.closeMatchModal();
+        },
+        error: (error) => {
+          this.notificationService.error('Approval Failed', this.errorHandler.getErrorMessage(error));
+          console.error('Error approving match:', error);
+        }
+      });
+    }
+  }
 
-    if (status === 'Rejected' && !notes) {
-      return; // User cancelled
+  declineMatch(match: Match): void {
+    const notes = prompt('Please provide a reason for declining this match:');
+    if (notes === null) { // User cancelled the prompt
+      return;
     }
 
-    this.matchService.updateMatchStatus(match._id, status, notes || undefined).subscribe({
-      next: (response) => {
-        // Update the match in the local array
-        const index = this.matches.findIndex(m => m._id === match._id);
-        if (index !== -1) {
-          this.matches[index] = response.match;
+    if (confirm(`Are you sure you want to decline the match for ${match.employeeId.name} on ${match.demandId.positionTitle}?`)) {
+      this.matchService.approveDeclineMatch(match._id, 'Rejected', notes || undefined).subscribe({
+        next: (response) => {
+          this.updateMatchInLists(match._id, response.match);
+          this.notificationService.success('Match Declined', `Match for ${response.match.employeeId.name} declined successfully.`);
+          this.closeMatchModal();
+        },
+        error: (error) => {
+          this.notificationService.error('Decline Failed', this.errorHandler.getErrorMessage(error));
+          console.error('Error declining match:', error);
         }
-        
-        // Update in allMatches as well
-        const allIndex = this.allMatches.findIndex(m => m._id === match._id);
+      });
+    }
+  }
+
+  // This method is for RMs to update the status after approval workflow (if needed)
+  // Or for Admins to directly change status
+  updateMatchStatus(match: Match, status: string, notes?: string): void {
+    if (confirm(`Are you sure you want to change the status of this match to ${status}?`)) {
+      this.matchService.updateMatchStatus(match._id, status, notes).subscribe({
+        next: (response) => {
+          this.updateMatchInLists(match._id, response.match);
+          this.notificationService.success('Status Updated', `Match status updated to ${status}.`);
+          this.closeMatchModal();
+        },
+        error: (error) => {
+          this.notificationService.error('Status Update Failed', this.errorHandler.getErrorMessage(error));
+          console.error('Error updating match status:', error);
+        }
+      });
+    }
+  }
+
+  private updateMatchInLists(matchId: string, updatedMatch: Match): void {
+    const index = this.matches.findIndex(m => m._id === matchId);
+    if (index !== -1) {
+      this.matches[index] = updatedMatch;
+    }
+    const allIndex = this.allMatches.findIndex(m => m._id === matchId);
         if (allIndex !== -1) {
           this.allMatches[allIndex] = response.match;
         }

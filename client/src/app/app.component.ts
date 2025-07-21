@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from './services/auth.service';
 import { SecurityService } from './services/security.service';
+import { NotificationService } from './services/notification.service';
 
 @Component({
   selector: 'app-root',
@@ -12,12 +13,18 @@ export class AppComponent implements OnInit {
   title = 'iBridge AI';
   loading = false;
   showUserMenu = false;
+  unreadNotificationCount = 0;
 
   constructor(
     public authService: AuthService,
     private router: Router,
-    private securityService: SecurityService
+    private securityService: SecurityService,
+    private notificationService: NotificationService
   ) {}
+
+  ngAfterViewInit(): void {
+    this.loadUnreadNotifications();
+  }
 
   ngOnInit() {
     // Initialize security headers
@@ -27,6 +34,17 @@ export class AppComponent implements OnInit {
     this.securityService.logSecurityEvent('app_init', {
       userAgent: navigator.userAgent,
       timestamp: new Date().toISOString()
+    });
+
+    // Periodically check for unread notifications
+    setInterval(() => {
+      this.loadUnreadNotifications();
+    }, 60000); // Every 60 seconds
+  }
+
+  loadUnreadNotifications(): void {
+    this.notificationService.getUnreadCount().subscribe(count => {
+      this.unreadNotificationCount = count.unreadCount;
     });
   }
 

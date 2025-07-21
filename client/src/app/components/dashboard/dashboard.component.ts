@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
 import { EmployeeService } from '../../services/employee.service';
-import { DemandService } from '../../services/demand.service';
+import { DemandService, Demand } from '../../services/demand.service';
 import { MatchService, Match, MatchStats, SkillGap } from '../../services/match.service';
 import { TrainingService, TrainingStats } from '../../services/training.service';
 import { Router } from '@angular/router';
@@ -41,6 +41,10 @@ export class DashboardComponent implements OnInit {
 
   recentMatches: Match[] = [];
   skillGaps: SkillGap[] = [];
+  pendingApprovals: Match[] = [];
+  myReportsAllocations: Match[] = [];
+  myDemands: Demand[] = [];
+
   loading = false;
 
   constructor(
@@ -127,6 +131,30 @@ export class DashboardComponent implements OnInit {
           console.error('Error loading skill gaps:', error);
         }
       });
+    }
+
+    // Load Manager-specific data
+    if (this.authService.isManager()) {
+      this.matchService.getPendingApprovals().subscribe({
+        next: (response) => {
+          this.pendingApprovals = response.matches;
+        },
+        error: (error) => {
+          console.error('Error loading pending approvals:', error);
+        }
+      });
+
+      this.matchService.getMyReportsAllocations().subscribe({
+        next: (response) => {
+          this.myReportsAllocations = response.matches;
+        },
+        error: (error) => {
+          console.error('Error loading my reports allocations:', error);
+        }
+      });
+    } else if (this.authService.isRM()) {
+      // RM can see their own demands
+      this.demandService.getDemands().subscribe(res => this.myDemands = res.demands.filter(d => d.createdBy._id === this.authService.getCurrentUser()?.id));
     }
   }
 
