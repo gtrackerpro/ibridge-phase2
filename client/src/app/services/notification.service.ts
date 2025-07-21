@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 export interface Notification {
   id: string;
   type: 'success' | 'error' | 'warning' | 'info';
@@ -17,7 +19,10 @@ export class NotificationService {
   private notifications$ = new BehaviorSubject<Notification[]>([]);
   public notifications = this.notifications$.asObservable();
 
-  constructor() { }
+  constructor(private http: HttpClient) { }
+
+  // New: Get unread count from backend
+  getUnreadCount() { return this.http.get<{ unreadCount: number }>(`${environment.apiUrl}/notifications/unread-count`); }
 
   private generateId(): string {
     return Math.random().toString(36).substr(2, 9);

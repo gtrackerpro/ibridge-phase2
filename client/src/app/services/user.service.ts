@@ -9,7 +9,7 @@ export interface User {
   _id: string;
   name: string;
   email: string;
-  role: 'Admin' | 'RM' | 'Employee';
+  role: 'Admin' | 'RM' | 'Manager' | 'Employee';
   isActive: boolean;
   lastLogin?: Date;
   createdAt: Date;

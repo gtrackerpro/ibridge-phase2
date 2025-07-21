@@ -15,6 +15,7 @@ import { ProfileComponent } from './components/profile/profile.component';
 import { EmployeeProfileComponent } from './components/employee-profile/employee-profile.component';
 import { TrainingResourceListComponent } from './components/training-resources/training-resource-list/training-resource-list.component';
 import { TrainingResourceFormComponent } from './components/training-resources/training-resource-form/training-resource-form.component';
+import { ManagerApprovalsComponent } from './components/manager-approvals/manager-approvals.component';
 import { AdminGuard } from './guards/admin.guard';
 
 const routes: Routes = [
@@ -95,6 +96,10 @@ const routes: Routes = [
     path: 'users', 
     component: UserListComponent, 
     canActivate: [AuthGuard, AdminGuard] 
+  },
+  {
+    path: 'manager-approvals',
+    component: ManagerApprovalsComponent,
   },
   { path: '**', redirectTo: '/dashboard' }
 ];
