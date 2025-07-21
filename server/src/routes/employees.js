@@ -3,7 +3,7 @@ const EmployeeProfile = require('../models/EmployeeProfile');
 const User = require('../models/User');
 const { auth, authorize } = require('../middleware/auth');
 const { validateEmployeeProfileMiddleware, sanitizeInputMiddleware } = require('../middleware/validation');
-const { validateObjectIdParam } = require('../utils/objectIdValidator');
+const { validateObjectIdParam, isValidObjectId } = require('../utils/objectIdValidator');
 
 const router = express.Router();
 
@@ -71,6 +71,21 @@ router.post('/', auth, authorize('Admin', 'RM'), sanitizeInputMiddleware, valida
       createdBy: req.user._id
     };
 
+    // Validate managerUser if provided
+    if (employeeData.managerUser) {
+      if (!isValidObjectId(employeeData.managerUser)) {
+        return res.status(400).json({ message: 'Invalid manager user ID format' });
+      }
+      
+      const manager = await User.findById(employeeData.managerUser);
+      if (!manager) {
+        return res.status(400).json({ message: 'Manager user not found' });
+      }
+      
+      if (manager.role !== 'Manager') {
+        return res.status(400).json({ message: 'Assigned user must have Manager role' });
+      }
+    }
     const employee = new EmployeeProfile(employeeData);
     await employee.save();
 
@@ -134,6 +149,21 @@ router.put('/:id', auth, validateObjectIdParam('id'), sanitizeInputMiddleware, a
       return res.status(403).json({ message: 'Access denied' });
     }
 
+    // Validate managerUser if being updated
+    if (req.body.managerUser) {
+      if (!isValidObjectId(req.body.managerUser)) {
+        return res.status(400).json({ message: 'Invalid manager user ID format' });
+      }
+      
+      const manager = await User.findById(req.body.managerUser);
+      if (!manager) {
+        return res.status(400).json({ message: 'Manager user not found' });
+      }
+      
+      if (manager.role !== 'Manager') {
+        return res.status(400).json({ message: 'Assigned user must have Manager role' });
+      }
+    }
     // Validate update data if provided
     if (Object.keys(req.body).length > 0) {
       const { validateEmployeeProfile } = require('../utils/validation');
@@ -250,4 +280,24 @@ router.get('/search/skills', auth, authorize('Admin', 'RM'), sanitizeInputMiddle
   }
 });
 
+// Get managers list (for assignment dropdown)
+router.get('/managers/list', auth, authorize('Admin', 'RM'), async (req, res) => {
+  try {
+    const managers = await User.find({ 
+      role: 'Manager', 
+      isActive: true 
+    res.json({
+      message: 'Managers retrieved successfully',
+      managers,
+      count: managers.length
+    });
+  } catch (error) {
+    console.error('Get managers error:', error);
+    res.status(500).json({ 
+      message: 'Failed to retrieve managers', 
+      error: error.message 
+    });
+  }
+});
+    }).select('_id name email').sort({ name: 1 });
 module.exports = router;

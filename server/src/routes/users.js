@@ -133,7 +133,7 @@ router.put('/:id', auth, authorize('Admin'), validateObjectIdParam('id'), saniti
     }
 
     // Validate role
-    if (data.role && !['Admin', 'RM', 'Manager', 'Employee'].includes(data.role)) {
+    if (role && !['Admin', 'RM', 'Manager', 'Employee'].includes(role)) {
       return res.status(400).json({ message: 'Invalid role. Must be one of: Admin, RM, Manager, Employee' });
     }
 
@@ -237,7 +237,8 @@ router.get('/stats/overview', auth, authorize('Admin'), async (req, res) => {
           inactiveUsers: { $sum: { $cond: ['$isActive', 0, 1] } },
           adminUsers: { $sum: { $cond: [{ $eq: ['$role', 'Admin'] }, 1, 0] } },
           rmUsers: { $sum: { $cond: [{ $eq: ['$role', 'RM'] }, 1, 0] } },
-          employeeUsers: { $sum: { $cond: [{ $eq: ['$role', 'Employee'] }, 1, 0] } }
+          employeeUsers: { $sum: { $cond: [{ $eq: ['$role', 'Employee'] }, 1, 0] } },
+          managerUsers: { $sum: { $cond: [{ $eq: ['$role', 'Manager'] }, 1, 0] } }
         }
       }
     ]);
@@ -248,7 +249,8 @@ router.get('/stats/overview', auth, authorize('Admin'), async (req, res) => {
       inactiveUsers: 0,
       adminUsers: 0,
       rmUsers: 0,
-      employeeUsers: 0
+      employeeUsers: 0,
+      managerUsers: 0
     };
 
     res.json({
