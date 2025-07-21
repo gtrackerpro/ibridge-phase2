@@ -68,10 +68,10 @@ export class ManagerApprovalsComponent implements OnInit {
   }
 
   approveMatch(match: Match): void {
-    if (confirm(`Are you sure you want to approve the match for ${match.employeeId.name} on ${match.demandId.positionTitle}?`)) {
+    if (confirm(\`Are you sure you want to approve the match for ${match.employeeId.name} on ${match.demandId.positionTitle}?`)) {
       this.matchService.approveDeclineMatch(match._id, 'Approved').subscribe({
         next: (response) => {
-          this.notificationService.success('Match Approved', `Match for ${response.match.employeeId.name} approved successfully.`);
+          this.notificationService.success('Match Approved', \`Match for ${response.match.employeeId.name} approved successfully.`);
           this.loadPendingApprovals(); // Refresh list
           this.loadMyReportsAllocations(); // Refresh allocations
           this.closeMatchModal();
@@ -90,10 +90,10 @@ export class ManagerApprovalsComponent implements OnInit {
       return;
     }
 
-    if (confirm(`Are you sure you want to decline the match for ${match.employeeId.name} on ${match.demandId.positionTitle}?`)) {
+    if (confirm(\`Are you sure you want to decline the match for ${match.employeeId.name} on ${match.demandId.positionTitle}?`)) {
       this.matchService.approveDeclineMatch(match._id, 'Rejected', notes || undefined).subscribe({
         next: (response) => {
-          this.notificationService.success('Match Declined', `Match for ${response.match.employeeId.name} declined successfully.`);
+          this.notificationService.success('Match Declined', \`Match for ${response.match.employeeId.name} declined successfully.`);
           this.loadPendingApprovals(); // Refresh list
           this.loadMyReportsAllocations(); // Refresh allocations
           this.closeMatchModal();
