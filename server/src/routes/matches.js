@@ -2,6 +2,8 @@ const express = require('express');
 const Match = require('../models/Match');
 const EmployeeProfile = require('../models/EmployeeProfile');
 const Demand = require('../models/Demand');
+const User = require('../models/User');
+const Notification = require('../models/Notification');
 const { auth, authorize } = require('../middleware/auth');
 const { 
   generateMatches, 
@@ -40,6 +42,41 @@ router.post('/generate', auth, authorize('Admin', 'RM'), async (req, res) => {
 
     // Generate matches using AI matching service
     const matches = await generateMatches(demandId);
+
+    // For each match, set up approval workflow if needed
+    for (const match of matches) {
+      if (match.matchType === 'Exact' || match.matchType === 'Near') {
+        try {
+          // Find the employee's manager
+          const employee = await EmployeeProfile.findById(match.employeeId).populate('managerUser');
+          
+          if (employee && employee.managerUser) {
+            // Set approval status and approver
+            match.approvalStatus = 'Pending';
+            match.approverUser = employee.managerUser._id;
+            await match.save();
+            
+            // Create notification for the manager
+            await Notification.createNotification({
+              recipient: employee.managerUser._id,
+              sender: req.user._id,
+              type: 'match_approval_request',
+              title: 'New Match Approval Required',
+              message: `A new match for ${employee.name} requires your approval for position: ${demand.positionTitle}`,
+              link: `/matches?showDetails=${match._id}`,
+              relatedEntity: {
+                entityType: 'Match',
+                entityId: match._id
+              },
+              priority: 'High'
+            });
+          }
+        } catch (notificationError) {
+          console.error('Error setting up approval workflow:', notificationError);
+          // Continue with other matches even if one fails
+        }
+      }
+    }
 
     res.json({
       message: 'Matches generated successfully',
@@ -275,6 +312,223 @@ router.put('/:id/status', auth, authorize('Admin', 'RM'), validateObjectIdParam(
     console.error('Update match status error:', error);
     res.status(500).json({ 
       message: 'Failed to update match status', 
+      error: error.message 
+    });
+  }
+});
+
+// Approve or decline match (Manager only)
+router.put('/:id/approve-decline', auth, authorize('Manager'), validateObjectIdParam('id'), async (req, res) => {
+  try {
+    const { approvalStatus, notes } = req.body;
+    
+    // Validate approval status
+    if (!['Approved', 'Rejected'].includes(approvalStatus)) {
+      return res.status(400).json({ 
+        message: 'Invalid approval status. Must be Approved or Rejected' 
+      });
+    }
+    
+    const match = await Match.findById(req.params.id)
+      .populate('demandId', 'demandId accountName projectName positionTitle createdBy')
+      .populate('employeeId', 'employeeId name email');
+
+    if (!match) {
+      return res.status(404).json({ message: 'Match not found' });
+    }
+
+    // Verify that the current user is the designated approver
+    if (!match.approverUser || match.approverUser.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ 
+        message: 'You are not authorized to approve this match' 
+      });
+    }
+
+    // Verify that the match is in pending status
+    if (match.approvalStatus !== 'Pending') {
+      return res.status(400).json({ 
+        message: 'This match has already been reviewed' 
+      });
+    }
+
+    // Update match status
+    match.approvalStatus = approvalStatus;
+    match.reviewedBy = req.user._id;
+    match.reviewedAt = new Date();
+    
+    if (notes) {
+      match.notes = notes;
+    }
+    
+    // Update overall status based on approval
+    if (approvalStatus === 'Approved') {
+      match.status = 'Approved';
+    } else {
+      match.status = 'Rejected';
+    }
+    
+    await match.save();
+
+    // Create notifications for RM and Employee
+    const notificationPromises = [];
+    
+    // Notify the RM who created the demand
+    if (match.demandId.createdBy) {
+      notificationPromises.push(
+        Notification.createNotification({
+          recipient: match.demandId.createdBy,
+          sender: req.user._id,
+          type: approvalStatus === 'Approved' ? 'match_approved' : 'match_rejected',
+          title: `Match ${approvalStatus}`,
+          message: `Your match for ${match.employeeId.name} has been ${approvalStatus.toLowerCase()} for position: ${match.demandId.positionTitle}${notes ? '. Notes: ' + notes : ''}`,
+          link: `/matches?showDetails=${match._id}`,
+          relatedEntity: {
+            entityType: 'Match',
+            entityId: match._id
+          },
+          priority: 'Medium'
+        })
+      );
+    }
+    
+    // Notify the employee
+    const employee = await EmployeeProfile.findById(match.employeeId);
+    if (employee) {
+      const employeeUser = await User.findOne({ email: employee.email });
+      if (employeeUser) {
+        notificationPromises.push(
+          Notification.createNotification({
+            recipient: employeeUser._id,
+            sender: req.user._id,
+            type: approvalStatus === 'Approved' ? 'match_approved' : 'match_rejected',
+            title: `Project Assignment ${approvalStatus}`,
+            message: `Your assignment to ${match.demandId.positionTitle} has been ${approvalStatus.toLowerCase()}${notes ? '. Notes: ' + notes : ''}`,
+            link: `/matches`,
+            relatedEntity: {
+              entityType: 'Match',
+              entityId: match._id
+            },
+            priority: 'High'
+          })
+        );
+      }
+    }
+    
+    // Send all notifications
+    await Promise.all(notificationPromises);
+
+    const updatedMatch = await Match.findById(match._id)
+      .populate('demandId', 'demandId accountName projectName positionTitle')
+      .populate('employeeId', 'employeeId name email primarySkill')
+      .populate('reviewedBy', 'name email')
+      .populate('approverUser', 'name email');
+
+    res.json({
+      message: `Match ${approvalStatus.toLowerCase()} successfully`,
+      match: updatedMatch
+    });
+  } catch (error) {
+    console.error('Approve/decline match error:', error);
+    res.status(500).json({ 
+      message: 'Failed to process match approval', 
+      error: error.message 
+    });
+  }
+});
+
+// Get pending approvals for manager
+router.get('/pending-approvals', auth, authorize('Manager'), async (req, res) => {
+  try {
+    const pendingMatches = await Match.find({
+      approverUser: req.user._id,
+      approvalStatus: 'Pending'
+    })
+    .populate('demandId', 'demandId accountName projectName positionTitle priority startDate')
+    .populate('employeeId', 'employeeId name email primarySkill primarySkillExperience')
+    .sort({ createdAt: -1 });
+
+    res.json({
+      message: 'Pending approvals retrieved successfully',
+      matches: pendingMatches,
+      count: pendingMatches.length
+    });
+  } catch (error) {
+    console.error('Get pending approvals error:', error);
+    res.status(500).json({ 
+      message: 'Failed to retrieve pending approvals', 
+      error: error.message 
+    });
+  }
+});
+
+// Get allocations for manager's direct reports
+router.get('/my-reports-allocations', auth, authorize('Manager'), async (req, res) => {
+  try {
+    // Find all employees managed by this manager
+    const managedEmployees = await EmployeeProfile.find({
+      managerUser: req.user._id
+    }).select('_id');
+
+    const employeeIds = managedEmployees.map(emp => emp._id);
+
+    // Find all matches for these employees
+    const allocations = await Match.find({
+      employeeId: { $in: employeeIds }
+    })
+    .populate('demandId', 'demandId accountName projectName positionTitle priority startDate endDate')
+    .populate('employeeId', 'employeeId name email primarySkill status')
+    .populate('reviewedBy', 'name email')
+    .sort({ createdAt: -1 });
+
+    res.json({
+      message: 'Team allocations retrieved successfully',
+      matches: allocations,
+      count: allocations.length
+    });
+  } catch (error) {
+    console.error('Get team allocations error:', error);
+    res.status(500).json({ 
+      message: 'Failed to retrieve team allocations', 
+      error: error.message 
+    });
+  }
+});
+
+// Get approval statistics for manager
+router.get('/approval-stats', auth, authorize('Manager'), async (req, res) => {
+  try {
+    const stats = await Match.aggregate([
+      { 
+        $match: { 
+          approverUser: req.user._id 
+        } 
+      },
+      {
+        $group: {
+          _id: null,
+          totalMatches: { $sum: 1 },
+          pendingApprovals: { $sum: { $cond: [{ $eq: ['$approvalStatus', 'Pending'] }, 1, 0] } },
+          approvedMatches: { $sum: { $cond: [{ $eq: ['$approvalStatus', 'Approved'] }, 1, 0] } },
+          rejectedMatches: { $sum: { $cond: [{ $eq: ['$approvalStatus', 'Rejected'] }, 1, 0] } }
+        }
+      }
+    ]);
+
+    const result = stats[0] || {
+      totalMatches: 0,
+      pendingApprovals: 0,
+      approvedMatches: 0,
+      rejectedMatches: 0
+    };
+
+    res.json({
+      message: 'Approval statistics retrieved successfully',
+      stats: result
+    });
+  } catch (error) {
+    console.error('Get approval stats error:', error);
+    res.status(500).json({ 
+      message: 'Failed to retrieve approval statistics', 
       error: error.message 
     });
   }
