@@ -165,20 +165,9 @@ export class MatchListComponent implements OnInit {
       this.matches[index] = updatedMatch;
     }
     const allIndex = this.allMatches.findIndex(m => m._id === matchId);
-        if (allIndex !== -1) {
-          this.allMatches[allIndex] = response.match;
-        }
-
-        // Close modal if it's the selected match
-        if (this.selectedMatch && this.selectedMatch._id === match._id) {
-          this.selectedMatch = response.match;
-        }
-      },
-      error: (error) => {
-        console.error('Error updating match status:', error);
-        alert('Failed to update match status');
-      }
-    });
+    if (allIndex !== -1) {
+      this.allMatches[allIndex] = updatedMatch;
+    }
   }
 
   createTrainingPlan(match: Match): void {
