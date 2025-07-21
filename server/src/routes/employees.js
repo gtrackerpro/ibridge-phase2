@@ -286,6 +286,7 @@ router.get('/managers/list', auth, authorize('Admin', 'RM'), async (req, res) =>
     const managers = await User.find({ 
       role: 'Manager', 
       isActive: true 
+    }).select('_id name email').sort({ name: 1 });
     res.json({
       message: 'Managers retrieved successfully',
       managers,
@@ -299,5 +300,5 @@ router.get('/managers/list', auth, authorize('Admin', 'RM'), async (req, res) =>
     });
   }
 });
-    }).select('_id name email').sort({ name: 1 });
+
 module.exports = router;
