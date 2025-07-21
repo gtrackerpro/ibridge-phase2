@@ -70,6 +70,18 @@ const employeeProfileSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
+  },
+  managerUser: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    validate: {
+      validator: async function(managerId) {
+        if (!managerId) return true; // Optional field
+        const manager = await mongoose.model('User').findById(managerId);
+        return manager && manager.role === 'Manager';
+      },
+      message: 'Manager must be a user with Manager role'
+    }
   }
 }, {
   timestamps: true

@@ -164,7 +164,8 @@ function validateUserRegistration(data) {
   }
 
   if (data.role && !['Admin', 'RM', 'Employee'].includes(data.role)) {
-    errors.push('Invalid role. Must be one of: Admin, RM, Employee');
+  if (data.role && !['Admin', 'RM', 'Manager', 'Employee'].includes(data.role)) {
+    errors.push('Invalid role. Must be one of: Admin, RM, Manager, Employee');
   }
 
   return {

@@ -133,8 +133,8 @@ router.put('/:id', auth, authorize('Admin'), validateObjectIdParam('id'), saniti
     }
 
     // Validate role
-    if (role && !['Admin', 'RM', 'Employee'].includes(role)) {
-      return res.status(400).json({ message: 'Invalid role' });
+    if (data.role && !['Admin', 'RM', 'Manager', 'Employee'].includes(data.role)) {
+      return res.status(400).json({ message: 'Invalid role. Must be one of: Admin, RM, Manager, Employee' });
     }
 
     // Build update object

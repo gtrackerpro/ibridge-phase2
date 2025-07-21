@@ -49,6 +49,15 @@ const matchSchema = new mongoose.Schema({
     enum: ['Pending', 'Approved', 'Rejected', 'Training Required'],
     default: 'Pending'
   },
+  approvalStatus: {
+    type: String,
+    enum: ['Pending', 'Approved', 'Rejected'],
+    default: 'Pending'
+  },
+  approverUser: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
   notes: {
     type: String,
     trim: true
