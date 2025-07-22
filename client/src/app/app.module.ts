@@ -1,8 +1,10 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+import { CommonModule } from '@angular/common';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 
 // Security
 import { SecurityService, SecurityInterceptor } from './services/security.service';
@@ -63,11 +65,12 @@ import { ManagerApprovalsComponent } from './components/manager-approvals/manage
     ProfileComponent,
     EmployeeProfileComponent,
     TrainingResourceListComponent,
-    ManagerApprovalsComponent
+    ManagerApprovalsComponent,
     TrainingResourceFormComponent
   ],
   imports: [
     BrowserModule,
+    CommonModule,
     BrowserAnimationsModule,
     AppRoutingModule,
     HttpClientModule,
