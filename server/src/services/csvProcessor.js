@@ -2,6 +2,7 @@ const csv = require('csv-parser');
 const { Readable } = require('stream');
 const EmployeeProfile = require('../models/EmployeeProfile');
 const Demand = require('../models/Demand');
+const User = require('../models/User'); // Import User model
 
 /**
  * Process CSV buffer and convert to array of objects
@@ -49,6 +50,11 @@ function validateEmployeeData(data) {
     errors.push('Business Unit (BU) is required');
   }
   
+  // Add validation for managerEmail if it's expected in CSV
+  if (data.managerEmail && data.managerEmail.trim() !== '' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.managerEmail)) {
+    errors.push('Manager email must be a valid email address');
+  }
+
   return errors;
 }
 
@@ -126,7 +132,9 @@ async function processEmployeesCSV(csvData, createdBy) {
     successful: 0,
     failed: 0,
     errors: [],
-    processedEmails: []
+    processedEmails: [],
+    employeesToAssignManager: [], // New array to store employees needing manager assignment
+    
   };
   
   for (let i = 0; i < csvData.length; i++) {
@@ -189,6 +197,31 @@ async function processEmployeesCSV(csvData, createdBy) {
         errors: [error.message]
       });
       results.failed++;
+    }
+  }
+
+  // --- Post-processing for Manager Assignment ---
+  for (const empToAssign of results.employeesToAssignManager) {
+    try {
+      const managerUser = await User.findOne({ email: empToAssign.managerEmail });
+
+      if (managerUser && managerUser.role === 'Manager') {
+        await EmployeeProfile.findByIdAndUpdate(
+          empToAssign.employeeId,
+          { managerUser: managerUser._id },
+          { runValidators: true }
+        );
+      } else {
+        results.errors.push({
+          row: empToAssign.rowNumber,
+          errors: [`Manager with email '${empToAssign.managerEmail}' not found or does not have 'Manager' role.`]
+        });
+      }
+    } catch (error) {
+      results.errors.push({
+        row: empToAssign.rowNumber,
+        errors: [`Error assigning manager '${empToAssign.managerEmail}': ${error.message}`]
+      });
     }
   }
   
