@@ -73,6 +73,14 @@ router.post('/', auth, authorize('RM', 'Manager'), sanitizeInputMiddleware, vali
 
     // Validate managerUser if provided
     if (employeeData.managerUser) {
+      // Handle managerUser: convert empty string to null for DB
+      if (employeeData.managerUser === '') {
+        employeeData.managerUser = null;
+      }
+    }
+    
+    // Validate managerUser if provided and not null/empty
+    if (employeeData.managerUser && employeeData.managerUser !== '') {
       if (!isValidObjectId(employeeData.managerUser)) {
         return res.status(400).json({ message: 'Invalid manager user ID format' });
       }
@@ -86,6 +94,12 @@ router.post('/', auth, authorize('RM', 'Manager'), sanitizeInputMiddleware, vali
         return res.status(400).json({ message: 'Assigned user must have Manager role' });
       }
     }
+    
+    // Final cleanup: ensure empty string becomes null
+    if (employeeData.managerUser === '') {
+      employeeData.managerUser = null;
+    }
+    
     const employee = new EmployeeProfile(employeeData);
     await employee.save();
 
@@ -158,7 +172,15 @@ router.put('/:id', auth, validateObjectIdParam('id'), sanitizeInputMiddleware, a
     }
 
     // Validate managerUser if being updated
-    if (req.body.managerUser) {
+    // Handle managerUser: convert empty string to null for DB
+    if (req.body.hasOwnProperty('managerUser')) {
+      if (req.body.managerUser === '') {
+        req.body.managerUser = null;
+      }
+    }
+    
+    // Validate managerUser if being updated and not null/empty
+    if (req.body.managerUser && req.body.managerUser !== '') {
       if (!isValidObjectId(req.body.managerUser)) {
         return res.status(400).json({ message: 'Invalid manager user ID format' });
       }

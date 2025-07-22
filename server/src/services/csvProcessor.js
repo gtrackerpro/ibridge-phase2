@@ -203,6 +203,11 @@ async function processEmployeesCSV(csvData, createdBy) {
   // --- Post-processing for Manager Assignment ---
   for (const empToAssign of results.employeesToAssignManager) {
     try {
+      // Skip if managerEmail is empty or null
+      if (!empToAssign.managerEmail || empToAssign.managerEmail.trim() === '') {
+        continue;
+      }
+      
       const managerUser = await User.findOne({ email: empToAssign.managerEmail });
 
       if (managerUser && managerUser.role === 'Manager') {
