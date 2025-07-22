@@ -23,6 +23,7 @@ router.get('/', auth, async (req, res) => {
 
     const employees = await EmployeeProfile.find(query)
       .populate('createdBy', 'name email')
+      .populate('managerUser', 'name email')
       .sort({ createdAt: -1 });
 
     res.json({
@@ -43,7 +44,8 @@ router.get('/', auth, async (req, res) => {
 router.get('/:id', auth, authorize('Admin', 'RM', 'HR', 'Manager', 'Employee'), validateObjectIdParam('id'), async (req, res) => {
   try {
     const employee = await EmployeeProfile.findById(req.params.id)
-      .populate('createdBy', 'name email');
+      .populate('createdBy', 'name email')
+      .populate('managerUser', 'name email');
 
     if (!employee) {
       return res.status(404).json({ message: 'Employee not found' });
@@ -139,7 +141,8 @@ router.post('/', auth, authorize('Admin', 'HR'), sanitizeInputMiddleware, valida
     }
 
     const populatedEmployee = await EmployeeProfile.findById(employee._id)
-      .populate('createdBy', 'name email');
+      .populate('createdBy', 'name email')
+      .populate('managerUser', 'name email');
 
     res.status(201).json({
       message: 'Employee profile created successfully',
@@ -234,7 +237,8 @@ router.put('/:id', auth, validateObjectIdParam('id'), sanitizeInputMiddleware, a
       req.params.id,
       req.body,
       { new: true, runValidators: true }
-    ).populate('createdBy', 'name email');
+    ).populate('createdBy', 'name email')
+      .populate('managerUser', 'name email');
 
     res.json({
       message: 'Employee profile updated successfully',
@@ -303,7 +307,8 @@ router.get('/search/skills', auth, authorize('Admin', 'RM', 'HR'), sanitizeInput
     }
 
     const employees = await EmployeeProfile.find(query)
-      .populate('createdBy', 'name email');
+      .populate('createdBy', 'name email')
+      .populate('managerUser', 'name email');
 
     // Filter by minimum experience if provided
     let filteredEmployees = employees;

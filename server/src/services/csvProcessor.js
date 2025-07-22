@@ -188,6 +188,15 @@ async function processEmployeesCSV(csvData, createdBy) {
         await employee.save();
       }
       
+      // Store manager email for post-processing if provided
+      if (row.managerEmail && row.managerEmail.trim() !== '') {
+        results.employeesToAssignManager.push({
+          employeeId: existingEmployee ? existingEmployee._id : (await EmployeeProfile.findOne({ employeeId: employeeData.employeeId }))._id,
+          managerEmail: row.managerEmail.trim(),
+          rowNumber: rowNumber
+        });
+      }
+      
       // Add email to processed list for user account creation
       results.processedEmails.push(employeeData.email);
       results.successful++;

@@ -42,8 +42,6 @@ export class DashboardComponent implements OnInit {
   recentMatches: Match[] = [];
   skillGaps: SkillGap[] = [];
   pendingApprovals: Match[] = [];
-  myDirectReports: Employee[] = []; // New property for direct reports
-  loadingMyReports = false; // New loading state
   myReportsAllocations: Match[] = [];
   myDemands: Demand[] = [];
 
@@ -146,18 +144,6 @@ export class DashboardComponent implements OnInit {
         }
       });
 
-      // Load direct reports for managers
-      this.loadingMyReports = true;
-      this.employeeService.getMyDirectReports().subscribe({
-        next: (response) => {
-          this.myDirectReports = response.employees;
-          this.loadingMyReports = false;
-        },
-        error: (error) => {
-          console.error('Error loading direct reports:', error);
-          this.loadingMyReports = false;
-        }
-      });
       this.matchService.getMyReportsAllocations().subscribe({
         next: (response) => {
           this.myReportsAllocations = response.matches;

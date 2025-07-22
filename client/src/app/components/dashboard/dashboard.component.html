@@ -537,69 +537,6 @@
     </div>
   </div>
 
-  <!-- My Direct Reports Section (Manager only) -->
-  <div class="card mb-8" *ngIf="authService.isManager()">
-    <div class="card-header">
-      <h3 class="text-lg leading-6 font-medium text-gray-900">My Direct Reports</h3>
-      <p class="mt-1 text-sm text-gray-500">
-        Employees assigned to you for resource allocation and approval.
-      </p>
-    </div>
-    <div class="card-body p-0">
-      <div *ngIf="loadingMyReports" class="flex justify-center py-8">
-        <div class="spinner"></div>
-      </div>
-
-      <div *ngIf="!loadingMyReports && myDirectReports.length === 0" class="text-center py-8">
-        <p class="text-gray-500">No employees are currently assigned to you.</p>
-      </div>
-
-      <div *ngIf="!loadingMyReports && myDirectReports.length > 0" class="overflow-x-auto">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Employee ID</th>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Primary Skill</th>
-              <th>Experience</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            <tr *ngFor="let employee of myDirectReports">
-              <td class="font-medium">{{ employee.employeeId }}</td>
-              <td>{{ employee.name }}</td>
-              <td class="text-gray-500">{{ employee.email }}</td>
-              <td>
-                <span class="badge badge-info">{{ employee.primarySkill }}</span>
-              </td>
-              <td>{{ employee.primarySkillExperience }} years</td>
-              <td>
-                <span class="badge" 
-                      [ngClass]="{
-                        'badge-success': employee.status === 'Available',
-                        'badge-warning': employee.status === 'Training',
-                        'badge-info': employee.status === 'Allocated',
-                        'badge-secondary': employee.status === 'On Leave'
-                      }">
-                  {{ employee.status }}
-                </span>
-              </td>
-              <td>
-                <div class="flex space-x-2">
-                  <a [routerLink]="['/employees', employee._id, 'edit']" class="text-primary-600 hover:text-primary-900 text-sm">
-                    View/Edit
-                  </a>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
 
   <!-- Skill Gap Analysis -->
   <div class="card mb-8" *ngIf="authService.hasRole(['Admin', 'RM']) && skillGaps.length > 0">
