@@ -124,7 +124,7 @@ export class DashboardComponent implements OnInit {
     });
 
     // Load skill gaps (Admin and RM only)
-    if (this.authService.hasRole(['Admin', 'RM'])) {
+    if (this.authService.hasRole(['Admin', 'RM', 'HR'])) {
       this.matchService.getSkillGaps().subscribe({
         next: (response) => {
           this.skillGaps = response.skillGaps;
