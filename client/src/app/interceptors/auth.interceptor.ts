@@ -26,9 +26,17 @@ export class AuthInterceptor implements HttpInterceptor {
     return next.handle(request).pipe(
       catchError((error: HttpErrorResponse) => {
         if (error.status === 401) {
-          // Auto logout if 401 response returned from api
+          // Check if we're currently on a public route (login/register)
+          const currentUrl = this.router.url;
+          const isPublicRoute = currentUrl === '/login' || currentUrl === '/register';
+          
+          // Always logout to clear invalid tokens
           this.authService.logout();
-          this.router.navigate(['/login']);
+          
+          // Only redirect if we're not already on a public route
+          if (!isPublicRoute) {
+            this.router.navigate(['/login']);
+          }
         }
 
         return throwError(error);

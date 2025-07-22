@@ -10,6 +10,11 @@ const router = express.Router();
 // Register
 router.post('/register', authLimiter, validateInput, sanitizeInputMiddleware, validateUserRegistrationMiddleware, validatePasswordStrength, async (req, res) => {
   try {
+    console.log('Registration request received:', {
+      body: req.body,
+      timestamp: new Date().toISOString()
+    });
+    
     const { name, email, password, role } = req.body;
 
     // Check if user already exists

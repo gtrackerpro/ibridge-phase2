@@ -163,8 +163,6 @@ function validateUserRegistration(data) {
     errors.push('Password cannot exceed 128 characters');
   }
 
-  if (data.role && !['Admin', 'RM', 'Employee'].includes(data.role)) {
-  }
   if (data.role && !['Admin', 'RM', 'Manager', 'Employee'].includes(data.role)) {
     errors.push('Invalid role. Must be one of: Admin, RM, Manager, Employee');
   }

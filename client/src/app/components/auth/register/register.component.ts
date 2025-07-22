@@ -12,16 +12,15 @@ export class RegisterComponent implements OnInit {
   registerForm!: FormGroup;
   loading = false;
   error = '';
+  isAlreadyLoggedIn = false;
 
   constructor(
     private formBuilder: FormBuilder,
     private router: Router,
     private authService: AuthService
   ) {
-    // Redirect to dashboard if already logged in
-    if (this.authService.isAuthenticated()) {
-      this.router.navigate(['/dashboard']);
-    }
+    // Check if user is already logged in but don't redirect
+    this.isAlreadyLoggedIn = this.authService.isAuthenticated();
   }
 
   ngOnInit(): void {
@@ -66,5 +65,11 @@ export class RegisterComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
+    this.isAlreadyLoggedIn = false;
   }
 }

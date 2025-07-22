@@ -43,9 +43,12 @@ export class AppComponent implements OnInit {
   }
 
   loadUnreadNotifications(): void {
-    this.notificationService.getUnreadCount().subscribe(count => {
-      this.unreadNotificationCount = count.unreadCount;
-    });
+    // Only load notifications if user is authenticated
+    if (this.authService.isAuthenticated()) {
+      this.notificationService.getUnreadCount().subscribe(count => {
+        this.unreadNotificationCount = count.unreadCount;
+      });
+    }
   }
 
   logout() {
