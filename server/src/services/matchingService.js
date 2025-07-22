@@ -396,6 +396,7 @@ async function generateMatches(demandId) {
       demandId,
       matchScore: { $gte: 30 } // Only return matches above threshold
     })
+     .populate('demandId', 'demandId accountName projectName positionTitle primarySkill experienceRange priority status')
       .populate('employeeId', 'employeeId name email primarySkill primarySkillExperience secondarySkills status')
       .sort({ matchScore: -1 });
     

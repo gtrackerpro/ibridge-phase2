@@ -121,6 +121,7 @@ router.get('/results', auth, async (req, res) => {
     const matches = await Match.find(query)
       .populate('demandId', 'demandId accountName projectName positionTitle primarySkill')
       .populate('employeeId', 'employeeId name email primarySkill primarySkillExperience secondarySkills')
+     .populate('approverUser', 'name email')
       .populate('reviewedBy', 'name email')
       .sort({ matchScore: -1, createdAt: -1 });
 
@@ -159,6 +160,7 @@ const { demandId } = req.params;
     }
 
     const matches = await Match.find({ demandId })
+     .populate('demandId', 'demandId accountName projectName positionTitle primarySkill experienceRange priority status')
       .populate('employeeId', 'employeeId name email primarySkill primarySkillExperience secondarySkills')
       .populate('reviewedBy', 'name email')
       .sort({ matchScore: -1 });
@@ -201,6 +203,7 @@ router.get('/employee/:employeeId', auth, async (req, res) => {
     const matches = await Match.find({ employeeId })
       .populate('demandId', 'demandId accountName projectName positionTitle primarySkill experienceRange')
       .populate('reviewedBy', 'name email')
+     .populate('approverUser', 'name email')
       .sort({ matchScore: -1, createdAt: -1 });
 
     res.json({
@@ -302,6 +305,7 @@ router.put('/:id/status', auth, authorize('Admin', 'RM'), validateObjectIdParam(
     )
     .populate('demandId', 'demandId accountName projectName positionTitle')
     .populate('employeeId', 'employeeId name email primarySkill')
+   .populate('approverUser', 'name email')
     .populate('reviewedBy', 'name email');
 
     res.json({
@@ -445,6 +449,7 @@ router.get('/pending-approvals', auth, authorize('Manager'), async (req, res) =>
     })
     .populate('demandId', 'demandId accountName projectName positionTitle priority startDate')
     .populate('employeeId', 'employeeId name email primarySkill primarySkillExperience')
+   .populate('approverUser', 'name email')
     .sort({ createdAt: -1 });
 
     res.json({
@@ -477,6 +482,7 @@ router.get('/my-reports-allocations', auth, authorize('Manager'), async (req, re
     })
     .populate('demandId', 'demandId accountName projectName positionTitle priority startDate endDate')
     .populate('employeeId', 'employeeId name email primarySkill status')
+   .populate('approverUser', 'name email')
     .populate('reviewedBy', 'name email')
     .sort({ createdAt: -1 });
 
