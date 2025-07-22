@@ -500,7 +500,9 @@
                     [ngClass]="{
                       'badge-danger': selectedUser.role === 'Admin',
                       'badge-warning': selectedUser.role === 'RM',
-                      'badge-info': selectedUser.role === 'Employee'
+                        'badge-info': selectedUser.role === 'Employee',
+                        'badge-success': selectedUser.role === 'HR',
+                        'badge-secondary': selectedUser.role === 'Manager'
                     }">
                 {{ selectedUser.role }}
               </span>

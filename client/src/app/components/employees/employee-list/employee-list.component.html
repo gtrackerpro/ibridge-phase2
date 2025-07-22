@@ -136,7 +136,7 @@
                     Edit
                   </button>
                   <button (click)="deleteEmployee(employee)" 
-                          *ngIf="authService.isAdmin()"
+                          *ngIf="authService.isAdmin() || authService.isHR()"
                           class="text-red-600 hover:text-red-900 text-sm">
                     Delete
                   </button>
