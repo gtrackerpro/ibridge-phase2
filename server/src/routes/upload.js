@@ -125,7 +125,7 @@ router.post('/resume', auth, upload.single('resume'), async (req, res) => {
 });
 
 // Upload CSV
-router.post('/csv', auth, authorize('Admin', 'RM'), upload.single('csv'), async (req, res) => {
+router.post('/csv', auth, authorize('Admin', 'RM', 'HR'), upload.single('csv'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });

@@ -368,7 +368,7 @@
   </div>
   
   <!-- Admin/RM Dashboard Content -->
-  <div *ngIf="authService.hasRole(['Admin', 'RM'])">
+  <div *ngIf="authService.hasRole(['Admin', 'RM', 'HR'])">
     <div class="grid grid-cols-1 gap-5 lg:grid-cols-2 mb-8">
       <!-- Recent Matches -->
       <div class="card">

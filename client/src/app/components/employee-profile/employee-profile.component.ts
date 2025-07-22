@@ -112,7 +112,8 @@ export class EmployeeProfileComponent implements OnInit {
       primarySkill: employee.primarySkill,
       primarySkillExperience: employee.primarySkillExperience,
       BU: employee.BU,
-      location: employee.location
+      location: employee.location,
+      managerUser: employee.managerUser?._id || ''
     });
 
     // Populate secondary skills

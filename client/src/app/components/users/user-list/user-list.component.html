@@ -98,6 +98,46 @@
           </div>
           <div class="ml-5 w-0 flex-1">
             <dl>
+              <dt class="text-sm font-medium text-gray-500 truncate">Managers</dt>
+              <dd class="text-lg font-medium text-gray-900">{{ userStats.managerUsers || 0 }}</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 bg-indigo-500 rounded-md flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+              </svg>
+            </div>
+          </div>
+          <div class="ml-5 w-0 flex-1">
+            <dl>
+              <dt class="text-sm font-medium text-gray-500 truncate">HR</dt>
+              <dd class="text-lg font-medium text-gray-900">{{ userStats.hrUsers || 0 }}</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 bg-teal-500 rounded-md flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/>
+              </svg>
+            </div>
+          </div>
+          <div class="ml-5 w-0 flex-1">
+            <dl>
               <dt class="text-sm font-medium text-gray-500 truncate">RMs</dt>
               <dd class="text-lg font-medium text-gray-900">{{ userStats.rmUsers || 0 }}</dd>
             </dl>
@@ -132,6 +172,7 @@
             <option value="Admin">Admin</option>
             <option value="RM">Resource Manager</option>
             <option value="Manager">Manager</option>
+            <option value="HR">Human Resources</option>
             <option value="Employee">Employee</option>
           </select>
         </div>

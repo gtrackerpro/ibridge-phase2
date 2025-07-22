@@ -107,8 +107,12 @@ export class EmployeeListComponent implements OnInit {
     if (this.authService.isAdmin()) {
       return true;
     }
-    if (this.authService.isRM()) {
+    if (this.authService.isRM() || this.authService.isHR()) {
       return true;
+    }
+    if (this.authService.isManager()) {
+      // Managers can edit their direct reports
+      return employee.managerUser?._id === this.authService.getCurrentUser()?.id;
     }
     if (this.authService.isEmployee()) {
       return employee.email === this.authService.getCurrentUser()?.email;

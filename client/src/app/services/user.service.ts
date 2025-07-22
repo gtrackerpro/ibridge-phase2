@@ -9,7 +9,7 @@ export interface User {
   _id: string;
   name: string;
   email: string;
-  role: 'Admin' | 'RM' | 'Manager' | 'Employee';
+  role: 'Admin' | 'RM' | 'Manager' | 'Employee' | 'HR';
   isActive: boolean;
   lastLogin?: Date;
   createdAt: Date;
@@ -34,6 +34,7 @@ export interface UserStats {
   adminUsers: number;
   rmUsers: number;
   employeeUsers: number;
+  hrUsers: number;
 }
 
 export interface UserStatsResponse {

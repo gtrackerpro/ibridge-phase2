@@ -9,7 +9,7 @@ export interface User {
   id: string;
   name: string;
   email: string; 
-  role: 'Admin' | 'RM' | 'Manager' | 'Employee';
+  role: 'Admin' | 'RM' | 'Manager' | 'Employee' | 'HR';
   createdAt?: Date;
   lastLogin?: Date;
 }
@@ -110,6 +110,10 @@ export class AuthService {
 
   isEmployee(): boolean {
     return this.hasRole(['Employee']);
+  }
+
+  isHR(): boolean {
+    return this.hasRole(['HR']);
   }
 
   getProfile(): Observable<{ user: User }> {

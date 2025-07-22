@@ -12,9 +12,13 @@ router.get('/', auth, async (req, res) => {
   try {
     let query = {};
     
-    // If user is Employee, they can only see their own profile
+    // Role-based filtering
     if (req.user.role === 'Employee') {
+      // Employees can only see their own profile
       query.email = req.user.email;
+    } else if (req.user.role === 'Manager') {
+      // Managers can only see their direct reports
+      query.managerUser = req.user._id;
     }
 
     const employees = await EmployeeProfile.find(query)
@@ -64,7 +68,7 @@ router.get('/:id', auth, validateObjectIdParam('id'), async (req, res) => {
 });
 
 // Create new employee profile
-router.post('/', auth, authorize('RM', 'Manager'), sanitizeInputMiddleware, validateEmployeeProfileMiddleware, async (req, res) => {
+router.post('/', auth, authorize('Admin', 'RM', 'Manager', 'HR'), sanitizeInputMiddleware, validateEmployeeProfileMiddleware, async (req, res) => {
   try {
     const employeeData = {
       ...req.body,
@@ -164,6 +168,18 @@ router.put('/:id', auth, validateObjectIdParam('id'), sanitizeInputMiddleware, a
       if (employee.email !== req.user.email) {
         return res.status(403).json({ message: 'Access denied' });
       }
+      
+      // Employees can only update specific fields
+      const allowedFields = ['status', 'location', 'secondarySkills', 'managerUser'];
+      const updateData = {};
+      
+      allowedFields.forEach(field => {
+        if (req.body[field] !== undefined) {
+          updateData[field] = req.body[field];
+        }
+      });
+      
+      req.body = updateData;
     } else if (req.user.role === 'Manager') {
       // Managers can only update their direct reports
       if (!employee.managerUser || employee.managerUser.toString() !== req.user._id.toString()) {
@@ -227,7 +243,7 @@ router.put('/:id', auth, validateObjectIdParam('id'), sanitizeInputMiddleware, a
 });
 
 // Delete employee profile
-router.delete('/:id', auth, authorize('Admin'), validateObjectIdParam('id'), async (req, res) => {
+router.delete('/:id', auth, authorize('Admin', 'HR'), validateObjectIdParam('id'), async (req, res) => {
   try {
     const employee = await EmployeeProfile.findByIdAndDelete(req.params.id);
     
@@ -249,7 +265,7 @@ router.delete('/:id', auth, authorize('Admin'), validateObjectIdParam('id'), asy
 });
 
 // Search employees by skills
-router.get('/search/skills', auth, authorize('Admin', 'RM'), sanitizeInputMiddleware, async (req, res) => {
+router.get('/search/skills', auth, authorize('Admin', 'RM', 'HR'), sanitizeInputMiddleware, async (req, res) => {
   try {
     const { skill, minExperience, status } = req.query;
     
@@ -311,7 +327,7 @@ router.get('/search/skills', auth, authorize('Admin', 'RM'), sanitizeInputMiddle
 });
 
 // Get managers list (for assignment dropdown)
-router.get('/managers/list', auth, authorize('Admin', 'RM'), async (req, res) => {
+router.get('/managers/list', auth, authorize('Admin', 'RM', 'HR', 'Employee'), async (req, res) => {
   try {
     const managers = await User.find({ 
       role: 'Manager', 
