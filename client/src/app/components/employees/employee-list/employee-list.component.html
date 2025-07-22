@@ -246,6 +246,15 @@
               <label class="block text-sm font-medium text-gray-700">Location</label>
               <p class="mt-1 text-sm text-gray-900">{{ selectedEmployee.location || 'Not specified' }}</p>
             </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Manager</label>
+              <p class="mt-1 text-sm text-gray-900">
+                {{ selectedEmployee.managerUser?.name || 'Not assigned' }}
+                <span *ngIf="selectedEmployee.managerUser?.email" class="text-gray-500">
+                  ({{ selectedEmployee.managerUser.email }})
+                </span>
+              </p>
+            </div>
           </div>
           
           <div *ngIf="selectedEmployee.secondarySkills.length > 0">

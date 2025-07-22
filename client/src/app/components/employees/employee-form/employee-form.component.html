@@ -100,6 +100,26 @@
               class="form-input mt-1"
               placeholder="e.g., New York, Remote">
           </div>
+
+          <div>
+            <label for="managerUser" class="block text-sm font-medium text-gray-700">Manager</label>
+            <select 
+              id="managerUser"
+              formControlName="managerUser"
+              class="form-select mt-1"
+              [disabled]="loadingManagers">
+              <option value="">Select Manager (Optional)</option>
+              <option *ngFor="let manager of managers" [value]="manager._id">
+                {{ manager.name }} ({{ manager.email }})
+              </option>
+            </select>
+            <div *ngIf="loadingManagers" class="mt-1 text-sm text-gray-500">
+              Loading managers...
+            </div>
+            <p class="mt-1 text-sm text-gray-500">
+              Select the manager who will approve resource assignments for this employee
+            </p>
+          </div>
         </div>
       </div>
     </div>

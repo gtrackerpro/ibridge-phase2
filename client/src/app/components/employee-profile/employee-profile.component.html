@@ -88,6 +88,13 @@
                 {{ employeeProfile.status }}
               </span>
             </div>
+            <div *ngIf="employeeProfile.managerUser">
+              <label class="block text-sm font-medium text-gray-700">Manager</label>
+              <p class="mt-1 text-sm text-gray-900">
+                {{ employeeProfile.managerUser.name }}
+                <span class="text-gray-500">({{ employeeProfile.managerUser.email }})</span>
+              </p>
+            </div>
           </div>
         </div>
       </div>

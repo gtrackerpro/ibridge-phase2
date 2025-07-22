@@ -29,6 +29,11 @@ export interface Employee {
     name: string;
     email: string;
   };
+  managerUser?: {
+    _id: string;
+    name: string;
+    email: string;
+  };
   createdAt: Date;
   updatedAt: Date;
 }

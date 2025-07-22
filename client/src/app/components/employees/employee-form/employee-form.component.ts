@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
 import { EmployeeService, Employee } from '../../../services/employee.service';
+import { UserService, User } from '../../../services/user.service';
 import { UploadService } from '../../../services/upload.service';
 
 @Component({
@@ -18,6 +19,8 @@ export class EmployeeFormComponent implements OnInit {
   employeeId: string | null = null;
   currentEmployee: Employee | null = null;
   selectedResume: File | null = null;
+  managers: User[] = [];
+  loadingManagers = false;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -25,6 +28,7 @@ export class EmployeeFormComponent implements OnInit {
     private router: Router,
     private location: Location,
     private employeeService: EmployeeService,
+    private userService: UserService,
     private uploadService: UploadService
   ) { }
 
@@ -33,6 +37,8 @@ export class EmployeeFormComponent implements OnInit {
     this.isEditMode = !!this.employeeId;
 
     this.initializeForm();
+
+    this.loadManagers();
 
     if (this.isEditMode && this.employeeId) {
       this.loadEmployee();
@@ -49,6 +55,7 @@ export class EmployeeFormComponent implements OnInit {
       primarySkillExperience: ['', [Validators.required, Validators.min(0)]],
       BU: ['', [Validators.required]],
       location: [''],
+      managerUser: [''],
       secondarySkills: this.formBuilder.array([])
     });
   }
@@ -67,6 +74,20 @@ export class EmployeeFormComponent implements OnInit {
 
   removeSecondarySkill(index: number): void {
     this.secondarySkillsArray.removeAt(index);
+  }
+
+  loadManagers(): void {
+    this.loadingManagers = true;
+    this.userService.getManagers().subscribe({
+      next: (response) => {
+        this.managers = response.managers;
+        this.loadingManagers = false;
+      },
+      error: (error) => {
+        console.error('Error loading managers:', error);
+        this.loadingManagers = false;
+      }
+    });
   }
 
   loadEmployee(): void {
@@ -95,7 +116,8 @@ export class EmployeeFormComponent implements OnInit {
       primarySkill: employee.primarySkill,
       primarySkillExperience: employee.primarySkillExperience,
       BU: employee.BU,
-      location: employee.location
+      location: employee.location,
+      managerUser: employee.managerUser?._id || ''
     });
 
     // Populate secondary skills

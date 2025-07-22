@@ -89,4 +89,8 @@ export class UserService {
   getUserStats(): Observable<UserStatsResponse> {
     return this.http.get<UserStatsResponse>(`${environment.apiUrl}/users/stats/overview`);
   }
+
+  getManagers(): Observable<{ message: string; managers: User[]; count: number }> {
+    return this.http.get<{ message: string; managers: User[]; count: number }>(`${environment.apiUrl}/employees/managers/list`);
+  }
 }
