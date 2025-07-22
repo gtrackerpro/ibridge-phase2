@@ -424,8 +424,8 @@ router.put('/:id/approve-decline', auth, authorize('Manager'), validateObjectIdP
     const updatedMatch = await Match.findById(match._id)
       .populate('demandId', 'demandId accountName projectName positionTitle')
       .populate('employeeId', 'employeeId name email primarySkill')
-      .populate('reviewedBy', 'name email')
-      .populate('approverUser', 'name email');
+      .populate('approverUser', 'name email')
+      .populate('reviewedBy', 'name email');
 
     res.json({
       message: `Match ${approvalStatus.toLowerCase()} successfully`,
