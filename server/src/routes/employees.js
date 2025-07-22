@@ -75,7 +75,7 @@ router.get('/:id', auth, authorize('Admin', 'RM', 'HR', 'Manager', 'Employee'), 
 });
 
 // Create new employee profile
-router.post('/', auth, authorize('Admin', 'RM', 'Manager', 'HR'), sanitizeInputMiddleware, validateEmployeeProfileMiddleware, async (req, res) => {
+router.post('/', auth, authorize('Admin', 'HR'), sanitizeInputMiddleware, validateEmployeeProfileMiddleware, async (req, res) => {
   try {
     const employeeData = {
       ...req.body,
@@ -192,10 +192,6 @@ router.put('/:id', auth, validateObjectIdParam('id'), sanitizeInputMiddleware, a
       if (!employee.managerUser || employee.managerUser.toString() !== req.user._id.toString()) {
         return res.status(403).json({ message: 'Access denied. You can only update your direct reports.' });
       }
-    } else if (req.user.role === 'RM') {
-      // RMs have limited access - they cannot update employee profiles directly
-      return res.status(403).json({ message: 'RMs cannot update employee profiles. Contact HR or Admin.' });
-    }
 
     // Validate managerUser if being updated
     // Handle managerUser: convert empty string to null for DB

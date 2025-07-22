@@ -24,7 +24,7 @@
         Upload CSV
       </button>
       <a routerLink="/employees/new" 
-         *ngIf="authService.hasRole(['Admin', 'RM', 'Manager'])"
+         *ngIf="authService.hasRole(['Admin', 'HR'])"
          class="btn-primary">
         Add Employee
       </a>
