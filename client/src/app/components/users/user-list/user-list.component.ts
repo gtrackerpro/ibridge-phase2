@@ -19,7 +19,9 @@ export class UserListComponent implements OnInit {
     inactiveUsers: 0,
     adminUsers: 0,
     rmUsers: 0,
-    employeeUsers: 0
+    employeeUsers: 0,
+    hrUsers: 0,
+    managerUsers: 0
   };
   
   loading = false;

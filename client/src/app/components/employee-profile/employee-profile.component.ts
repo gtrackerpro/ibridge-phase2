@@ -7,6 +7,7 @@ import { MatchService } from '../../services/match.service';
 import { TrainingService } from '../../services/training.service';
 import { NotificationService } from '../../services/notification.service';
 import { ErrorHandlerService } from '../../services/error-handler.service';
+import { UserService } from '../../services/user.service';
 
 @Component({
   selector: 'app-employee-profile',
@@ -34,6 +35,10 @@ export class EmployeeProfileComponent implements OnInit {
   loadingRecommendations = false;
   loadingMatches = false;
   loadingTraining = false;
+  
+  // Managers data
+  managers: any[] = [];
+  loadingManagers = false;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -43,12 +48,14 @@ export class EmployeeProfileComponent implements OnInit {
     private matchService: MatchService,
     private trainingService: TrainingService,
     private notificationService: NotificationService,
-    private errorHandler: ErrorHandlerService
+    private errorHandler: ErrorHandlerService,
+    private userService: UserService
   ) { }
 
   ngOnInit(): void {
     this.initializeForm();
     this.loadEmployeeProfile();
+    this.loadManagers();
   }
 
   initializeForm(): void {
@@ -59,6 +66,7 @@ export class EmployeeProfileComponent implements OnInit {
       primarySkillExperience: ['', [Validators.required, Validators.min(0)]],
       BU: ['', [Validators.required]],
       location: [''],
+      managerUser: [''],
       secondarySkills: this.formBuilder.array([])
     });
   }
@@ -267,6 +275,20 @@ export class EmployeeProfileComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading upload history:', error);
+      }
+    });
+  }
+
+  loadManagers(): void {
+    this.loadingManagers = true;
+    this.userService.getManagers().subscribe({
+      next: (response) => {
+        this.managers = response.managers;
+        this.loadingManagers = false;
+      },
+      error: (error) => {
+        this.loadingManagers = false;
+        console.error('Error loading managers:', error);
       }
     });
   }

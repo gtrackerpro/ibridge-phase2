@@ -35,6 +35,7 @@ export interface UserStats {
   rmUsers: number;
   employeeUsers: number;
   hrUsers: number;
+  managerUsers: number;
 }
 
 export interface UserStatsResponse {
