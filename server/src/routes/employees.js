@@ -192,6 +192,7 @@ router.put('/:id', auth, validateObjectIdParam('id'), sanitizeInputMiddleware, a
       if (!employee.managerUser || employee.managerUser.toString() !== req.user._id.toString()) {
         return res.status(403).json({ message: 'Access denied. You can only update your direct reports.' });
       }
+    }
 
     // Validate managerUser if being updated
     // Handle managerUser: convert empty string to null for DB
