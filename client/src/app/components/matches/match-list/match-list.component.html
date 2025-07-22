@@ -207,7 +207,7 @@
                     Decline
                   </button>
                   <button (click)="createTrainingPlan(match)" 
-                          *ngIf="authService.hasRole(['Admin', 'RM']) && match.matchType === 'Near' && match.status !== 'Training Required'"
+                          *ngIf="authService.hasRole(['Admin', 'Manager']) && match.matchType === 'Near' && match.status !== 'Training Required'"
                           class="text-blue-600 hover:text-blue-900 text-sm">
                     Train
                   </button>
@@ -387,7 +387,7 @@
         <!-- Actions -->
         <div class="mt-6 flex justify-end space-x-3">
           <button (click)="createTrainingPlan(selectedMatch)" 
-                  *ngIf="authService.hasRole(['Admin', 'RM']) && selectedMatch.matchType === 'Near'"
+                  *ngIf="authService.hasRole(['Admin', 'Manager']) && selectedMatch.matchType === 'Near'"
                   class="btn-primary">
             Create Training Plan
           </button>

@@ -144,8 +144,11 @@ export class TrainingListComponent implements OnInit {
     if (this.authService.isAdmin()) {
       return true;
     }
-    if (this.authService.isRM()) {
-      return plan.assignedBy._id === this.authService.getCurrentUser()?.id;
+    if (this.authService.isManager()) {
+      // Managers can edit training plans for their direct reports
+      // This would require checking if the employee is a direct report
+      // For now, we'll allow all managers to edit (can be refined later)
+      return true;
     }
     return false;
   }
@@ -154,7 +157,7 @@ export class TrainingListComponent implements OnInit {
     if (this.authService.isEmployee()) {
       return plan.employeeId.email === this.authService.getCurrentUser()?.email;
     }
-    return this.authService.hasRole(['Admin', 'RM']);
+    return this.authService.hasRole(['Admin', 'Manager']);
   }
 
   updateProgress(): void {

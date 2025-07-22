@@ -64,7 +64,7 @@ router.get('/:id', auth, validateObjectIdParam('id'), async (req, res) => {
 });
 
 // Create new employee profile
-router.post('/', auth, authorize('Admin', 'RM'), sanitizeInputMiddleware, validateEmployeeProfileMiddleware, async (req, res) => {
+router.post('/', auth, authorize('RM', 'Manager'), sanitizeInputMiddleware, validateEmployeeProfileMiddleware, async (req, res) => {
   try {
     const employeeData = {
       ...req.body,
@@ -144,9 +144,17 @@ router.put('/:id', auth, validateObjectIdParam('id'), sanitizeInputMiddleware, a
       return res.status(404).json({ message: 'Employee not found' });
     }
 
-    // Check permissions
-    if (req.user.role === 'Employee' && employee.email !== req.user.email) {
-      return res.status(403).json({ message: 'Access denied' });
+    // Check permissions based on role
+    if (req.user.role === 'Employee') {
+      // Employees can only update their own profile
+      if (employee.email !== req.user.email) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+    } else if (req.user.role === 'Manager') {
+      // Managers can only update their direct reports
+      if (!employee.managerUser || employee.managerUser.toString() !== req.user._id.toString()) {
+        return res.status(403).json({ message: 'Access denied. You can only update your direct reports.' });
+      }
     }
 
     // Validate managerUser if being updated

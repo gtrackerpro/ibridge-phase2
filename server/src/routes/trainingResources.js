@@ -66,7 +66,7 @@ router.get('/:id', auth, validateObjectIdParam('id'), async (req, res) => {
 });
 
 // Create new training resource
-router.post('/', auth, authorize('Admin', 'RM'), sanitizeInputMiddleware, async (req, res) => {
+router.post('/', auth, authorize(), sanitizeInputMiddleware, async (req, res) => {
   try {
     const resourceData = {
       ...req.body,
@@ -93,17 +93,12 @@ router.post('/', auth, authorize('Admin', 'RM'), sanitizeInputMiddleware, async 
 });
 
 // Update training resource
-router.put('/:id', auth, authorize('Admin', 'RM'), validateObjectIdParam('id'), sanitizeInputMiddleware, async (req, res) => {
+router.put('/:id', auth, authorize(), validateObjectIdParam('id'), sanitizeInputMiddleware, async (req, res) => {
   try {
     const resource = await TrainingResource.findById(req.params.id);
     
     if (!resource) {
       return res.status(404).json({ message: 'Training resource not found' });
-    }
-
-    // Check if RM can update this resource
-    if (req.user.role === 'RM' && resource.createdBy.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Access denied' });
     }
 
     const updatedResource = await TrainingResource.findByIdAndUpdate(
@@ -126,17 +121,12 @@ router.put('/:id', auth, authorize('Admin', 'RM'), validateObjectIdParam('id'), 
 });
 
 // Delete training resource
-router.delete('/:id', auth, authorize('Admin', 'RM'), validateObjectIdParam('id'), async (req, res) => {
+router.delete('/:id', auth, authorize(), validateObjectIdParam('id'), async (req, res) => {
   try {
     const resource = await TrainingResource.findById(req.params.id);
     
     if (!resource) {
       return res.status(404).json({ message: 'Training resource not found' });
-    }
-
-    // Check if RM can delete this resource
-    if (req.user.role === 'RM' && resource.createdBy.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Access denied' });
     }
 
     await TrainingResource.findByIdAndDelete(req.params.id);
@@ -179,7 +169,7 @@ router.get('/skill/:skill', auth, async (req, res) => {
 });
 
 // Bulk create training resources
-router.post('/bulk', auth, authorize('Admin'), sanitizeInputMiddleware, async (req, res) => {
+router.post('/bulk', auth, authorize(), sanitizeInputMiddleware, async (req, res) => {
   try {
     const { resources } = req.body;
     

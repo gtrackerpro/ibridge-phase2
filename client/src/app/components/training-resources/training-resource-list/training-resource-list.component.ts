@@ -98,13 +98,8 @@ export class TrainingResourceListComponent implements OnInit {
   }
 
   canEditResource(resource: TrainingResource): boolean {
-    if (this.authService.isAdmin()) {
-      return true;
-    }
-    if (this.authService.isRM()) {
-      return resource.createdBy._id === this.authService.getCurrentUser()?.id;
-    }
-    return false;
+    // Only Admin can edit training resources
+    return this.authService.isAdmin();
   }
 
   deleteResource(resource: TrainingResource): void {

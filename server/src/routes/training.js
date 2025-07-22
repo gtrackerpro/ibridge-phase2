@@ -115,7 +115,7 @@ router.get('/:id', auth, validateObjectIdParam('id'), async (req, res) => {
 });
 
 // Create new training plan
-router.post('/', auth, authorize('Admin', 'RM'), sanitizeInputMiddleware, validateTrainingPlanMiddleware, async (req, res) => {
+router.post('/', auth, authorize('Manager'), sanitizeInputMiddleware, validateTrainingPlanMiddleware, async (req, res) => {
   try {
     // Validate that employee exists
     const employee = await EmployeeProfile.findById(req.body.employeeId);
@@ -159,8 +159,10 @@ router.put('/:id', auth, validateObjectIdParam('id'), sanitizeInputMiddleware, a
       return res.status(404).json({ message: 'Training plan not found' });
     }
 
-    // Check permissions
-    if (req.user.role === 'Employee') {
+    // Check permissions based on role
+    if (req.user.role === 'RM') {
+      return res.status(403).json({ message: 'RMs cannot update training plans' });
+    } else if (req.user.role === 'Employee') {
       const employee = await EmployeeProfile.findOne({ email: req.user.email });
       if (!employee || trainingPlan.employeeId.toString() !== employee._id.toString()) {
         return res.status(403).json({ message: 'Access denied' });
@@ -197,6 +199,12 @@ router.put('/:id', auth, validateObjectIdParam('id'), sanitizeInputMiddleware, a
         }
       });
       req.body = updateData;
+    } else if (req.user.role === 'Manager') {
+      // Managers can only update training plans for their direct reports
+      const employee = await EmployeeProfile.findById(trainingPlan.employeeId);
+      if (!employee || !employee.managerUser || employee.managerUser.toString() !== req.user._id.toString()) {
+        return res.status(403).json({ message: 'Access denied. You can only update training plans for your direct reports.' });
+      }
     }
 
     const updatedTrainingPlan = await TrainingPlan.findByIdAndUpdate(
@@ -222,13 +230,23 @@ router.put('/:id', auth, validateObjectIdParam('id'), sanitizeInputMiddleware, a
 });
 
 // Delete training plan
-router.delete('/:id', auth, authorize('Admin', 'RM'), validateObjectIdParam('id'), async (req, res) => {
+router.delete('/:id', auth, authorize('Manager'), validateObjectIdParam('id'), async (req, res) => {
   try {
-    const trainingPlan = await TrainingPlan.findByIdAndDelete(req.params.id);
+    const trainingPlan = await TrainingPlan.findById(req.params.id);
     
     if (!trainingPlan) {
       return res.status(404).json({ message: 'Training plan not found' });
     }
+
+    // Managers can only delete training plans for their direct reports
+    if (req.user.role === 'Manager') {
+      const employee = await EmployeeProfile.findById(trainingPlan.employeeId);
+      if (!employee || !employee.managerUser || employee.managerUser.toString() !== req.user._id.toString()) {
+        return res.status(403).json({ message: 'Access denied. You can only delete training plans for your direct reports.' });
+      }
+    }
+
+    await TrainingPlan.findByIdAndDelete(req.params.id);
 
     res.json({
       message: 'Training plan deleted successfully',
@@ -244,7 +262,7 @@ router.delete('/:id', auth, authorize('Admin', 'RM'), validateObjectIdParam('id'
 });
 
 // Generate training plan from match
-router.post('/generate-from-match', auth, authorize('Admin', 'RM'), sanitizeInputMiddleware, async (req, res) => {
+router.post('/generate-from-match', auth, authorize('Manager'), sanitizeInputMiddleware, async (req, res) => {
   try {
     const { matchId } = req.body;
 
@@ -335,10 +353,18 @@ router.put('/:id/progress', auth, validateObjectIdParam('id'), sanitizeInputMidd
       return res.status(404).json({ message: 'Training plan not found' });
     }
 
-    // Check permissions - employees can only update their own plans
-    if (req.user.role === 'Employee') {
+    // Check permissions based on role
+    if (req.user.role === 'RM') {
+      return res.status(403).json({ message: 'RMs cannot update training plan progress' });
+    } else if (req.user.role === 'Employee') {
       if (trainingPlan.employeeId.email !== req.user.email) {
         return res.status(403).json({ message: 'Access denied' });
+      }
+    } else if (req.user.role === 'Manager') {
+      // Managers can only update progress for their direct reports
+      const employee = await EmployeeProfile.findById(trainingPlan.employeeId);
+      if (!employee || !employee.managerUser || employee.managerUser.toString() !== req.user._id.toString()) {
+        return res.status(403).json({ message: 'Access denied. You can only update training progress for your direct reports.' });
       }
     }
 

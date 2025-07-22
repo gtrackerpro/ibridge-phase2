@@ -19,7 +19,7 @@
         Export CSV
       </button>
       <button (click)="showCreateModal = true" 
-              *ngIf="authService.hasRole(['Admin', 'RM'])"
+              *ngIf="authService.hasRole(['Admin', 'Manager'])"
               class="btn-primary">
         Create Training Plan
       </button>
@@ -176,7 +176,7 @@
                     Edit
                   </button>
                   <button (click)="deleteTrainingPlan(plan)" 
-                          *ngIf="authService.hasRole(['Admin', 'RM'])"
+                          *ngIf="authService.hasRole(['Admin', 'Manager'])"
                           class="text-red-600 hover:text-red-900 text-sm">
                     Delete
                   </button>
