@@ -90,4 +90,8 @@ export class EmployeeService {
 
     return this.http.get<EmployeeResponse>(`${environment.apiUrl}/employees/search/skills`, { params });
   }
+
+  getMyDirectReports(): Observable<EmployeeResponse> {
+    return this.http.get<EmployeeResponse>(`${environment.apiUrl}/employees/my-reports`);
+  }
 }

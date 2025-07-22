@@ -301,4 +301,28 @@ router.get('/managers/list', auth, authorize('Admin', 'RM'), async (req, res) =>
   }
 });
 
+// Get employees managed by the current manager (Manager only)
+router.get('/my-reports', auth, authorize('Manager'), async (req, res) => {
+  try {
+    const managerId = req.user._id;
+
+    const employees = await EmployeeProfile.find({ managerUser: managerId })
+      .populate('createdBy', 'name email')
+      .populate('managerUser', 'name email')
+      .sort({ name: 1 });
+
+    res.json({
+      message: 'Direct reports retrieved successfully',
+      employees,
+      count: employees.length
+    });
+  } catch (error) {
+    console.error('Get direct reports error:', error);
+    res.status(500).json({ 
+      message: 'Failed to retrieve direct reports', 
+      error: error.message 
+    });
+  }
+});
+
 module.exports = router;

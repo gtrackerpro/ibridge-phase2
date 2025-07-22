@@ -278,6 +278,7 @@ export class EmployeeProfileComponent implements OnInit {
     switch (matchType) {
       case 'Exact': return 'text-green-600';
       case 'Near': return 'text-yellow-600';
+      case 'Near': return 'text-yellow-600';
       case 'Not Eligible': return 'text-red-600';
       default: return 'text-gray-600';
     }
