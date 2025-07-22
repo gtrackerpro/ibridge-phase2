@@ -19,7 +19,7 @@
         Export CSV
       </button>
       <button (click)="showUploadModal = true" 
-              *ngIf="authService.hasRole(['Admin', 'RM'])"
+              *ngIf="authService.hasRole(['Admin', 'HR'])"
               class="btn-secondary mr-3">
         Upload CSV
       </button>
