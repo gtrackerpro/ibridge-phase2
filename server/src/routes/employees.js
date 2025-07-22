@@ -40,7 +40,7 @@ router.get('/', auth, async (req, res) => {
 });
 
 // Get employee by ID
-router.get('/:id', auth, validateObjectIdParam('id'), async (req, res) => {
+router.get('/:id', auth, authorize('Admin', 'RM', 'HR', 'Manager', 'Employee'), validateObjectIdParam('id'), async (req, res) => {
   try {
     const employee = await EmployeeProfile.findById(req.params.id)
       .populate('createdBy', 'name email');
@@ -50,8 +50,15 @@ router.get('/:id', auth, validateObjectIdParam('id'), async (req, res) => {
     }
 
     // Check if user can access this employee profile
-    if (req.user.role === 'Employee' && employee.email !== req.user.email) {
-      return res.status(403).json({ message: 'Access denied' });
+    if (req.user.role === 'Employee') {
+      if (employee.email !== req.user.email) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+    } else if (req.user.role === 'Manager') {
+      // Managers can only view their direct reports
+      if (!employee.managerUser || employee.managerUser.toString() !== req.user._id.toString()) {
+        return res.status(403).json({ message: 'Access denied. You can only view your direct reports.' });
+      }
     }
 
     res.json({
@@ -185,6 +192,9 @@ router.put('/:id', auth, validateObjectIdParam('id'), sanitizeInputMiddleware, a
       if (!employee.managerUser || employee.managerUser.toString() !== req.user._id.toString()) {
         return res.status(403).json({ message: 'Access denied. You can only update your direct reports.' });
       }
+    } else if (req.user.role === 'RM') {
+      // RMs have limited access - they cannot update employee profiles directly
+      return res.status(403).json({ message: 'RMs cannot update employee profiles. Contact HR or Admin.' });
     }
 
     // Validate managerUser if being updated

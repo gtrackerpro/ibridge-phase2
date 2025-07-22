@@ -259,7 +259,7 @@ router.get('/history', auth, async (req, res) => {
     let query = {};
     
     // If user is not Admin, they can only see their own uploads
-    if (req.user.role !== 'Admin') {
+    if (req.user.role !== 'Admin' && req.user.role !== 'HR') {
       query.uploadedBy = req.user._id;
     }
 
