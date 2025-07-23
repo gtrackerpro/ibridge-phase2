@@ -379,7 +379,7 @@ router.get('/pending-approvals', auth, authorize('Manager'), async (req, res) =>
       approverUser: req.user._id,
       approvalStatus: 'Pending'
     })
-    .populate('demandId', 'demandId accountName projectName positionTitle priority startDate')
+    .populate('demandId', 'demandId accountName projectName positionTitle primarySkill experienceRange priority status startDate endDate location description')
     .populate('employeeId', 'employeeId name email primarySkill primarySkillExperience')
    .populate('approverUser', 'name email')
     .sort({ createdAt: -1 });
@@ -412,7 +412,7 @@ router.get('/my-reports-allocations', auth, authorize('Manager'), async (req, re
     const allocations = await Match.find({
       employeeId: { $in: employeeIds }
     })
-    .populate('demandId', 'demandId accountName projectName positionTitle priority startDate endDate')
+    .populate('demandId', 'demandId accountName projectName positionTitle primarySkill experienceRange priority status startDate endDate location description')
     .populate('employeeId', 'employeeId name email primarySkill status')
    .populate('approverUser', 'name email')
     .populate('reviewedBy', 'name email')
