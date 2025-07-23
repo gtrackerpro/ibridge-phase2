@@ -113,6 +113,9 @@ iBridge-AI/
 
 ## 📋 Setup and Installation
 
+### Project Structure Note
+📁 **This is a monorepo** with separate client (Angular) and server (Node.js) applications, each with their own dependencies. The root `package.json` contains scripts to manage both applications together.
+
 ### Prerequisites
 - Node.js (v14+)
 - MongoDB Atlas account
@@ -124,7 +127,18 @@ iBridge-AI/
 2. Create a `.env` file in the server directory based on `.env.example`
 3. Configure MongoDB connection string, JWT secret, and AWS credentials
 
-### Client Setup
+### Quick Start (Recommended)
+```bash
+# From project root - Install all dependencies at once
+npm run install:all
+
+# Start both client and server in development mode
+npm run dev
+```
+
+### Alternative: Manual Setup
+
+#### Client Setup
 ```bash
 # Navigate to client directory
 cd client
@@ -136,7 +150,7 @@ npm install
 npm start
 ```
 
-### Server Setup
+#### Server Setup
 ```bash
 # Navigate to server directory
 cd server
@@ -148,12 +162,8 @@ npm install
 npm run dev
 ```
 
-### Full Stack Development
-```bash
-# From project root
-npm run install:all  # Install all dependencies
-npm run dev          # Start both client and server
-```
+### Important Note
+⚠️ **Do not run `npm install` from the project root alone** - this is a monorepo with separate client and server dependencies. Always use `npm run install:all` to install all dependencies properly.
 
 ## 🔐 User Roles and Access
 
