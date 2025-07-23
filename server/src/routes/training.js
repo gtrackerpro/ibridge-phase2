@@ -45,6 +45,16 @@ router.get('/', auth, authorize('Admin', 'Manager', 'Employee', 'HR'), async (re
 // Get training statistics
 router.get('/stats', auth, authorize('Admin', 'HR'), async (req, res) => {
   try {
+    console.log('Training stats requested by user:', req.user.email, 'Role:', req.user.role);
+    
+    // First, get total count to verify data exists
+    const totalCount = await TrainingPlan.countDocuments();
+    console.log('Total training plans in database:', totalCount);
+    
+    // Get sample documents to debug status values
+    const samplePlans = await TrainingPlan.find().limit(5).select('status progress');
+    console.log('Sample training plans:', samplePlans);
+    
     const stats = await TrainingPlan.aggregate([
       {
         $group: {
@@ -54,20 +64,26 @@ router.get('/stats', auth, authorize('Admin', 'HR'), async (req, res) => {
           assignedPlans: { $sum: { $cond: [{ $eq: ['$status', 'Assigned'] }, 1, 0] } },
           inProgressPlans: { $sum: { $cond: [{ $eq: ['$status', 'In Progress'] }, 1, 0] } },
           completedPlans: { $sum: { $cond: [{ $eq: ['$status', 'Completed'] }, 1, 0] } },
-          averageProgress: { $avg: '$progress' }
+          averageProgress: { $avg: '$progress' },
+          onHoldPlans: { $sum: { $cond: [{ $eq: ['$status', 'On Hold'] }, 1, 0] } }
         }
       }
     ]);
 
+    console.log('Aggregation result:', stats);
+    
     const result = stats[0] || {
       totalPlans: 0,
       draftPlans: 0,
       assignedPlans: 0,
       inProgressPlans: 0,
       completedPlans: 0,
-      averageProgress: 0
+      averageProgress: 0,
+      onHoldPlans: 0
     };
 
+    console.log('Final stats result:', result);
+    
     res.json({
       message: 'Training statistics retrieved successfully',
       stats: result

@@ -513,6 +513,14 @@
           <h3 class="text-lg leading-6 font-medium text-gray-900">Training Overview</h3>
         </div>
         <div class="card-body">
+          <div *ngIf="trainingStatsLoading" class="flex justify-center py-4">
+            <div class="spinner"></div>
+          </div>
+          
+          <div *ngIf="trainingStatsError" class="text-center py-4">
+            <p class="text-red-500 text-sm">{{ trainingStatsError }}</p>
+          </div>
+          
           <div class="grid grid-cols-2 gap-4">
             <div class="text-center">
               <div class="text-2xl font-bold text-blue-600">{{ trainingStats.inProgressPlans }}</div>
@@ -530,6 +538,25 @@
               <div class="text-2xl font-bold text-purple-600">{{ trainingStats.averageProgress.toFixed(1) }}%</div>
               <div class="text-sm text-gray-500">Avg Progress</div>
             </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Show message when no training plans exist -->
+      <div class="card" *ngIf="!trainingStatsLoading && !trainingStatsError && trainingStats.totalPlans === 0">
+        <div class="card-header">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Training Overview</h3>
+        </div>
+        <div class="card-body">
+          <div class="text-center py-8">
+            <svg class="w-12 h-12 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C20.832 18.477 19.246 18 17.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+            </svg>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">No Training Plans Yet</h3>
+            <p class="text-sm text-gray-500 mb-4">Create training plans to see statistics here</p>
+            <a routerLink="/training" class="btn-primary">
+              Manage Training Plans
+            </a>
           </div>
         </div>
       </div>

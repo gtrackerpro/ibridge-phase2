@@ -61,6 +61,8 @@ export class DashboardComponent implements OnInit {
   };
 
   loading = false;
+  trainingStatsLoading = false;
+  trainingStatsError = '';
 
   constructor(
     public authService: AuthService,
@@ -126,11 +128,19 @@ export class DashboardComponent implements OnInit {
 
     // Load training stats for Admin and HR
     if (this.authService.isAdmin() || this.authService.isHR()) {
+      console.log('Loading training stats for role:', this.authService.getCurrentUser()?.role);
+      this.trainingStatsLoading = true;
+      this.trainingStatsError = '';
+      
       this.trainingService.getTrainingStats().subscribe({
         next: (response) => {
+          console.log('Training stats response:', response);
           this.trainingStats = response.stats;
+          this.trainingStatsLoading = false;
         },
         error: (error) => {
+          this.trainingStatsLoading = false;
+          this.trainingStatsError = 'Failed to load training statistics';
           console.error('Error loading training stats:', error);
         }
       });
