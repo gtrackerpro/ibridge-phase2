@@ -401,28 +401,5 @@ router.put('/:id/progress', auth, validateObjectIdParam('id'), sanitizeInputMidd
   }
 });
 
-// Get training plan recommendations for skill gaps
-router.get('/recommendations/skill-gaps', auth, authorize('Admin', 'HR'), async (req, res) => {
-  try {
-    const { analyzeSkillGaps } = require('../services/matchingService');
-    const { getSkillGapRecommendations } = require('../services/trainingRecommendationService');
-    
-    const skillGaps = await analyzeSkillGaps();
-    const recommendations = await getSkillGapRecommendations(skillGaps);
-
-    res.json({
-      message: 'Training recommendations for skill gaps retrieved successfully',
-      recommendations,
-      count: recommendations.length
-    });
-  } catch (error) {
-    console.error('Get skill gap recommendations error:', error);
-    res.status(500).json({ 
-      message: 'Failed to retrieve skill gap recommendations', 
-      error: error.message 
-    });
-  }
-});
-
 
 module.exports = router;

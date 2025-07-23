@@ -13,8 +13,6 @@ import { TrainingListComponent } from './components/training/training-list/train
 import { UserListComponent } from './components/users/user-list/user-list.component';
 import { ProfileComponent } from './components/profile/profile.component';
 import { EmployeeProfileComponent } from './components/employee-profile/employee-profile.component';
-import { TrainingResourceListComponent } from './components/training-resources/training-resource-list/training-resource-list.component';
-import { TrainingResourceFormComponent } from './components/training-resources/training-resource-form/training-resource-form.component';
 import { AdminGuard } from './guards/admin.guard';
 
 const routes: Routes = [
@@ -74,21 +72,6 @@ const routes: Routes = [
   { 
     path: 'training', 
     component: TrainingListComponent, 
-    canActivate: [AuthGuard] 
-  },
-  { 
-    path: 'training-resources', 
-    component: TrainingResourceListComponent, 
-    canActivate: [AuthGuard] 
-  },
-  { 
-    path: 'training-resources/new', 
-    component: TrainingResourceFormComponent, 
-    canActivate: [AuthGuard] 
-  },
-  { 
-    path: 'training-resources/:id/edit', 
-    component: TrainingResourceFormComponent, 
     canActivate: [AuthGuard] 
   },
   { 

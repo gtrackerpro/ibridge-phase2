@@ -42,8 +42,6 @@ import { TrainingListComponent } from './components/training/training-list/train
 import { UserListComponent } from './components/users/user-list/user-list.component';
 import { ProfileComponent } from './components/profile/profile.component';
 import { EmployeeProfileComponent } from './components/employee-profile/employee-profile.component';
-import { TrainingResourceListComponent } from './components/training-resources/training-resource-list/training-resource-list.component';
-import { TrainingResourceFormComponent } from './components/training-resources/training-resource-form/training-resource-form.component';
 
 @NgModule({
   declarations: [
@@ -60,8 +58,6 @@ import { TrainingResourceFormComponent } from './components/training-resources/t
     UserListComponent,
     ProfileComponent,
     EmployeeProfileComponent,
-    TrainingResourceListComponent,
-    TrainingResourceFormComponent
   ],
   imports: [
     BrowserModule,

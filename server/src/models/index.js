@@ -4,7 +4,6 @@ const EmployeeProfile = require('./EmployeeProfile');
 const Demand = require('./Demand');
 const Match = require('./Match');
 const TrainingPlan = require('./TrainingPlan');
-const TrainingResource = require('./TrainingResource');
 const FileUpload = require('./FileUpload');
 
 module.exports = {
@@ -13,6 +12,5 @@ module.exports = {
   Demand,
   Match,
   TrainingPlan,
-  TrainingResource,
   FileUpload,
 };
