@@ -81,8 +81,8 @@ export class DashboardComponent implements OnInit {
   loadDashboardData(): void {
     this.loading = true;
 
-    // Load employees count (Admin, RM, and HR)
-    if (this.authService.isAdmin() || this.authService.isRM() || this.authService.isHR()) {
+    // Load employees count (Admin, RM, HR, and Manager)
+    if (this.authService.isAdmin() || this.authService.isRM() || this.authService.isHR() || this.authService.isManager()) {
       this.employeeService.getEmployees().subscribe({
         next: (response) => {
           this.stats.totalEmployees = response.count;
@@ -92,7 +92,10 @@ export class DashboardComponent implements OnInit {
           console.error('Error loading employees:', error);
         }
       });
+    }
 
+    // Load open demands count (Admin, RM)
+    if (this.authService.isAdmin() || this.authService.isRM()) {
       // Load open demands count
       this.demandService.getDemandsByStatus('Open').subscribe({
         next: (response) => {
@@ -126,8 +129,8 @@ export class DashboardComponent implements OnInit {
       });
     }
 
-    // Load training stats for Admin and HR
-    if (this.authService.isAdmin() || this.authService.isHR()) {
+    // Load training stats for Admin, HR, and Manager
+    if (this.authService.isAdmin() || this.authService.isHR() || this.authService.isManager()) {
       console.log('Loading training stats for role:', this.authService.getCurrentUser()?.role);
       this.trainingStatsLoading = true;
       this.trainingStatsError = '';
@@ -147,8 +150,7 @@ export class DashboardComponent implements OnInit {
     }
 
     // Load recent matches
-    // Load recent matches (exclude HR)
-    if (this.authService.isAdmin() || this.authService.isRM() || this.authService.isManager() || this.authService.isEmployee()) {
+    if (!this.authService.isHR()) {
       this.matchService.getMatchResults().subscribe({
         next: (response) => {
           this.recentMatches = response.matches.slice(0, 5);
