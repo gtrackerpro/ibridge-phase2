@@ -10,7 +10,7 @@ const { validateObjectIdParam, isValidObjectId } = require('../utils/objectIdVal
 const router = express.Router();
 
 // Get all training plans
-router.get('/', auth, async (req, res) => {
+router.get('/', auth, authorize('Admin', 'Manager', 'Employee', 'HR'), async (req, res) => {
   try {
     let query = {};
     
@@ -43,7 +43,7 @@ router.get('/', auth, async (req, res) => {
 });
 
 // Get training statistics
-router.get('/stats', auth, authorize('Admin', 'RM'), async (req, res) => {
+router.get('/stats', auth, authorize('Admin', 'HR'), async (req, res) => {
   try {
     const stats = await TrainingPlan.aggregate([
       {
@@ -82,7 +82,7 @@ router.get('/stats', auth, authorize('Admin', 'RM'), async (req, res) => {
 });
 
 // Get training plan by ID
-router.get('/:id', auth, validateObjectIdParam('id'), async (req, res) => {
+router.get('/:id', auth, authorize('Admin', 'Manager', 'Employee', 'HR'), validateObjectIdParam('id'), async (req, res) => {
   try {
     const trainingPlan = await TrainingPlan.findById(req.params.id)
       .populate('employeeId', 'employeeId name email primarySkill')
@@ -402,7 +402,7 @@ router.put('/:id/progress', auth, validateObjectIdParam('id'), sanitizeInputMidd
 });
 
 // Get training plan recommendations for skill gaps
-router.get('/recommendations/skill-gaps', auth, authorize('Admin', 'RM'), async (req, res) => {
+router.get('/recommendations/skill-gaps', auth, authorize('Admin', 'HR'), async (req, res) => {
   try {
     const { analyzeSkillGaps } = require('../services/matchingService');
     const { getSkillGapRecommendations } = require('../services/trainingRecommendationService');

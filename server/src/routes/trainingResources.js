@@ -7,7 +7,7 @@ const { validateObjectIdParam } = require('../utils/objectIdValidator');
 const router = express.Router();
 
 // Get all training resources
-router.get('/', auth, async (req, res) => {
+router.get('/', auth, authorize('Admin', 'Manager', 'Employee', 'HR'), async (req, res) => {
   try {
     const { category, type, difficulty, skill } = req.query;
     
@@ -43,7 +43,7 @@ router.get('/', auth, async (req, res) => {
 });
 
 // Get training resource by ID
-router.get('/:id', auth, validateObjectIdParam('id'), async (req, res) => {
+router.get('/:id', auth, authorize('Admin', 'Manager', 'Employee', 'HR'), validateObjectIdParam('id'), async (req, res) => {
   try {
     const resource = await TrainingResource.findById(req.params.id)
       .populate('createdBy', 'name email');
@@ -66,7 +66,7 @@ router.get('/:id', auth, validateObjectIdParam('id'), async (req, res) => {
 });
 
 // Create new training resource
-router.post('/', auth, authorize(), sanitizeInputMiddleware, async (req, res) => {
+router.post('/', auth, authorize('Admin'), sanitizeInputMiddleware, async (req, res) => {
   try {
     const resourceData = {
       ...req.body,
@@ -93,7 +93,7 @@ router.post('/', auth, authorize(), sanitizeInputMiddleware, async (req, res) =>
 });
 
 // Update training resource
-router.put('/:id', auth, authorize(), validateObjectIdParam('id'), sanitizeInputMiddleware, async (req, res) => {
+router.put('/:id', auth, authorize('Admin'), validateObjectIdParam('id'), sanitizeInputMiddleware, async (req, res) => {
   try {
     const resource = await TrainingResource.findById(req.params.id);
     
@@ -121,7 +121,7 @@ router.put('/:id', auth, authorize(), validateObjectIdParam('id'), sanitizeInput
 });
 
 // Delete training resource
-router.delete('/:id', auth, authorize(), validateObjectIdParam('id'), async (req, res) => {
+router.delete('/:id', auth, authorize('Admin'), validateObjectIdParam('id'), sanitizeInputMiddleware, async (req, res) => {
   try {
     const resource = await TrainingResource.findById(req.params.id);
     
@@ -145,7 +145,7 @@ router.delete('/:id', auth, authorize(), validateObjectIdParam('id'), async (req
 });
 
 // Get resources for specific skill
-router.get('/skill/:skill', auth, async (req, res) => {
+router.get('/skill/:skill', auth, authorize('Admin', 'Manager', 'Employee', 'HR'), async (req, res) => {
   try {
     const { skill } = req.params;
     const { targetLevel = 1, difficulty } = req.query;
@@ -169,7 +169,7 @@ router.get('/skill/:skill', auth, async (req, res) => {
 });
 
 // Bulk create training resources
-router.post('/bulk', auth, authorize(), sanitizeInputMiddleware, async (req, res) => {
+router.post('/bulk', auth, authorize('Admin'), sanitizeInputMiddleware, async (req, res) => {
   try {
     const { resources } = req.body;
     

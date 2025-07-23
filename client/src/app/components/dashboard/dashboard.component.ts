@@ -42,6 +42,15 @@ export class DashboardComponent implements OnInit {
   skillGaps: SkillGap[] = [];
   myDemands: Demand[] = [];
 
+  // Employee availability statistics
+  employeeAvailabilityStats = {
+    totalEmployees: 0,
+    availableEmployees: 0,
+    allocatedEmployees: 0,
+    onLeaveEmployees: 0,
+    trainingEmployees: 0
+  };
+
   // Manager-specific stats
   managerStats = {
     totalTeamMatches: 0,
@@ -75,6 +84,7 @@ export class DashboardComponent implements OnInit {
       this.employeeService.getEmployees().subscribe({
         next: (response) => {
           this.stats.totalEmployees = response.count;
+          this.calculateEmployeeAvailabilityStats(response.employees);
         },
         error: (error) => {
           console.error('Error loading employees:', error);
@@ -93,7 +103,7 @@ export class DashboardComponent implements OnInit {
     }
 
     // Load match statistics (Admin and RM only)
-    if (this.authService.hasRole(['Admin', 'RM'])) {
+    if (this.authService.hasRole(['Admin'])) {
       this.matchService.getMatchStats().subscribe({
         next: (response) => {
           this.matchStats = response.stats;
@@ -104,6 +114,7 @@ export class DashboardComponent implements OnInit {
       });
 
       // Load training statistics
+      // Note: Training stats removed for RM role
       this.trainingService.getTrainingStats().subscribe({
         next: (response) => {
           this.trainingStats = response.stats;
@@ -148,10 +159,30 @@ export class DashboardComponent implements OnInit {
     if (this.authService.isManager()) {
       // Manager stats will be calculated from recentMatches after they're loaded
       // This is handled in the recentMatches subscription below
+      
+      // Load manager's direct reports for availability stats
+      this.employeeService.getMyDirectReports().subscribe({
+        next: (response) => {
+          this.calculateEmployeeAvailabilityStats(response.employees);
+        },
+        error: (error) => {
+          console.error('Error loading direct reports:', error);
+        }
+      });
     } else if (this.authService.isRM()) {
       // RM can see their own demands
       this.demandService.getDemands().subscribe(res => this.myDemands = res.demands.filter(d => d.createdBy._id === this.authService.getCurrentUser()?.id));
     }
+  }
+
+  calculateEmployeeAvailabilityStats(employees: Employee[]): void {
+    this.employeeAvailabilityStats = {
+      totalEmployees: employees.length,
+      availableEmployees: employees.filter(emp => emp.status === 'Available').length,
+      allocatedEmployees: employees.filter(emp => emp.status === 'Allocated').length,
+      onLeaveEmployees: employees.filter(emp => emp.status === 'On Leave').length,
+      trainingEmployees: employees.filter(emp => emp.status === 'Training').length
+    };
   }
 
   calculateManagerStats(allMatches: Match[]): void {
