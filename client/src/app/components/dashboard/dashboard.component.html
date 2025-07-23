@@ -347,7 +347,7 @@
   </div>
   
   <!-- Admin/RM Dashboard Content -->
-  <div *ngIf="authService.hasRole(['Admin', 'HR'])">
+  <div *ngIf="authService.isAdmin()">
     <div class="grid grid-cols-1 gap-5 lg:grid-cols-2 mb-8">
       <!-- Recent Matches -->
       <div class="card">
@@ -390,7 +390,7 @@
         </div>
       </div>
   
-      <!-- Quick Actions -->
+      <!-- Admin Quick Actions -->
       <div class="card">
         <div class="card-header">
           <h3 class="text-lg leading-6 font-medium text-gray-900">Quick Actions</h3>
@@ -413,6 +413,122 @@
                class="block w-full btn-secondary text-center">
               Manage Training Plans
             </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HR Dashboard Content -->
+  <div *ngIf="authService.isHR()">
+    <!-- Employee Availability Overview for HR -->
+    <div class="card mb-8">
+      <div class="card-header">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">Employee Availability Overview</h3>
+        <p class="mt-1 text-sm text-gray-500">Current workforce availability and training status</p>
+      </div>
+      <div class="card-body">
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-4">
+          <div class="text-center">
+            <div class="text-3xl font-bold text-green-600">{{ employeeAvailabilityStats.availableEmployees }}</div>
+            <div class="text-sm text-gray-500">Available for Assignment</div>
+            <div class="text-xs text-gray-400 mt-1">Ready for new projects</div>
+          </div>
+          <div class="text-center">
+            <div class="text-3xl font-bold text-blue-600">{{ employeeAvailabilityStats.allocatedEmployees }}</div>
+            <div class="text-sm text-gray-500">Currently Allocated</div>
+            <div class="text-xs text-gray-400 mt-1">Working on projects</div>
+          </div>
+          <div class="text-center">
+            <div class="text-3xl font-bold text-yellow-600">{{ employeeAvailabilityStats.trainingEmployees }}</div>
+            <div class="text-sm text-gray-500">In Training</div>
+            <div class="text-xs text-gray-400 mt-1">Developing skills</div>
+          </div>
+          <div class="text-center">
+            <div class="text-3xl font-bold text-gray-600">{{ employeeAvailabilityStats.onLeaveEmployees }}</div>
+            <div class="text-sm text-gray-500">On Leave</div>
+            <div class="text-xs text-gray-400 mt-1">Temporarily unavailable</div>
+          </div>
+        </div>
+        
+        <!-- Availability Percentage -->
+        <div class="mt-6 pt-6 border-t border-gray-200">
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-medium text-gray-700">Availability Rate</span>
+            <span class="text-lg font-bold text-green-600">
+              {{ employeeAvailabilityStats.totalEmployees > 0 ? 
+                 ((employeeAvailabilityStats.availableEmployees / employeeAvailabilityStats.totalEmployees) * 100).toFixed(1) : 0 }}%
+            </span>
+          </div>
+          <div class="mt-2 w-full bg-gray-200 rounded-full h-3">
+            <div class="h-3 rounded-full bg-green-500" 
+                 [style.width.%]="employeeAvailabilityStats.totalEmployees > 0 ? 
+                                  (employeeAvailabilityStats.availableEmployees / employeeAvailabilityStats.totalEmployees) * 100 : 0">
+            </div>
+          </div>
+          <p class="text-xs text-gray-500 mt-1">
+            {{ employeeAvailabilityStats.availableEmployees }} out of {{ employeeAvailabilityStats.totalEmployees }} employees available
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- HR Quick Actions -->
+    <div class="grid grid-cols-1 gap-5 lg:grid-cols-2 mb-8">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Quick Actions</h3>
+        </div>
+        <div class="card-body">
+          <div class="space-y-3">
+            <a routerLink="/employees/new" 
+               class="block w-full btn-primary text-center">
+              <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+              </svg>
+              Add New Employee
+            </a>
+            <a routerLink="/training" 
+               class="block w-full btn-secondary text-center">
+              <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C20.832 18.477 19.246 18 17.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+              </svg>
+              Manage Training Plans
+            </a>
+            <a routerLink="/employees" 
+               class="block w-full btn-secondary text-center">
+              <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+              </svg>
+              Browse Employees
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Training Overview for HR -->
+      <div class="card" *ngIf="trainingStats.totalPlans > 0">
+        <div class="card-header">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Training Overview</h3>
+        </div>
+        <div class="card-body">
+          <div class="grid grid-cols-2 gap-4">
+            <div class="text-center">
+              <div class="text-2xl font-bold text-blue-600">{{ trainingStats.inProgressPlans }}</div>
+              <div class="text-sm text-gray-500">In Progress</div>
+            </div>
+            <div class="text-center">
+              <div class="text-2xl font-bold text-green-600">{{ trainingStats.completedPlans }}</div>
+              <div class="text-sm text-gray-500">Completed</div>
+            </div>
+            <div class="text-center">
+              <div class="text-2xl font-bold text-yellow-600">{{ trainingStats.assignedPlans }}</div>
+              <div class="text-sm text-gray-500">Assigned</div>
+            </div>
+            <div class="text-center">
+              <div class="text-2xl font-bold text-purple-600">{{ trainingStats.averageProgress.toFixed(1) }}%</div>
+              <div class="text-sm text-gray-500">Avg Progress</div>
+            </div>
           </div>
         </div>
       </div>
@@ -764,7 +880,7 @@
   </div>
 
   <!-- Skill Gap Analysis (Admin and HR only, removed from RM) -->
-  <div class="card mb-8" *ngIf="authService.hasRole(['Admin', 'HR']) && skillGaps.length > 0">
+  <div class="card mb-8" *ngIf="authService.isAdmin() && skillGaps.length > 0">
     <div class="card-header">
       <div class="flex justify-between items-center">
         <h3 class="text-lg leading-6 font-medium text-gray-900">Critical Skill Gaps</h3>
@@ -806,7 +922,7 @@
   </div>
 
   <!-- Match Statistics Chart (Admin only, removed from RM) -->
-  <div class="card" *ngIf="authService.hasRole(['Admin']) && matchStats.totalMatches > 0">
+  <div class="card" *ngIf="authService.isAdmin() && matchStats.totalMatches > 0">
     <div class="card-header">
       <h3 class="text-lg leading-6 font-medium text-gray-900">Match Distribution</h3>
     </div>

@@ -79,8 +79,8 @@ export class DashboardComponent implements OnInit {
   loadDashboardData(): void {
     this.loading = true;
 
-    // Load employees count (Admin and RM only)
-    if (this.authService.hasRole(['Admin', 'RM'])) {
+    // Load employees count (Admin, RM, and HR)
+    if (this.authService.isAdmin() || this.authService.isRM() || this.authService.isHR()) {
       this.employeeService.getEmployees().subscribe({
         next: (response) => {
           this.stats.totalEmployees = response.count;
@@ -103,7 +103,7 @@ export class DashboardComponent implements OnInit {
     }
 
     // Load match statistics (Admin and RM only)
-    if (this.authService.hasRole(['Admin', 'HR', 'RM'])) {
+    if (this.authService.isAdmin() || this.authService.isRM()) {
       this.matchService.getMatchStats().subscribe({
         next: (response) => {
           this.matchStats = response.stats;
@@ -114,8 +114,8 @@ export class DashboardComponent implements OnInit {
       });
 
       // Load training statistics
-      // Only load training stats for Admin and HR (not RM)
-      if (this.authService.hasRole(['Admin', 'HR'])) {
+      // Load training stats for Admin and HR
+      if (this.authService.isAdmin() || this.authService.isHR()) {
         this.trainingService.getTrainingStats().subscribe({
           next: (response) => {
             this.trainingStats = response.stats;
@@ -128,25 +128,31 @@ export class DashboardComponent implements OnInit {
     }
 
     // Load recent matches
-    this.matchService.getMatchResults().subscribe({
-      next: (response) => {
-        this.recentMatches = response.matches.slice(0, 5);
-        
-        // Calculate manager-specific stats from the filtered matches
-        if (this.authService.isManager()) {
-          this.calculateManagerStats(response.matches);
+    // Load recent matches (exclude HR)
+    if (this.authService.isAdmin() || this.authService.isRM() || this.authService.isManager() || this.authService.isEmployee()) {
+      this.matchService.getMatchResults().subscribe({
+        next: (response) => {
+          this.recentMatches = response.matches.slice(0, 5);
+          
+          // Calculate manager-specific stats from the filtered matches
+          if (this.authService.isManager()) {
+            this.calculateManagerStats(response.matches);
+          }
+          
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Error loading recent matches:', error);
+          this.loading = false;
         }
-        
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error('Error loading recent matches:', error);
-        this.loading = false;
-      }
-    });
+      });
+    } else {
+      // For HR users, just set loading to false since they don't need matches
+      this.loading = false;
+    }
 
     // Load skill gaps (Admin and RM only)
-    if (this.authService.hasRole(['Admin', 'RM', 'HR'])) {
+    if (this.authService.isAdmin() || this.authService.isRM()) {
       this.matchService.getSkillGaps().subscribe({
         next: (response) => {
           this.skillGaps = response.skillGaps;

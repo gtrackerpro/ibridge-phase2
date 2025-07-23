@@ -7,7 +7,7 @@ const { validateObjectIdParam } = require('../utils/objectIdValidator');
 const router = express.Router();
 
 // Get all users (Admin only)
-router.get('/', auth, authorize('Admin', 'HR'), async (req, res) => {
+router.get('/', auth, authorize('Admin'), async (req, res) => {
   try {
     const { search, role, status } = req.query;
     
@@ -50,7 +50,7 @@ router.get('/', auth, authorize('Admin', 'HR'), async (req, res) => {
 });
 
 // Get user by ID (Admin only)
-router.get('/:id', auth, authorize('Admin', 'HR'), validateObjectIdParam('id'), async (req, res) => {
+router.get('/:id', auth, authorize('Admin'), validateObjectIdParam('id'), async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select('-passwordHash');
 
@@ -72,14 +72,9 @@ router.get('/:id', auth, authorize('Admin', 'HR'), validateObjectIdParam('id'), 
 });
 
 // Create new user (Admin only)
-router.post('/', auth, authorize('Admin', 'HR'), sanitizeInputMiddleware, validateUserRegistrationMiddleware, async (req, res) => {
+router.post('/', auth, authorize('Admin'), sanitizeInputMiddleware, validateUserRegistrationMiddleware, async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
-
-    // Prevent HR from creating Admin users
-    if (req.user.role === 'HR' && role === 'Admin') {
-      return res.status(403).json({ message: 'HR cannot create Admin users' });
-    }
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -114,7 +109,7 @@ router.post('/', auth, authorize('Admin', 'HR'), sanitizeInputMiddleware, valida
 });
 
 // Update user (Admin only)
-router.put('/:id', auth, authorize('Admin', 'HR'), validateObjectIdParam('id'), sanitizeInputMiddleware, async (req, res) => {
+router.put('/:id', auth, authorize('Admin'), validateObjectIdParam('id'), sanitizeInputMiddleware, async (req, res) => {
   try {
     const { name, email, role, isActive } = req.body;
 
@@ -122,16 +117,6 @@ router.put('/:id', auth, authorize('Admin', 'HR'), validateObjectIdParam('id'), 
     
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
-    }
-
-    // Prevent HR from modifying Admin users or changing roles to/from Admin
-    if (req.user.role === 'HR') {
-      if (user.role === 'Admin') {
-        return res.status(403).json({ message: 'HR cannot modify Admin users' });
-      }
-      if (role === 'Admin') {
-        return res.status(403).json({ message: 'HR cannot assign Admin role' });
-      }
     }
 
     // Prevent admin from deactivating themselves
@@ -208,17 +193,12 @@ router.delete('/:id', auth, authorize('Admin'), validateObjectIdParam('id'), asy
 });
 
 // Toggle user active status (Admin only)
-router.patch('/:id/toggle-status', auth, authorize('Admin', 'HR'), validateObjectIdParam('id'), async (req, res) => {
+router.patch('/:id/toggle-status', auth, authorize('Admin'), validateObjectIdParam('id'), async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
-    }
-
-    // Prevent HR from deactivating Admin users
-    if (req.user.role === 'HR' && user.role === 'Admin') {
-      return res.status(403).json({ message: 'HR cannot modify Admin users' });
     }
 
     // Prevent admin from deactivating themselves
@@ -246,7 +226,7 @@ router.patch('/:id/toggle-status', auth, authorize('Admin', 'HR'), validateObjec
 });
 
 // Get user statistics (Admin only)
-router.get('/stats/overview', auth, authorize('Admin', 'HR'), async (req, res) => {
+router.get('/stats/overview', auth, authorize('Admin'), async (req, res) => {
   try {
     const stats = await User.aggregate([
       {
