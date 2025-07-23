@@ -4,7 +4,6 @@ import { AuthService } from '../../../services/auth.service';
 import { MatchService, Match } from '../../../services/match.service';
 import { TrainingService } from '../../../services/training.service';
 import { CsvExportService } from '../../../services/csv-export.service';
-import { NotificationService } from '../../../services/notification.service';
 import { ErrorHandlerService } from '../../../services/error-handler.service';
 
 @Component({
@@ -30,7 +29,6 @@ export class MatchListComponent implements OnInit {
     private matchService: MatchService,
     private trainingService: TrainingService,
     private csvExportService: CsvExportService,
-    private notificationService: NotificationService, 
     private errorHandler: ErrorHandlerService,
     private route: ActivatedRoute,
     private router: Router
@@ -109,11 +107,9 @@ export class MatchListComponent implements OnInit {
       this.matchService.approveDeclineMatch(match._id, 'Approved').subscribe({
         next: (response) => {
           this.updateMatchInLists(match._id, response.match);
-          this.notificationService.success('Match Approved', `Match for ${response.match.employeeId.name} approved successfully.`);
           this.closeMatchModal();
         },
         error: (error) => {
-          this.notificationService.error('Approval Failed', this.errorHandler.getErrorMessage(error));
           console.error('Error approving match:', error);
         }
       });
@@ -130,11 +126,9 @@ export class MatchListComponent implements OnInit {
       this.matchService.approveDeclineMatch(match._id, 'Rejected', notes || undefined).subscribe({
         next: (response) => {
           this.updateMatchInLists(match._id, response.match);
-          this.notificationService.success('Match Declined', `Match for ${response.match.employeeId.name} declined successfully.`);
           this.closeMatchModal();
         },
         error: (error) => {
-          this.notificationService.error('Decline Failed', this.errorHandler.getErrorMessage(error));
           console.error('Error declining match:', error);
         }
       });
@@ -148,11 +142,9 @@ export class MatchListComponent implements OnInit {
       this.matchService.updateMatchStatus(match._id, status, notes).subscribe({
         next: (response) => {
           this.updateMatchInLists(match._id, response.match);
-          this.notificationService.success('Status Updated', `Match status updated to ${status}.`);
           this.closeMatchModal();
         },
         error: (error) => {
-          this.notificationService.error('Status Update Failed', this.errorHandler.getErrorMessage(error));
           console.error('Error updating match status:', error);
         }
       });
@@ -192,12 +184,10 @@ export class MatchListComponent implements OnInit {
 
   exportMatches(): void {
     if (this.matches.length === 0) {
-      this.notificationService.warning('No Data', 'No matches available to export');
       return;
     }
 
     const filename = this.csvExportService.generateFilename('matches-export');
     this.csvExportService.exportMatches(this.matches, filename);
-    this.notificationService.success('Export Complete', `Exported ${this.matches.length} matches to ${filename}`);
   }
 }

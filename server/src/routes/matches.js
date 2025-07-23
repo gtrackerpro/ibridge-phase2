@@ -3,7 +3,6 @@ const Match = require('../models/Match');
 const EmployeeProfile = require('../models/EmployeeProfile');
 const Demand = require('../models/Demand');
 const User = require('../models/User');
-const Notification = require('../models/Notification');
 const { auth, authorize } = require('../middleware/auth');
 const { 
   generateMatches, 
@@ -46,34 +45,14 @@ router.post('/generate', auth, authorize('Admin', 'RM'), async (req, res) => {
     // For each match, set up approval workflow if needed
     for (const match of matches) {
       if (match.matchType === 'Exact' || match.matchType === 'Near') {
-        try {
-          // Find the employee's manager
-          const employee = await EmployeeProfile.findById(match.employeeId).populate('managerUser');
-          
-          if (employee && employee.managerUser) {
-            // Set approval status and approver
-            match.approvalStatus = 'Pending';
-            match.approverUser = employee.managerUser._id;
-            await match.save();
-            
-            // Create notification for the manager
-            await Notification.createNotification({
-              recipient: employee.managerUser._id,
-              sender: req.user._id,
-              type: 'match_approval_request',
-              title: 'New Match Approval Required',
-              message: `A new match for ${employee.name} requires your approval for position: ${demand.positionTitle}`,
-              link: `/matches?showDetails=${match._id}`,
-              relatedEntity: {
-                entityType: 'Match',
-                entityId: match._id
-              },
-              priority: 'High'
-            });
-          }
-        } catch (notificationError) {
-          console.error('Error setting up approval workflow:', notificationError);
-          // Continue with other matches even if one fails
+        // Find the employee's manager and set up approval workflow
+        const employee = await EmployeeProfile.findById(match.employeeId).populate('managerUser');
+        
+        if (employee && employee.managerUser) {
+          // Set approval status and approver
+          match.approvalStatus = 'Pending';
+          match.approverUser = employee.managerUser._id;
+          await match.save();
         }
       }
     }
@@ -373,54 +352,6 @@ router.put('/:id/approve-decline', auth, authorize('Manager'), validateObjectIdP
     }
     
     await match.save();
-
-    // Create notifications for RM and Employee
-    const notificationPromises = [];
-    
-    // Notify the RM who created the demand
-    if (match.demandId.createdBy) {
-      notificationPromises.push(
-        Notification.createNotification({
-          recipient: match.demandId.createdBy,
-          sender: req.user._id,
-          type: approvalStatus === 'Approved' ? 'match_approved' : 'match_rejected',
-          title: `Match ${approvalStatus}`,
-          message: `Your match for ${match.employeeId.name} has been ${approvalStatus.toLowerCase()} for position: ${match.demandId.positionTitle}${notes ? '. Notes: ' + notes : ''}`,
-          link: `/matches?showDetails=${match._id}`,
-          relatedEntity: {
-            entityType: 'Match',
-            entityId: match._id
-          },
-          priority: 'Medium'
-        })
-      );
-    }
-    
-    // Notify the employee
-    const employee = await EmployeeProfile.findById(match.employeeId);
-    if (employee) {
-      const employeeUser = await User.findOne({ email: employee.email });
-      if (employeeUser) {
-        notificationPromises.push(
-          Notification.createNotification({
-            recipient: employeeUser._id,
-            sender: req.user._id,
-            type: approvalStatus === 'Approved' ? 'match_approved' : 'match_rejected',
-            title: `Project Assignment ${approvalStatus}`,
-            message: `Your assignment to ${match.demandId.positionTitle} has been ${approvalStatus.toLowerCase()}${notes ? '. Notes: ' + notes : ''}`,
-            link: `/matches`,
-            relatedEntity: {
-              entityType: 'Match',
-              entityId: match._id
-            },
-            priority: 'High'
-          })
-        );
-      }
-    }
-    
-    // Send all notifications
-    await Promise.all(notificationPromises);
 
     const updatedMatch = await Match.findById(match._id)
       .populate('demandId', 'demandId accountName projectName positionTitle')

@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
 import { AuthService, User } from '../../services/auth.service';
-import { NotificationService } from '../../services/notification.service';
 import { ErrorHandlerService } from '../../services/error-handler.service';
 
 interface PasswordStrength {
@@ -38,7 +37,6 @@ export class ProfileComponent implements OnInit {
   constructor(
     private formBuilder: FormBuilder,
     public authService: AuthService,
-    private notificationService: NotificationService,
     private errorHandler: ErrorHandlerService
   ) { }
 
@@ -159,12 +157,10 @@ export class ProfileComponent implements OnInit {
         this.updatingProfile = false;
         this.currentUser = response.user;
         this.profileForm.markAsPristine();
-        this.notificationService.success('Success', 'Profile updated successfully!');
       },
       error: (error) => {
         this.updatingProfile = false;
         this.profileError = this.errorHandler.getErrorMessage(error);
-        this.notificationService.error('Error', this.profileError);
       }
     });
   }
@@ -185,12 +181,10 @@ export class ProfileComponent implements OnInit {
         this.changingPassword = false;
         this.passwordForm.reset();
         this.passwordStrength = { level: 'weak', percentage: 0, message: '' };
-        this.notificationService.success('Success', 'Password changed successfully!');
       },
       error: (error) => {
         this.changingPassword = false;
         this.passwordError = this.errorHandler.getErrorMessage(error);
-        this.notificationService.error('Error', this.passwordError);
       }
     });
   }

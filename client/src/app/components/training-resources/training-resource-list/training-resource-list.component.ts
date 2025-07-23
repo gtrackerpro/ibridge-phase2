@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 import { TrainingResourceService, TrainingResource } from '../../../services/training-resource.service';
-import { NotificationService } from '../../../services/notification.service';
 import { ErrorHandlerService } from '../../../services/error-handler.service';
 import { CsvExportService } from '../../../services/csv-export.service';
 
@@ -35,7 +34,6 @@ export class TrainingResourceListComponent implements OnInit {
   constructor(
     public authService: AuthService,
     private trainingResourceService: TrainingResourceService,
-    private notificationService: NotificationService,
     private errorHandler: ErrorHandlerService,
     private router: Router,
     private csvExportService: CsvExportService
@@ -56,7 +54,6 @@ export class TrainingResourceListComponent implements OnInit {
       },
       error: (error) => {
         this.loading = false;
-        this.notificationService.error('Error', 'Failed to load training resources');
         console.error('Error loading resources:', error);
       }
     });
@@ -107,10 +104,8 @@ export class TrainingResourceListComponent implements OnInit {
       this.trainingResourceService.deleteTrainingResource(resource._id).subscribe({
         next: () => {
           this.loadResources();
-          this.notificationService.success('Success', 'Training resource deleted successfully');
         },
         error: (error) => {
-          this.notificationService.error('Error', 'Failed to delete training resource');
           console.error('Error deleting resource:', error);
         }
       });
@@ -136,12 +131,10 @@ export class TrainingResourceListComponent implements OnInit {
   }
   exportResources(): void {
     if (this.resources.length === 0) {
-      this.notificationService.warning('No Data', 'No training resources available to export');
       return;
     }
 
     const filename = this.csvExportService.generateFilename('training-resources-export');
     this.csvExportService.exportTrainingResources(this.resources, filename);
-    this.notificationService.success('Export Complete', `Exported ${this.resources.length} training resources to ${filename}`);
   }
 }

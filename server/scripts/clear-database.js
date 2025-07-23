@@ -22,7 +22,6 @@ const Demand = require('../src/models/Demand');
 const Match = require('../src/models/Match');
 const TrainingPlan = require('../src/models/TrainingPlan');
 const TrainingResource = require('../src/models/TrainingResource');
-const FileUpload = require('../src/models/FileUpload');
 
 // Create readline interface for user confirmation
 const rl = readline.createInterface({
@@ -64,7 +63,6 @@ async function clearDatabase() {
       demands: await Demand.countDocuments(),
       matches: await Match.countDocuments(),
       trainingPlans: await TrainingPlan.countDocuments(),
-      trainingResources: await TrainingResource.countDocuments(),
       fileUploads: await FileUpload.countDocuments()
     };
 
@@ -76,7 +74,6 @@ async function clearDatabase() {
     console.log(`   Matches: ${counts.matches}`);
     console.log(`   Training Plans: ${counts.trainingPlans}`);
     console.log(`   Training Resources: ${counts.trainingResources}`);
-    console.log(`   File Uploads: ${counts.fileUploads}`);
     console.log(`   Total documents: ${Object.values(counts).reduce((a, b) => a + b, 0)}\n`);
 
     // Check if database is empty
@@ -111,7 +108,6 @@ async function clearDatabase() {
     const clearOperations = [
       { model: Match, name: 'Matches' },
       { model: TrainingPlan, name: 'Training Plans' },
-      { model: FileUpload, name: 'File Uploads' },
       { model: TrainingResource, name: 'Training Resources' },
       { model: Demand, name: 'Demands' },
       { model: EmployeeProfile, name: 'Employee Profiles' },
@@ -142,7 +138,6 @@ async function clearDatabase() {
       trainingPlans: await TrainingPlan.countDocuments(),
       trainingResources: await TrainingResource.countDocuments(),
       fileUploads: await FileUpload.countDocuments()
-    };
 
     const finalTotal = Object.values(finalCounts).reduce((a, b) => a + b, 0);
     

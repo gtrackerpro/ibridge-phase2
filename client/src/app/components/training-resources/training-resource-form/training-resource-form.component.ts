@@ -3,7 +3,6 @@ import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
 import { TrainingResourceService, TrainingResource } from '../../../services/training-resource.service';
-import { NotificationService } from '../../../services/notification.service';
 import { ErrorHandlerService } from '../../../services/error-handler.service';
 
 @Component({
@@ -30,7 +29,6 @@ export class TrainingResourceFormComponent implements OnInit {
     private router: Router,
     private location: Location,
     private trainingResourceService: TrainingResourceService,
-    private notificationService: NotificationService,
     private errorHandler: ErrorHandlerService
   ) { }
 
@@ -100,7 +98,6 @@ export class TrainingResourceFormComponent implements OnInit {
       error: (error) => {
         this.error = this.errorHandler.getErrorMessage(error);
         this.loading = false;
-        this.notificationService.error('Error', 'Failed to load training resource');
       }
     });
   }
@@ -160,25 +157,21 @@ export class TrainingResourceFormComponent implements OnInit {
     if (this.isEditMode && this.resourceId) {
       this.trainingResourceService.updateTrainingResource(this.resourceId, formData).subscribe({
         next: (response) => {
-          this.notificationService.success('Success', 'Training resource updated successfully');
           this.router.navigate(['/training-resources']);
         },
         error: (error) => {
           this.error = this.errorHandler.getErrorMessage(error);
           this.loading = false;
-          this.notificationService.error('Error', this.error);
         }
       });
     } else {
       this.trainingResourceService.createTrainingResource(formData).subscribe({
         next: (response) => {
-          this.notificationService.success('Success', 'Training resource created successfully');
           this.router.navigate(['/training-resources']);
         },
         error: (error) => {
           this.error = this.errorHandler.getErrorMessage(error);
           this.loading = false;
-          this.notificationService.error('Error', this.error);
         }
       });
     }

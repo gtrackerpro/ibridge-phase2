@@ -5,7 +5,6 @@ import { DemandService, Demand } from '../../../services/demand.service';
 import { MatchService } from '../../../services/match.service';
 import { UploadService } from '../../../services/upload.service';
 import { CsvExportService } from '../../../services/csv-export.service';
-import { NotificationService } from '../../../services/notification.service';
 
 @Component({
   selector: 'app-demand-list',
@@ -35,7 +34,6 @@ export class DemandListComponent implements OnInit {
     private uploadService: UploadService,
     private router: Router,
     private csvExportService: CsvExportService,
-    private notificationService: NotificationService
   ) { }
 
   ngOnInit(): void {
@@ -172,11 +170,9 @@ export class DemandListComponent implements OnInit {
 
   exportDemands(): void {
     if (this.demands.length === 0) {
-      this.notificationService.warning('No Data', 'No demands available to export');
       return;
     }
     const filename = this.csvExportService.generateFilename('demands-export');
     this.csvExportService.exportDemands(this.demands, filename);
-    this.notificationService.success('Export Complete', `Exported ${this.demands.length} demands to ${filename}`);
   }
 }

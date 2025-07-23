@@ -5,7 +5,6 @@ import { EmployeeService, Employee } from '../../services/employee.service';
 import { UploadService } from '../../services/upload.service';
 import { MatchService } from '../../services/match.service';
 import { TrainingService } from '../../services/training.service';
-import { NotificationService } from '../../services/notification.service';
 import { ErrorHandlerService } from '../../services/error-handler.service';
 import { UserService } from '../../services/user.service';
 
@@ -47,7 +46,6 @@ export class EmployeeProfileComponent implements OnInit {
     private uploadService: UploadService,
     private matchService: MatchService,
     private trainingService: TrainingService,
-    private notificationService: NotificationService,
     private errorHandler: ErrorHandlerService,
     private userService: UserService
   ) { }
@@ -108,7 +106,6 @@ export class EmployeeProfileComponent implements OnInit {
       error: (error) => {
         this.loading = false;
         this.error = this.errorHandler.getErrorMessage(error);
-        this.notificationService.error('Error', 'Failed to load employee profile');
       }
     });
   }
@@ -159,13 +156,11 @@ export class EmployeeProfileComponent implements OnInit {
       next: (response) => {
         this.uploadingResume = false;
         this.selectedResume = null;
-        this.notificationService.success('Success', 'Resume uploaded successfully!');
         // Reload profile to get updated resume URL
         this.loadEmployeeProfile();
       },
       error: (error) => {
         this.uploadingResume = false;
-        this.notificationService.error('Upload Failed', this.errorHandler.getErrorMessage(error));
       }
     });
   }
@@ -191,12 +186,10 @@ export class EmployeeProfileComponent implements OnInit {
         this.updating = false;
         this.employeeProfile = response.employee;
         this.profileForm.markAsPristine();
-        this.notificationService.success('Success', 'Profile updated successfully!');
       },
       error: (error) => {
         this.updating = false;
         this.error = this.errorHandler.getErrorMessage(error);
-        this.notificationService.error('Update Failed', this.error);
       }
     });
   }

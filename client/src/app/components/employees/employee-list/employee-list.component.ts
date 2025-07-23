@@ -3,7 +3,6 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 import { EmployeeService, Employee } from '../../../services/employee.service';
 import { UploadService } from '../../../services/upload.service';
-import { NotificationService } from '../../../services/notification.service';
 import { ErrorHandlerService } from '../../../services/error-handler.service';
 import { CsvExportService } from '../../../services/csv-export.service';
 
@@ -35,7 +34,6 @@ export class EmployeeListComponent implements OnInit {
     private employeeService: EmployeeService,
     private uploadService: UploadService,
     private router: Router,
-    private notificationService: NotificationService,
     private errorHandler: ErrorHandlerService,
     private csvExportService: CsvExportService
   ) { }
@@ -53,8 +51,6 @@ export class EmployeeListComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading employees:', error);
-        this.notificationService.error('Error', 'Failed to load employees');
-        this.notificationService.error('Search Error', 'Failed to search employees');
         this.loading = false;
       }
     });
@@ -159,13 +155,11 @@ export class EmployeeListComponent implements OnInit {
       next: (response) => {
         this.uploading = false;
         this.closeUploadModal();
-        this.notificationService.success('Upload Successful', 'CSV uploaded and processed successfully');
         this.loadEmployees();
       },
       error: (error) => {
         this.uploading = false;
         this.uploadError = this.errorHandler.getErrorMessage(error);
-        this.notificationService.error('Upload Failed', this.uploadError);
       }
     });
   }
@@ -178,11 +172,9 @@ export class EmployeeListComponent implements OnInit {
 
   exportEmployees(): void {
     if (this.employees.length === 0) {
-      this.notificationService.warning('No Data', 'No employees available to export');
       return;
     }
     const filename = this.csvExportService.generateFilename('employees-export');
     this.csvExportService.exportEmployees(this.employees, filename);
-    this.notificationService.success('Export Complete', `Exported ${this.employees.length} employees to ${filename}`);
   }
 }

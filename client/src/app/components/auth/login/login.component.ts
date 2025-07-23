@@ -3,7 +3,6 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../../services/auth.service';
-import { NotificationService } from '../../../services/notification.service';
 import { ErrorHandlerService } from '../../../services/error-handler.service';
 import { HealthService } from '../../../services/health.service';
 import { environment } from '../../../../environments/environment';
@@ -26,7 +25,6 @@ export class LoginComponent implements OnInit {
     private router: Router,
     private http: HttpClient,
     private authService: AuthService,
-    private notificationService: NotificationService,
     private errorHandler: ErrorHandlerService,
     private healthService: HealthService
   ) {
@@ -58,12 +56,10 @@ export class LoginComponent implements OnInit {
 
     this.authService.login(email, password).subscribe({
       next: (response) => {
-        this.notificationService.success('Login Successful', `Welcome back, ${response.user.name}!`);
         this.router.navigate([this.returnUrl]);
       },
       error: (error) => {
         this.error = this.errorHandler.getErrorMessage(error);
-        this.notificationService.error('Login Failed', this.error);
         this.loading = false;
       }
     });
@@ -94,13 +90,10 @@ export class LoginComponent implements OnInit {
         
         switch (healthStatus.overall) {
           case 'healthy':
-            this.notificationService.success('Services Ready', detailedMessage);
             break;
           case 'partial':
-            this.notificationService.warning('Partial Service', detailedMessage);
             break;
           case 'unhealthy':
-            this.notificationService.error('Services Error', detailedMessage);
             break;
         }
         
@@ -110,7 +103,6 @@ export class LoginComponent implements OnInit {
       error: (error) => {
         this.refreshing = false;
         const errorMessage = this.errorHandler.getErrorMessage(error);
-        this.notificationService.error('Server Error', `Failed to check services: ${errorMessage}`);
         console.error('Health check error:', error);
       }
     });

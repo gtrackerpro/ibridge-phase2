@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { UploadService } from '../../services/upload.service';
 import { AuthService } from '../../services/auth.service';
 import { EmployeeService } from '../../services/employee.service';
-import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-resume-access',
@@ -91,8 +90,7 @@ export class ResumeAccessComponent implements OnInit {
   constructor(
     private uploadService: UploadService,
     private authService: AuthService,
-    private employeeService: EmployeeService,
-    private notificationService: NotificationService
+    private employeeService: EmployeeService
   ) {}
 
   ngOnInit(): void {
@@ -166,7 +164,6 @@ export class ResumeAccessComponent implements OnInit {
           const employee = response.employees[0];
           this.findAndLoadResume(employee._id);
           this.refreshing = false;
-          this.notificationService.success('Success', 'Resume link refreshed successfully');
         } else {
           this.error = 'Employee profile not found';
           this.refreshing = false;

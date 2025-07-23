@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { MatchService, Match } from '../../services/match.service';
 import { AuthService } from '../../services/auth.service';
-import { NotificationService } from '../../services/notification.service';
 import { ErrorHandlerService } from '../../services/error-handler.service';
 
 @Component({
@@ -19,7 +18,6 @@ export class ManagerApprovalsComponent implements OnInit {
   constructor(
     private matchService: MatchService,
     public authService: AuthService,
-    private notificationService: NotificationService,
     private errorHandler: ErrorHandlerService
   ) { }
 
@@ -36,7 +34,6 @@ export class ManagerApprovalsComponent implements OnInit {
         this.loadingPending = false;
       },
       error: (error) => {
-        this.notificationService.error('Error', 'Failed to load pending approvals');
         console.error('Error loading pending approvals:', error);
         this.loadingPending = false;
       }
@@ -51,7 +48,6 @@ export class ManagerApprovalsComponent implements OnInit {
         this.loadingAllocations = false;
       },
       error: (error) => {
-        this.notificationService.error('Error', 'Failed to load allocations for your reports');
         console.error('Error loading my reports allocations:', error);
         this.loadingAllocations = false;
       }
@@ -70,13 +66,11 @@ export class ManagerApprovalsComponent implements OnInit {
     if (confirm(`Are you sure you want to approve the match for ${match.employeeId.name} on ${match.demandId.positionTitle}?`)) {
       this.matchService.approveDeclineMatch(match._id, 'Approved').subscribe({
         next: (response) => {
-          this.notificationService.success('Match Approved', `Match for ${response.match.employeeId.name} approved successfully.`);
           this.loadPendingApprovals(); // Refresh list
           this.loadMyReportsAllocations(); // Refresh allocations
           this.closeMatchModal();
         },
         error: (error) => {
-          this.notificationService.error('Approval Failed', this.errorHandler.getErrorMessage(error));
           console.error('Error approving match:', error);
         }
       });
@@ -92,13 +86,11 @@ export class ManagerApprovalsComponent implements OnInit {
     if (confirm(`Are you sure you want to decline the match for ${match.employeeId.name} on ${match.demandId.positionTitle}?`)) {
       this.matchService.approveDeclineMatch(match._id, 'Rejected', notes || undefined).subscribe({
         next: (response) => {
-          this.notificationService.success('Match Declined', `Match for ${response.match.employeeId.name} declined successfully.`);
           this.loadPendingApprovals(); // Refresh list
           this.loadMyReportsAllocations(); // Refresh allocations
           this.closeMatchModal();
         },
         error: (error) => {
-          this.notificationService.error('Decline Failed', this.errorHandler.getErrorMessage(error));
           console.error('Error declining match:', error);
         }
       });

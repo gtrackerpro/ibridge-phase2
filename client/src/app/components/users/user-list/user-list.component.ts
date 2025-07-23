@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../../services/auth.service';
 import { UserService, User, UserStats } from '../../../services/user.service';
-import { NotificationService } from '../../../services/notification.service';
 import { ErrorHandlerService } from '../../../services/error-handler.service';
 import { CsvExportService } from '../../../services/csv-export.service';
 
@@ -53,7 +52,6 @@ export class UserListComponent implements OnInit {
   constructor(
     public authService: AuthService,
     private userService: UserService,
-    private notificationService: NotificationService,
     private errorHandler: ErrorHandlerService,
     private formBuilder: FormBuilder,
     private csvExportService: CsvExportService
@@ -99,7 +97,6 @@ export class UserListComponent implements OnInit {
       },
       error: (error) => {
         this.loading = false;
-        this.notificationService.error('Error', 'Failed to load users');
         console.error('Error loading users:', error);
       }
     });
@@ -165,12 +162,10 @@ export class UserListComponent implements OnInit {
         this.closeCreateModal();
         this.loadUsers();
         this.loadUserStats();
-        this.notificationService.success('Success', `User ${response.user.name} created successfully`);
       },
       error: (error) => {
         this.creating = false;
         this.createError = this.errorHandler.getErrorMessage(error);
-        this.notificationService.error('Error', this.createError);
       }
     });
   }
@@ -209,12 +204,10 @@ export class UserListComponent implements OnInit {
         this.closeEditModal();
         this.loadUsers();
         this.loadUserStats();
-        this.notificationService.success('Success', `User ${response.user.name} updated successfully`);
       },
       error: (error) => {
         this.updating = false;
         this.editError = this.errorHandler.getErrorMessage(error);
-        this.notificationService.error('Error', this.editError);
       }
     });
   }
@@ -222,7 +215,6 @@ export class UserListComponent implements OnInit {
   // Toggle user status
   toggleUserStatus(user: User): void {
     if (user._id === this.currentUserId) {
-      this.notificationService.warning('Warning', 'You cannot modify your own account status');
       return;
     }
 
@@ -232,10 +224,8 @@ export class UserListComponent implements OnInit {
         next: (response) => {
           this.loadUsers();
           this.loadUserStats();
-          this.notificationService.success('Success', response.message);
         },
         error: (error) => {
-          this.notificationService.error('Error', `Failed to ${action} user`);
           console.error(`Error ${action}ing user:`, error);
         }
       });
@@ -245,7 +235,6 @@ export class UserListComponent implements OnInit {
   // Delete user
   deleteUser(user: User): void {
     if (user._id === this.currentUserId) {
-      this.notificationService.warning('Warning', 'You cannot delete your own account');
       return;
     }
 
@@ -254,10 +243,8 @@ export class UserListComponent implements OnInit {
         next: (response) => {
           this.loadUsers();
           this.loadUserStats();
-          this.notificationService.success('Success', `User ${response.user.name} deleted successfully`);
         },
         error: (error) => {
-          this.notificationService.error('Error', 'Failed to delete user');
           console.error('Error deleting user:', error);
         }
       });
@@ -266,13 +253,11 @@ export class UserListComponent implements OnInit {
 
   exportUsers(): void {
     if (this.users.length === 0) {
-      this.notificationService.warning('No Data', 'No users available to export');
       return;
     }
 
     const filename = this.csvExportService.generateFilename('users-export');
     this.csvExportService.exportUsers(this.users, filename);
-    this.notificationService.success('Export Complete', `Exported ${this.users.length} users to ${filename}`);
   }
 
   private markFormGroupTouched(formGroup: FormGroup): void {

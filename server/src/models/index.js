@@ -6,7 +6,6 @@ const Match = require('./Match');
 const TrainingPlan = require('./TrainingPlan');
 const TrainingResource = require('./TrainingResource');
 const FileUpload = require('./FileUpload');
-const Notification = require('./Notification');
 
 module.exports = {
   User,
@@ -16,5 +15,4 @@ module.exports = {
   TrainingPlan,
   TrainingResource,
   FileUpload,
-  Notification
 };
