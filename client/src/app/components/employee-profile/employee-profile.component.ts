@@ -141,7 +141,7 @@ export class EmployeeProfileComponent implements OnInit {
       if (allowedTypes.includes(file.type)) {
         this.selectedResume = file;
       } else {
-        this.notificationService.error('Invalid File', 'Please select a valid file (PDF, DOC, DOCX)');
+        this.error = 'Please select a valid file (PDF, DOC, DOCX)';
         event.target.value = '';
       }
     }
