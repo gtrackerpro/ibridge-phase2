@@ -138,6 +138,7 @@ async function clearDatabase() {
       trainingPlans: await TrainingPlan.countDocuments(),
       trainingResources: await TrainingResource.countDocuments(),
       fileUploads: await FileUpload.countDocuments()
+    }
 
     const finalTotal = Object.values(finalCounts).reduce((a, b) => a + b, 0);
     
