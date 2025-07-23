@@ -162,6 +162,7 @@ const { demandId } = req.params;
     const matches = await Match.find({ demandId })
      .populate('demandId', 'demandId accountName projectName positionTitle primarySkill experienceRange priority status')
       .populate('employeeId', 'employeeId name email primarySkill primarySkillExperience secondarySkills')
+      .populate('approverUser', 'name email')
       .populate('reviewedBy', 'name email')
       .sort({ matchScore: -1 });
 

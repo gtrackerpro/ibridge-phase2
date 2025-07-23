@@ -88,6 +88,9 @@ router.put('/:id/read', auth, validateObjectIdParam('id'), async (req, res) => {
       await notification.markAsRead();
     }
 
+    // Populate sender information for the response
+    await notification.populate('sender', 'name email');
+
     res.json({
       message: 'Notification marked as read',
       notification

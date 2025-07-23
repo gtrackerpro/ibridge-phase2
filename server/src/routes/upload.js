@@ -95,6 +95,9 @@ router.post('/resume', auth, upload.single('resume'), async (req, res) => {
 
     await fileUpload.save();
 
+    // Populate uploadedBy for the response
+    await fileUpload.populate('uploadedBy', 'name email');
+
     // Update employee profile with resume URL
     try {
       await EmployeeProfile.findByIdAndUpdate(employeeId, {
@@ -112,7 +115,8 @@ router.post('/resume', auth, upload.single('resume'), async (req, res) => {
         fileName: fileUpload.originalName,
         fileType: fileUpload.fileType,
         uploadedAt: fileUpload.createdAt,
-        s3Url: fileUpload.s3Url
+        s3Url: fileUpload.s3Url,
+        uploadedBy: fileUpload.uploadedBy
       }
     });
   } catch (error) {
@@ -184,6 +188,9 @@ router.post('/csv', auth, authorize('Admin', 'RM', 'HR'), upload.single('csv'), 
       };
       await fileUpload.save();
       
+      // Populate uploadedBy for the response
+      await fileUpload.populate('uploadedBy', 'name email');
+      
       // If this was an employee CSV upload, create user accounts for new employees
       if (type === 'employees' && processResult.successful > 0) {
         try {
@@ -228,7 +235,8 @@ router.post('/csv', auth, authorize('Admin', 'RM', 'HR'), upload.single('csv'), 
           fileType: fileUpload.fileType,
           uploadedAt: fileUpload.createdAt,
           status: fileUpload.status,
-          processResult
+          processResult,
+          uploadedBy: fileUpload.uploadedBy
         }
       });
     } catch (processError) {
@@ -239,9 +247,20 @@ router.post('/csv', auth, authorize('Admin', 'RM', 'HR'), upload.single('csv'), 
       };
       await fileUpload.save();
 
+      // Populate uploadedBy even for failed uploads
+      await fileUpload.populate('uploadedBy', 'name email');
+
       res.status(500).json({
         message: 'CSV uploaded but processing failed',
-        error: processError.message
+        error: processError.message,
+        fileUpload: {
+          id: fileUpload._id,
+          fileName: fileUpload.originalName,
+          fileType: fileUpload.fileType,
+          uploadedAt: fileUpload.createdAt,
+          status: fileUpload.status,
+          uploadedBy: fileUpload.uploadedBy
+        }
       });
     }
   } catch (error) {
