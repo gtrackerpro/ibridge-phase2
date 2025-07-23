@@ -82,6 +82,14 @@ router.get('/results', auth, async (req, res) => {
       const demandIds = userDemands.map(d => d._id);
       query.demandId = { $in: demandIds };
     }
+    // If user is Manager, they can only see matches for their direct reports
+    else if (req.user.role === 'Manager') {
+      const managedEmployees = await EmployeeProfile.find({ 
+        managerUser: req.user._id 
+      }).select('_id');
+      const employeeIds = managedEmployees.map(emp => emp._id);
+      query.employeeId = { $in: employeeIds };
+    }
     // If user is Employee, they can only see matches where they are the employee
     else if (req.user.role === 'Employee') {
       const employee = await EmployeeProfile.findOne({ email: req.user.email });
