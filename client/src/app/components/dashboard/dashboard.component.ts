@@ -103,7 +103,7 @@ export class DashboardComponent implements OnInit {
     }
 
     // Load match statistics (Admin and RM only)
-    if (this.authService.hasRole(['Admin'])) {
+    if (this.authService.hasRole(['Admin', 'HR', 'RM'])) {
       this.matchService.getMatchStats().subscribe({
         next: (response) => {
           this.matchStats = response.stats;
@@ -114,15 +114,17 @@ export class DashboardComponent implements OnInit {
       });
 
       // Load training statistics
-      // Note: Training stats removed for RM role
-      this.trainingService.getTrainingStats().subscribe({
-        next: (response) => {
-          this.trainingStats = response.stats;
-        },
-        error: (error) => {
-          console.error('Error loading training stats:', error);
-        }
-      });
+      // Only load training stats for Admin and HR (not RM)
+      if (this.authService.hasRole(['Admin', 'HR'])) {
+        this.trainingService.getTrainingStats().subscribe({
+          next: (response) => {
+            this.trainingStats = response.stats;
+          },
+          error: (error) => {
+            console.error('Error loading training stats:', error);
+          }
+        });
+      }
     }
 
     // Load recent matches
