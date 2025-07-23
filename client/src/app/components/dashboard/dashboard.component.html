@@ -180,6 +180,58 @@
     </div>
   </div>
 
+  <!-- Employee Availability Overview (RM, HR, Manager) -->
+  <div class="card mb-8" *ngIf="authService.isHR() || authService.isRM() || authService.isManager()">
+    <div class="card-header">
+      <h3 class="text-lg leading-6 font-medium text-gray-900">Employee Availability Overview</h3>
+      <p class="mt-1 text-sm text-gray-500">Current workforce availability for resource planning</p>
+    </div>
+    <div class="card-body">
+      <div class="grid grid-cols-1 gap-5 sm:grid-cols-4">
+        <div class="text-center">
+          <div class="text-3xl font-bold text-green-600">{{ employeeAvailabilityStats.availableEmployees }}</div>
+          <div class="text-sm text-gray-500">Available for Assignment</div>
+          <div class="text-xs text-gray-400 mt-1">Ready for new projects</div>
+        </div>
+        <div class="text-center">
+          <div class="text-3xl font-bold text-blue-600">{{ employeeAvailabilityStats.allocatedEmployees }}</div>
+          <div class="text-sm text-gray-500">Currently Allocated</div>
+          <div class="text-xs text-gray-400 mt-1">Working on projects</div>
+        </div>
+        <div class="text-center">
+          <div class="text-3xl font-bold text-yellow-600">{{ employeeAvailabilityStats.trainingEmployees }}</div>
+          <div class="text-sm text-gray-500">In Training</div>
+          <div class="text-xs text-gray-400 mt-1">Developing skills</div>
+        </div>
+        <div class="text-center">
+          <div class="text-3xl font-bold text-gray-600">{{ employeeAvailabilityStats.onLeaveEmployees }}</div>
+          <div class="text-sm text-gray-500">On Leave</div>
+          <div class="text-xs text-gray-400 mt-1">Temporarily unavailable</div>
+        </div>
+      </div>
+      
+      <!-- Availability Percentage -->
+      <div class="mt-6 pt-6 border-t border-gray-200">
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-medium text-gray-700">Availability Rate</span>
+          <span class="text-lg font-bold text-green-600">
+            {{ employeeAvailabilityStats.totalEmployees > 0 ? 
+               ((employeeAvailabilityStats.availableEmployees / employeeAvailabilityStats.totalEmployees) * 100).toFixed(1) : 0 }}%
+          </span>
+        </div>
+        <div class="mt-2 w-full bg-gray-200 rounded-full h-3">
+          <div class="h-3 rounded-full bg-green-500" 
+               [style.width.%]="employeeAvailabilityStats.totalEmployees > 0 ? 
+                                (employeeAvailabilityStats.availableEmployees / employeeAvailabilityStats.totalEmployees) * 100 : 0">
+          </div>
+        </div>
+        <p class="text-xs text-gray-500 mt-1">
+          {{ employeeAvailabilityStats.availableEmployees }} out of {{ employeeAvailabilityStats.totalEmployees }} employees available
+        </p>
+      </div>
+    </div>
+  </div>
+
   <!-- Employee Dashboard Content -->
   <div *ngIf="authService.hasRole(['Employee'])">
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-3 mb-8">
@@ -421,57 +473,6 @@
 
   <!-- HR Dashboard Content -->
   <div *ngIf="authService.isHR()">
-    <!-- Employee Availability Overview for HR -->
-    <div class="card mb-8">
-      <div class="card-header">
-        <h3 class="text-lg leading-6 font-medium text-gray-900">Employee Availability Overview</h3>
-        <p class="mt-1 text-sm text-gray-500">Current workforce availability and training status</p>
-      </div>
-      <div class="card-body">
-        <div class="grid grid-cols-1 gap-5 sm:grid-cols-4">
-          <div class="text-center">
-            <div class="text-3xl font-bold text-green-600">{{ employeeAvailabilityStats.availableEmployees }}</div>
-            <div class="text-sm text-gray-500">Available for Assignment</div>
-            <div class="text-xs text-gray-400 mt-1">Ready for new projects</div>
-          </div>
-          <div class="text-center">
-            <div class="text-3xl font-bold text-blue-600">{{ employeeAvailabilityStats.allocatedEmployees }}</div>
-            <div class="text-sm text-gray-500">Currently Allocated</div>
-            <div class="text-xs text-gray-400 mt-1">Working on projects</div>
-          </div>
-          <div class="text-center">
-            <div class="text-3xl font-bold text-yellow-600">{{ employeeAvailabilityStats.trainingEmployees }}</div>
-            <div class="text-sm text-gray-500">In Training</div>
-            <div class="text-xs text-gray-400 mt-1">Developing skills</div>
-          </div>
-          <div class="text-center">
-            <div class="text-3xl font-bold text-gray-600">{{ employeeAvailabilityStats.onLeaveEmployees }}</div>
-            <div class="text-sm text-gray-500">On Leave</div>
-            <div class="text-xs text-gray-400 mt-1">Temporarily unavailable</div>
-          </div>
-        </div>
-        
-        <!-- Availability Percentage -->
-        <div class="mt-6 pt-6 border-t border-gray-200">
-          <div class="flex items-center justify-between">
-            <span class="text-sm font-medium text-gray-700">Availability Rate</span>
-            <span class="text-lg font-bold text-green-600">
-              {{ employeeAvailabilityStats.totalEmployees > 0 ? 
-                 ((employeeAvailabilityStats.availableEmployees / employeeAvailabilityStats.totalEmployees) * 100).toFixed(1) : 0 }}%
-            </span>
-          </div>
-          <div class="mt-2 w-full bg-gray-200 rounded-full h-3">
-            <div class="h-3 rounded-full bg-green-500" 
-                 [style.width.%]="employeeAvailabilityStats.totalEmployees > 0 ? 
-                                  (employeeAvailabilityStats.availableEmployees / employeeAvailabilityStats.totalEmployees) * 100 : 0">
-            </div>
-          </div>
-          <p class="text-xs text-gray-500 mt-1">
-            {{ employeeAvailabilityStats.availableEmployees }} out of {{ employeeAvailabilityStats.totalEmployees }} employees available
-          </p>
-        </div>
-      </div>
-    </div>
 
     <!-- HR Quick Actions -->
     <div class="grid grid-cols-1 gap-5 lg:grid-cols-2 mb-8">
@@ -603,58 +604,6 @@
               Browse Employees
             </a>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Employee Availability Overview for RM -->
-    <div class="card mb-8">
-      <div class="card-header">
-        <h3 class="text-lg leading-6 font-medium text-gray-900">Employee Availability Overview</h3>
-        <p class="mt-1 text-sm text-gray-500">Current workforce availability for resource planning</p>
-      </div>
-      <div class="card-body">
-        <div class="grid grid-cols-1 gap-5 sm:grid-cols-4">
-          <div class="text-center">
-            <div class="text-3xl font-bold text-green-600">{{ employeeAvailabilityStats.availableEmployees }}</div>
-            <div class="text-sm text-gray-500">Available for Assignment</div>
-            <div class="text-xs text-gray-400 mt-1">Ready to be matched to demands</div>
-          </div>
-          <div class="text-center">
-            <div class="text-3xl font-bold text-blue-600">{{ employeeAvailabilityStats.allocatedEmployees }}</div>
-            <div class="text-sm text-gray-500">Currently Allocated</div>
-            <div class="text-xs text-gray-400 mt-1">Working on projects</div>
-          </div>
-          <div class="text-center">
-            <div class="text-3xl font-bold text-yellow-600">{{ employeeAvailabilityStats.trainingEmployees }}</div>
-            <div class="text-sm text-gray-500">In Training</div>
-            <div class="text-xs text-gray-400 mt-1">Developing skills</div>
-          </div>
-          <div class="text-center">
-            <div class="text-3xl font-bold text-gray-600">{{ employeeAvailabilityStats.onLeaveEmployees }}</div>
-            <div class="text-sm text-gray-500">On Leave</div>
-            <div class="text-xs text-gray-400 mt-1">Temporarily unavailable</div>
-          </div>
-        </div>
-        
-        <!-- Availability Percentage -->
-        <div class="mt-6 pt-6 border-t border-gray-200">
-          <div class="flex items-center justify-between">
-            <span class="text-sm font-medium text-gray-700">Availability Rate</span>
-            <span class="text-lg font-bold text-green-600">
-              {{ employeeAvailabilityStats.totalEmployees > 0 ? 
-                 ((employeeAvailabilityStats.availableEmployees / employeeAvailabilityStats.totalEmployees) * 100).toFixed(1) : 0 }}%
-            </span>
-          </div>
-          <div class="mt-2 w-full bg-gray-200 rounded-full h-3">
-            <div class="h-3 rounded-full bg-green-500" 
-                 [style.width.%]="employeeAvailabilityStats.totalEmployees > 0 ? 
-                                  (employeeAvailabilityStats.availableEmployees / employeeAvailabilityStats.totalEmployees) * 100 : 0">
-            </div>
-          </div>
-          <p class="text-xs text-gray-500 mt-1">
-            {{ employeeAvailabilityStats.availableEmployees }} out of {{ employeeAvailabilityStats.totalEmployees }} employees available
-          </p>
         </div>
       </div>
     </div>

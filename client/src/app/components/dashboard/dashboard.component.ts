@@ -113,18 +113,27 @@ export class DashboardComponent implements OnInit {
         }
       });
 
-      // Load training statistics
-      // Load training stats for Admin and HR
-      if (this.authService.isAdmin() || this.authService.isHR()) {
-        this.trainingService.getTrainingStats().subscribe({
-          next: (response) => {
-            this.trainingStats = response.stats;
-          },
-          error: (error) => {
-            console.error('Error loading training stats:', error);
-          }
-        });
-      }
+      // Load skill gaps (Admin and RM only)
+      this.matchService.getSkillGaps().subscribe({
+        next: (response) => {
+          this.skillGaps = response.skillGaps;
+        },
+        error: (error) => {
+          console.error('Error loading skill gaps:', error);
+        }
+      });
+    }
+
+    // Load training stats for Admin and HR
+    if (this.authService.isAdmin() || this.authService.isHR()) {
+      this.trainingService.getTrainingStats().subscribe({
+        next: (response) => {
+          this.trainingStats = response.stats;
+        },
+        error: (error) => {
+          console.error('Error loading training stats:', error);
+        }
+      });
     }
 
     // Load recent matches
@@ -149,18 +158,6 @@ export class DashboardComponent implements OnInit {
     } else {
       // For HR users, just set loading to false since they don't need matches
       this.loading = false;
-    }
-
-    // Load skill gaps (Admin and RM only)
-    if (this.authService.isAdmin() || this.authService.isRM()) {
-      this.matchService.getSkillGaps().subscribe({
-        next: (response) => {
-          this.skillGaps = response.skillGaps;
-        },
-        error: (error) => {
-          console.error('Error loading skill gaps:', error);
-        }
-      });
     }
 
     // Load Manager-specific data
