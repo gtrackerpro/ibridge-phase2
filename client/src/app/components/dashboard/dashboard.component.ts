@@ -40,9 +40,16 @@ export class DashboardComponent implements OnInit {
 
   recentMatches: Match[] = [];
   skillGaps: SkillGap[] = [];
-  pendingApprovals: Match[] = [];
-  myReportsAllocations: Match[] = [];
   myDemands: Demand[] = [];
+
+  // Manager-specific stats
+  managerStats = {
+    totalTeamMatches: 0,
+    pendingApprovals: 0,
+    approvedMatches: 0,
+    rejectedMatches: 0,
+    trainingRequiredMatches: 0
+  };
 
   loading = false;
 
@@ -111,6 +118,12 @@ export class DashboardComponent implements OnInit {
     this.matchService.getMatchResults().subscribe({
       next: (response) => {
         this.recentMatches = response.matches.slice(0, 5);
+        
+        // Calculate manager-specific stats from the filtered matches
+        if (this.authService.isManager()) {
+          this.calculateManagerStats(response.matches);
+        }
+        
         this.loading = false;
       },
       error: (error) => {
@@ -133,27 +146,22 @@ export class DashboardComponent implements OnInit {
 
     // Load Manager-specific data
     if (this.authService.isManager()) {
-      this.matchService.getPendingApprovals().subscribe({
-        next: (response) => {
-          this.pendingApprovals = response.matches;
-        },
-        error: (error) => {
-          console.error('Error loading pending approvals:', error);
-        }
-      });
-
-      this.matchService.getMyReportsAllocations().subscribe({
-        next: (response) => {
-          this.myReportsAllocations = response.matches;
-        },
-        error: (error) => {
-          console.error('Error loading my reports allocations:', error);
-        }
-      });
+      // Manager stats will be calculated from recentMatches after they're loaded
+      // This is handled in the recentMatches subscription below
     } else if (this.authService.isRM()) {
       // RM can see their own demands
       this.demandService.getDemands().subscribe(res => this.myDemands = res.demands.filter(d => d.createdBy._id === this.authService.getCurrentUser()?.id));
     }
+  }
+
+  calculateManagerStats(allMatches: Match[]): void {
+    this.managerStats = {
+      totalTeamMatches: allMatches.length,
+      pendingApprovals: allMatches.filter(m => m.approvalStatus === 'Pending').length,
+      approvedMatches: allMatches.filter(m => m.approvalStatus === 'Approved').length,
+      rejectedMatches: allMatches.filter(m => m.approvalStatus === 'Rejected').length,
+      trainingRequiredMatches: allMatches.filter(m => m.status === 'Training Required').length
+    };
   }
 
   viewAllSkillGaps(): void {

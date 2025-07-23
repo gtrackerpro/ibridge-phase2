@@ -442,96 +442,187 @@
 
   <!-- Manager Dashboard Content -->
   <div *ngIf="authService.isManager()">
-    <div class="grid grid-cols-1 gap-5 lg:grid-cols-2 mb-8">
-      <!-- Pending Approvals -->
+    <!-- Manager Stats Grid -->
+    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+      <!-- Total Team Matches -->
       <div class="card">
-        <div class="card-header">
-          <h3 class="text-lg leading-6 font-medium text-gray-900">Pending Approvals</h3>
-        </div>
         <div class="card-body">
-          <div *ngIf="pendingApprovals.length === 0" class="text-center py-4">
-            <p class="text-gray-500">No pending approvals</p>
-          </div>
-          <div *ngIf="pendingApprovals.length > 0" class="space-y-3">
-            <div *ngFor="let match of pendingApprovals.slice(0, 5)" 
-                 class="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
-              <div class="flex-1">
-                <p class="text-sm font-medium text-gray-900">
-                  {{ match.employeeId.name }} for {{ match.demandId.positionTitle }}
-                </p>
-                <p class="text-xs text-gray-500">
-                  {{ match.demandId.accountName }} - {{ match.demandId.projectName }}
-                </p>
-              </div>
-              <div class="flex items-center space-x-2">
-                <span class="badge badge-warning">Pending</span>
-                <span class="text-sm font-medium text-gray-900">{{ match.matchScore }}%</span>
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/>
+                </svg>
               </div>
             </div>
-          </div>
-          <div *ngIf="pendingApprovals.length > 0" class="mt-4">
-            <a routerLink="/manager-approvals" class="text-sm text-primary-600 hover:text-primary-500">
-              View all pending approvals →
-            </a>
+            <div class="ml-5 w-0 flex-1">
+              <dl>
+                <dt class="text-sm font-medium text-gray-500 truncate">Team Matches</dt>
+                <dd class="text-lg font-medium text-gray-900">{{ managerStats.totalTeamMatches }}</dd>
+              </dl>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- My Reports' Allocations -->
+      <!-- Pending Approvals -->
+      <div class="card">
+        <div class="card-body">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dl>
+                <dt class="text-sm font-medium text-gray-500 truncate">Pending Approvals</dt>
+                <dd class="text-lg font-medium text-gray-900">{{ managerStats.pendingApprovals }}</dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Approved Matches -->
+      <div class="card">
+        <div class="card-body">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dl>
+                <dt class="text-sm font-medium text-gray-500 truncate">Approved</dt>
+                <dd class="text-lg font-medium text-gray-900">{{ managerStats.approvedMatches }}</dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Training Required -->
+      <div class="card">
+        <div class="card-body">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"/>
+                </svg>
+              </div>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dl>
+                <dt class="text-sm font-medium text-gray-500 truncate">Need Training</dt>
+                <dd class="text-lg font-medium text-gray-900">{{ managerStats.trainingRequiredMatches }}</dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Team Activity -->
+    <div class="grid grid-cols-1 gap-5 lg:grid-cols-2 mb-8">
+      <!-- Recent Team Matches -->
       <div class="card">
         <div class="card-header">
-          <h3 class="text-lg leading-6 font-medium text-gray-900">My Reports' Allocations</h3>
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Recent Team Matches</h3>
+          <p class="mt-1 text-sm text-gray-500">Latest matches for your direct reports</p>
         </div>
         <div class="card-body">
-          <div *ngIf="myReportsAllocations.length === 0" class="text-center py-4">
-            <p class="text-gray-500">No allocations for your direct reports</p>
+          <div *ngIf="recentMatches.length === 0" class="text-center py-4">
+            <p class="text-gray-500">No recent matches for your team</p>
           </div>
-          <div *ngIf="myReportsAllocations.length > 0" class="space-y-3">
-            <div *ngFor="let match of myReportsAllocations.slice(0, 5)" 
+          <div *ngIf="recentMatches.length > 0" class="space-y-3">
+            <div *ngFor="let match of recentMatches" 
                  class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <div class="flex-1">
                 <p class="text-sm font-medium text-gray-900">
-                  {{ match.employeeId.name }} on {{ match.demandId.projectName }}
+                  {{ match.employeeId.name }} → {{ match.demandId.positionTitle }}
                 </p>
                 <p class="text-xs text-gray-500">
-                  {{ match.demandId.positionTitle }} - {{ match.demandId.accountName }}
+                  {{ match.demandId.accountName }} • {{ match.matchScore }}% match
                 </p>
               </div>
               <div class="flex items-center space-x-2">
                 <span class="badge" 
                       [ngClass]="{
-                        'badge-success': match.status === 'Approved',
-                        'badge-warning': match.status === 'Training Required',
-                        'badge-danger': match.status === 'Rejected',
-                        'badge-secondary': match.status === 'Pending'
+                        'badge-success': match.approvalStatus === 'Approved',
+                        'badge-warning': match.approvalStatus === 'Pending',
+                        'badge-danger': match.approvalStatus === 'Rejected'
                       }">
-                  {{ match.status }}
+                  {{ match.approvalStatus }}
                 </span>
               </div>
             </div>
           </div>
-          <div *ngIf="myReportsAllocations.length > 0" class="mt-4">
-            <a routerLink="/matches" class="text-sm text-primary-600 hover:text-primary-500">
-              View all allocations →
+        </div>
+      </div>
+
+      <!-- Quick Actions for Manager -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Quick Actions</h3>
+        </div>
+        <div class="card-body">
+          <div class="space-y-3">
+            <a routerLink="/matches" 
+               class="block w-full btn-primary text-center">
+              <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Review Team Matches
+              <span *ngIf="managerStats.pendingApprovals > 0" 
+                    class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                {{ managerStats.pendingApprovals }} pending
+              </span>
+            </a>
+            <a routerLink="/training" 
+               class="block w-full btn-secondary text-center">
+              <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C20.832 18.477 19.246 18 17.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+              </svg>
+              Manage Team Training
+            </a>
+            <a routerLink="/employees" 
+               class="block w-full btn-secondary text-center">
+              <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+              </svg>
+              View Team Members
             </a>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Quick Actions for Manager -->
-    <div class="card">
+    <!-- Team Performance Overview -->
+    <div class="card" *ngIf="managerStats.totalTeamMatches > 0">
       <div class="card-header">
-        <h3 class="text-lg leading-6 font-medium text-gray-900">Quick Actions</h3>
+        <h3 class="text-lg leading-6 font-medium text-gray-900">Team Performance Overview</h3>
       </div>
       <div class="card-body">
-        <div class="space-y-3">
-          <a routerLink="/manager-approvals" class="block w-full btn-primary text-center">
-            Review Pending Approvals
-          </a>
-          <a routerLink="/matches" class="block w-full btn-secondary text-center">
-            View All My Reports' Allocations
-          </a>
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-3">
+          <div class="text-center">
+            <div class="text-2xl font-bold text-green-600">{{ managerStats.approvedMatches }}</div>
+            <div class="text-sm text-gray-500">Approved Assignments</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-bold text-yellow-600">{{ managerStats.pendingApprovals }}</div>
+            <div class="text-sm text-gray-500">Awaiting Your Review</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-bold text-purple-600">{{ managerStats.trainingRequiredMatches }}</div>
+            <div class="text-sm text-gray-500">Need Training</div>
+          </div>
         </div>
       </div>
     </div>

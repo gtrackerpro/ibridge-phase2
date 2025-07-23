@@ -128,14 +128,4 @@ export class MatchService {
   approveDeclineMatch(matchId: string, approvalStatus: 'Approved' | 'Rejected', notes?: string): Observable<{ message: string; match: Match }> {
     return this.http.put<{ message: string; match: Match }>(`${environment.apiUrl}/match/${matchId}/approve-decline`, { approvalStatus, notes });
   }
-
-  // New: Get pending approvals for a manager
-  getPendingApprovals(): Observable<MatchResponse> {
-    return this.http.get<MatchResponse>(`${environment.apiUrl}/match/pending-approvals`);
-  }
-
-  // New: Get allocations for manager's direct reports
-  getMyReportsAllocations(): Observable<MatchResponse> {
-    return this.http.get<MatchResponse>(`${environment.apiUrl}/match/my-reports-allocations`);
-  }
 }
