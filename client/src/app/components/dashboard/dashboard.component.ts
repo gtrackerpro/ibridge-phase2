@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
 import { EmployeeService, Employee } from '../../services/employee.service';
 import { DemandService, Demand } from '../../services/demand.service';
@@ -243,7 +243,11 @@ export class DashboardComponent implements OnInit {
 
   getAverageMatchScore(): number {
     if (this.recentMatches.length === 0) return 0;
-    const totalScore = this.recentMatches.reduce((sum, match) => sum + match.matchScore, 0);
-    return Math.round(totalScore / this.recentMatches.length);
+    const total = this.recentMatches.reduce((sum, match) => sum + match.matchScore, 0);
+    return Math.round(total / this.recentMatches.length);
+  }
+
+  getHighUrgencySkillGaps(): number {
+    return this.skillGaps.filter(gap => gap.urgency === 'high').length || 0;
   }
 }
